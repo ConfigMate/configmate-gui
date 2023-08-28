@@ -1,6 +1,7 @@
-# extension-terminal-sample
+# CLI File Parser
 
-This extension shows how to leverage the extension terminal API stabilized in v1.39 that enables an extension to handle a terminal's input and emit output.
+This extension uses the extension terminal API stabilized in v1.39 that enables an extension to handle a terminal's input and emit output.  
+It is based on vscode's [cli-file-parser](https://github.com/Microsoft/vscode-extension-samples/tree/main/cli-file-parser).
 
 ## VS Code API
 
@@ -12,9 +13,12 @@ This extension shows how to leverage the extension terminal API stabilized in v1
 
 - [`contributes.commands`](https://code.visualstudio.com/api/references/contribution-points#contributes.commands)
 
-## Running the Sample
+## Run the Extension
 
 - Run `npm install` in terminal to install dependencies
-- Run the `Run Extension` target in the Debug View. This will:
-	- Start a task `npm: watch` to compile the code
-	- Run the extension in a new VS Code window
+- `npm run compile` to compile the extension
+- `npm run watch` to watch for changes
+- `F5` to run the extension in a new VScode window
+  - `Ctrl+Shift+P` to open the command palette
+    - `Hello World` to run the command
+  	- `Developer: Reload Window` to reload the extension in this new window to see any changes you've made

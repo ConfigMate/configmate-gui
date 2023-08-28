@@ -4,7 +4,7 @@ import * as vscode from 'vscode';
 
 export function activate(context: vscode.ExtensionContext) {
 	const writeEmitter = new vscode.EventEmitter<string>();
-	context.subscriptions.push(vscode.commands.registerCommand('extensionTerminalSample.create', () => {
+	context.subscriptions.push(vscode.commands.registerCommand('cliFileParser.create', () => {
 		let line = '';
 		const pty = {
 			onDidWrite: writeEmitter.event,
@@ -31,13 +31,14 @@ export function activate(context: vscode.ExtensionContext) {
 				writeEmitter.fire(data);
 			}
 		};
-		const terminal = vscode.window.createTerminal({ name: `My Extension REPL`, pty });
+		const terminal = vscode.window.createTerminal({ name: `CLI File Parser`, pty });
 		terminal.show();
 	}));
 
-	context.subscriptions.push(vscode.commands.registerCommand('extensionTerminalSample.clear', () => {
+	context.subscriptions.push(vscode.commands.registerCommand('cliFileParser.clear', () => {
 		writeEmitter.fire('\x1b[2J\x1b[3J\x1b[;H');
 	}));
+
 }
 
 function colorText(text: string): string {
