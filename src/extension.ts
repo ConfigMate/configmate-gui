@@ -2,58 +2,49 @@
 
 import * as vscode from 'vscode';
 
+import { DepNodeProvider, Dependency } from './nodeDependencies';
+import { JsonOutlineProvider } from './jsonOutline';
+import { FtpExplorer } from './ftpExplorer';
+import { FileExplorer } from './fileExplorer';
+import { TestViewDragAndDrop } from './testViewDragAndDrop';
+import { TestView } from './testView';
+
 export function activate(context: vscode.ExtensionContext) {
-	const writeEmitter = new vscode.EventEmitter<string>();
-	context.subscriptions.push(vscode.commands.registerCommand('cliFileParser.create', () => {
-		let line = '';
-		const pty = {
-			onDidWrite: writeEmitter.event,
-			open: () => writeEmitter.fire('Type and press enter to echo the text\r\n\r\n'),
-			close: () => { /* noop*/ },
-			handleInput: (data: string) => {
-				if (data === '\r') { // Enter
-					writeEmitter.fire(`\r\necho: "${colorText(line)}"\r\n\n`);
-					line = '';
-					return;
-				}
-				if (data === '\x7f') { // Backspace
-					if (line.length === 0) {
-						return;
-					}
-					line = line.substr(0, line.length - 1);
-					// Move cursor backward
-					writeEmitter.fire('\x1b[D');
-					// Delete character
-					writeEmitter.fire('\x1b[P');
-					return;
-				}
-				line += data;
-				writeEmitter.fire(data);
-			}
-		};
-		const terminal = vscode.window.createTerminal({ name: `CLI File Parser`, pty });
-		terminal.show();
-	}));
+	const rootPath = (vscode.workspace.workspaceFolders && (vscode.workspace.workspaceFolders.length > 0))
+		? vscode.workspace.workspaceFolders[0].uri.fsPath : undefined;
 
-	context.subscriptions.push(vscode.commands.registerCommand('cliFileParser.clear', () => {
-		writeEmitter.fire('\x1b[2J\x1b[3J\x1b[;H');
-	}));
+	// Samples of `window.registerTreeDataProvider`
+	const nodeDependenciesProvider = new DepNodeProvider(rootPath);
+	vscode.window.registerTreeDataProvider('nodeDependencies', nodeDependenciesProvider);
+	vscode.commands.registerCommand('nodeDependencies.refreshEntry', () => nodeDependenciesProvider.refresh());
+	vscode.commands.registerCommand('extension.openPackageOnNpm', moduleName => vscode.commands.executeCommand('vscode.open', vscode.Uri.parse(`https://www.npmjs.com/package/${moduleName}`)));
+	vscode.commands.registerCommand('nodeDependencies.addEntry', () => vscode.window.showInformationMessage(`Successfully called add entry.`));
+	vscode.commands.registerCommand('nodeDependencies.editEntry', (node: Dependency) => vscode.window.showInformationMessage(`Successfully called edit entry on ${node.label}.`));
+	vscode.commands.registerCommand('nodeDependencies.deleteEntry', (node: Dependency) => vscode.window.showInformationMessage(`Successfully called delete entry on ${node.label}.`));
 
-}
-
-function colorText(text: string): string {
-	let output = '';
-	let colorIndex = 1;
-	for (let i = 0; i < text.length; i++) {
-		const char = text.charAt(i);
-		if (char === ' ' || char === '\r' || char === '\n') {
-			output += char;
-		} else {
-			output += `\x1b[3${colorIndex++}m${text.charAt(i)}\x1b[0m`;
-			if (colorIndex > 6) {
-				colorIndex = 1;
-			}
+	const jsonOutlineProvider = new JsonOutlineProvider(context);
+	vscode.window.registerTreeDataProvider('jsonOutline', jsonOutlineProvider);
+	vscode.commands.registerCommand('jsonOutline.refresh', () => jsonOutlineProvider.refresh());
+	vscode.commands.registerCommand('jsonOutline.refreshNode', offset => jsonOutlineProvider.refresh(offset));
+	vscode.commands.registerCommand('jsonOutline.renameNode', args => {
+		let offset = undefined;
+		if (args.selectedTreeItems && args.selectedTreeItems.length) {
+			offset = args.selectedTreeItems[0];
+		} else if (typeof args === 'number') {
+			offset = args;
 		}
-	}
-	return output;
+		if (offset) {
+			jsonOutlineProvider.rename(offset);
+		}
+	});
+	vscode.commands.registerCommand('extension.openJsonSelection', range => jsonOutlineProvider.select(range));
+
+	// Samples of `window.createView`
+	new FtpExplorer(context);
+	new FileExplorer(context);
+
+	// Test View
+	new TestView(context);
+
+	new TestViewDragAndDrop(context);
 }
