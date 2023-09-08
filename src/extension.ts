@@ -18,7 +18,7 @@ const pty = {
 				Pass input to other functions defined outside of activate()
 				Currently, just echoes the input colorfully */
 
-				writeEmitter.fire(`\r\necho: "${colorText(input)}"\r\n\n`);
+				writeEmitter.fire(`\r\nfile ${colorText(input)} found at ${colorText("path")}\r\n\n`);
 				input = '';
 				return;
 			}
@@ -61,13 +61,7 @@ function parseMenu(choice: number, input: string): string {
 }
 
 function getMenu(): string {
-	const menu = `
-*********************************
-CHOOSE FROM THE FOLLOWING OPTIONS
-	1. Color my text
-	2. Fetch a file
-	3. Exit
-`;
+	const menu = `Name of config file to check: `;
 	return menu;
 }
 
