@@ -2,79 +2,49 @@
 
 import * as vscode from 'vscode';
 
-// Define the Pseudoterminal
-// https://code.visualstudio.com/api/references/vscode-api#Pseudoterminal
-
-let input = '';
-const writeEmitter = new vscode.EventEmitter<string>();
-const pty = {
-	onDidWrite: writeEmitter.event,
-	open: () => writeEmitter.fire(getMenu()),
-	close: () => { /* noop*/ },
-	handleInput: (keystroke: string) => {
-		switch (keystroke) {
-			case '\r': { // Enter
-				/* Handle user input here
-				Pass input to other functions defined outside of activate()
-				Currently, just echoes the input colorfully */
-
-				writeEmitter.fire(`\r\nfile ${colorText(input)} found at ${colorText("path")}\r\n\n`);
-				input = '';
-				return;
-			}
-			case '\x7f': { // Backspace
-				if (input.length === 0) return;
-				input = input.substr(0, input.length - 1);
-				// Move cursor backward
-				writeEmitter.fire('\x1b[D');
-				// Delete character
-				writeEmitter.fire('\x1b[P');
-				return;
-			}
-		}
-		input += keystroke;
-		writeEmitter.fire(keystroke);
-	}
-};
-
+import { DepNodeProvider, Dependency } from './nodeDependencies';
+import { JsonOutlineProvider } from './jsonOutline';
+import { FtpExplorer } from './ftpExplorer';
+import { FileExplorer } from './fileExplorer';
+import { TestViewDragAndDrop } from './testViewDragAndDrop';
+import { TestView } from './testView';
 
 export function activate(context: vscode.ExtensionContext) {
-	context.subscriptions.push(vscode.commands.registerCommand('cliFileParser.create', () => {
-		const terminal = vscode.window.createTerminal({ name: `CLI File Parser`, pty });
-		terminal.show();
-	}));
+	const rootPath = (vscode.workspace.workspaceFolders && (vscode.workspace.workspaceFolders.length > 0))
+		? vscode.workspace.workspaceFolders[0].uri.fsPath : undefined;
 
-	context.subscriptions.push(vscode.commands.registerCommand('cliFileParser.clear', () => {
-		writeEmitter.fire('\x1b[2J\x1b[3J\x1b[;H');
-	}));
+	// Samples of `window.registerTreeDataProvider`
+	const nodeDependenciesProvider = new DepNodeProvider(rootPath);
+	vscode.window.registerTreeDataProvider('nodeDependencies', nodeDependenciesProvider);
+	vscode.commands.registerCommand('nodeDependencies.refreshEntry', () => nodeDependenciesProvider.refresh());
+	vscode.commands.registerCommand('extension.openPackageOnNpm', moduleName => vscode.commands.executeCommand('vscode.open', vscode.Uri.parse(`https://www.npmjs.com/package/${moduleName}`)));
+	vscode.commands.registerCommand('nodeDependencies.addEntry', () => vscode.window.showInformationMessage(`Successfully called add entry.`));
+	vscode.commands.registerCommand('nodeDependencies.editEntry', (node: Dependency) => vscode.window.showInformationMessage(`Successfully called edit entry on ${node.label}.`));
+	vscode.commands.registerCommand('nodeDependencies.deleteEntry', (node: Dependency) => vscode.window.showInformationMessage(`Successfully called delete entry on ${node.label}.`));
 
-}
-
-function parseMenu(choice: number, input: string): string {
-	switch (choice) {
-		case 1: 
-			return colorText(input);
-		case 2: 
-			return `Fetching the file you requested: ${input}\r\n`;
-	}
-	return 'Something went wrong parsing your menu choice!\r\n';
-}
-
-function getMenu(): string {
-	const menu = `Name of config file to check: `;
-	return menu;
-}
-
-function colorText(text: string): string {
-	let output = '';
-	let colorIndex = 1;
-	for (let i = 0; i < text.length; i++) {
-		const char = text.charAt(i);
-		if (char === ' ' || char === '\r' || char === '\n') output += char;
-		else {
-			output += `\x1b[3${colorIndex++}m${text.charAt(i)}\x1b[0m`;
-			if (colorIndex > 6) colorIndex = 1;
+	const jsonOutlineProvider = new JsonOutlineProvider(context);
+	vscode.window.registerTreeDataProvider('jsonOutline', jsonOutlineProvider);
+	vscode.commands.registerCommand('jsonOutline.refresh', () => jsonOutlineProvider.refresh());
+	vscode.commands.registerCommand('jsonOutline.refreshNode', offset => jsonOutlineProvider.refresh(offset));
+	vscode.commands.registerCommand('jsonOutline.renameNode', args => {
+		let offset = undefined;
+		if (args.selectedTreeItems && args.selectedTreeItems.length) {
+			offset = args.selectedTreeItems[0];
+		} else if (typeof args === 'number') {
+			offset = args;
 		}
-	}
-	return output;
+		if (offset) {
+			jsonOutlineProvider.rename(offset);
+		}
+	});
+	vscode.commands.registerCommand('extension.openJsonSelection', range => jsonOutlineProvider.select(range));
+
+	// Samples of `window.createView`
+	new FtpExplorer(context);
+	new FileExplorer(context);
+
+	// Test View
+	new TestView(context);
+
+	new TestViewDragAndDrop(context);
 }
