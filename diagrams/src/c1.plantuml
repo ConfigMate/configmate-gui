@@ -1,0 +1,15 @@
+@startuml c1
+!include  https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+LAYOUT_WITH_LEGEND()
+
+title context
+
+Person(user, "Developer", "needs to verify their configurations")
+Container(ui, "VS Code Extension")
+System(configmate, "ConfigMate")
+
+Rel_R(user, ui, "Uses", "Websocket")
+Rel_R(ui, configmate, "Automates file verification")
+
+@enduml
