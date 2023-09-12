@@ -1,0 +1,27 @@
+@startuml c4
+!include  https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+title ConfigMate Containers
+
+Person(user, "Developer", "needs to verify their configurations")
+System_Boundary(extension, "VS Code Extension") {
+	Container(gui, "GUI", "TypeScript", "Provides graphical interaction with the ConfigMate program")
+	Container(api, "API", "TypeScript", "Routes requests and responses between GUI & server")
+	Container(server, "Server", "TypeScript", "Runs the ConfigMate program & hosts it for the API")
+	System_Boundary(configmate, "ConfigMate") {
+		Container(cli, "CLI", "GoLang", "Provides command-line interaction with the ConfigMate program")
+		Container(analyzer, "Analyzer", "GoLang", "Coordinates files, rules, and parsers")
+		Container(parser, "Parser", "GoLang", "Applies rules against files")
+	}
+}
+Rel(user, extension, "Installs", "VS Code")
+Rel(gui, api, "Uses", "HTTPS")
+Rel(api, server, "Uses", "HTTPS")
+Rel_U(server, configmate, "Uses", "HTTPS")
+Rel(user, gui, "Uses", "Side bar")
+Rel(user, cli, "Uses", "Terminal")
+Rel(cli, analyzer, "Uses")
+Rel(analyzer, parser, "Uses")
+Lay_Distance(cli,server,1)
+SHOW_FLOATING_LEGEND()
+@enduml
