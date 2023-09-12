@@ -1,7 +1,7 @@
-@startuml c1
+@startuml c4
 !include  https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
 
-title ConfigMate Context
+title ConfigMate VS Code Extension
 
 Person(user, "Developer", "needs to verify their configurations")
 System(configmate, "ConfigMate")
@@ -16,6 +16,6 @@ Rel_R(extension, configmate, "Uses", "HTTPS")
 Rel_U(extension, gui, "Provides")
 Rel_U(configmate, cli, "Provides")
 
-' SHOW_FLOATING_LEGEND()
+SHOW_FLOATING_LEGEND()
 
 @enduml

@@ -1,0 +1,20 @@
+@startuml gui
+!include  https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+title ConfigMate GUI
+
+Person(user, "Developer", "needs to verify their configurations")
+	System_Boundary(gui, "GUI") {
+		Container(sidebar, "Side bar")
+	}
+	Container(api, "ConfigMate API", "TypeScript", "Routes requests and responses between GUI & server")
+	Container(server, "Server", "TypeScript", "Runs the ConfigMate program & hosts it for the API")
+
+	Container(configmate, "ConfigMate")
+Rel(gui, api, "Uses", "HTTPS")
+Rel(api, server, "Uses", "HTTPS")
+Rel(server, configmate, "Uses", "HTTPS")
+Rel(user, gui, "Uses", "VS Code")
+
+SHOW_FLOATING_LEGEND()
+@enduml

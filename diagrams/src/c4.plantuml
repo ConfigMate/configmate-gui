@@ -1,7 +1,7 @@
-@startuml c1
+@startuml c4
 !include  https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
 
-title ConfigMate VS Code Extension
+title ConfigMate Containers
 
 Person(user, "Developer", "needs to verify their configurations")
 System_Boundary(extension, "VS Code Extension") {
