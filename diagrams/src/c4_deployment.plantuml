@@ -1,0 +1,30 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Deployment.puml
+
+!define C4PURL https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master
+!define SPRITEURL https://raw.githubusercontent.com/rabeler/plantuml-icon-font-sprites/v14.0/sprites
+!define AWSPUML https://raw.githubusercontent.com/awslabs/aws-icons-for-plantuml/v14.0/dist
+
+!define ICONURL https://raw.githubusercontent.com/tupadr3/plantuml-icon-font-sprites
+!includeurl ICONURL/common.puml
+!includeurl $vscode [16x16/24] from ICONURL/devicons2/vscode.puml
+
+
+title Azure DevOps Deployment for VS Code Extension
+
+Person(developer, "Developer", "Develops and pushes the VS Code extension")
+
+System(vscode, "VS Code Marketplace", "Where the extension is published and available for users")
+
+System_Boundary(azuredevops, "Azure DevOps") {
+    ContainerDb(repo, "Code Repository", "Git", "Stores the VS Code extension source code")
+    Container(ci, "CI Pipeline", "Azure Pipelines", "Builds and tests the VS Code extension")
+    Container(cd, "CD Pipeline", "Azure Pipelines", "Deploys the extension to the VS Code Marketplace")
+}
+
+Rel(developer, repo, "Pushes code to")
+Rel(repo, ci, "Triggers")
+Rel(ci, cd, "Passes build artifacts to")
+Rel(cd, vscode, "Deploys extension to")
+
+@enduml

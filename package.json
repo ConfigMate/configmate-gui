@@ -1,14 +1,14 @@
 {
 	"name": "configmate-gui",
-	"displayName": "cliFileParser",
+	"displayName": "ConfigMate-GUI",
 	"description": "",
 	"version": "0.0.1",
-	"publisher": "Kathleen Minckler",
+	"publisher": "ktminks",
 	"private": true,
 	"license": "MIT",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/ktminks/configmate-gui"
+		"url": "https://github.com/configmate/configmate-gui"
 	},
 	"engines": {
 		"vscode": "^1.74.0"
