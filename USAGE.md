@@ -33,7 +33,7 @@ Following, in the views object, you can then add a field with the same string as
         "activitybar": [
             {
                 "id": "package-explorer",
-                "title": "Package Explorer",
+                "title": "ConfigMate",
                 "icon": "media/dep.svg"
             }
         ]
