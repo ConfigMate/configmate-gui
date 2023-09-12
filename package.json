@@ -2,7 +2,7 @@
 	"name": "configmate-gui",
 	"displayName": "configmate-gui",
 	"description": "",
-	"version": "0.0.1",
+	"version": "0.1.0",
 	"publisher": "Kathleen Minckler",
 	"private": true,
 	"license": "MIT",
