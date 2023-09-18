@@ -22,12 +22,22 @@
 	],
 	"main": "./out/extension.js",
 	"contributes": {
+		"viewsWelcome": [
+			{
+				"view": "rulebooks",
+				"contents": "No rulebooks found.\n[Add Rulebook](command:rulebooks.addEntry)"
+			},
+			{
+				"view": "configFileExplorer",
+				"contents": "Select a rulebook above, or\n[Open File](command:configFileExplorer.openFile)"
+			}
+		],
 		"viewsContainers": {
 			"activitybar": [
 				{
 					"id": "configmate",
 					"title": "ConfigMate",
-					"icon": "media/dep.svg"
+					"icon": "$(beaker)"
 				}
 			]
 		},
@@ -36,31 +46,19 @@
 				{
 					"id": "rulebooks",
 					"name": "Rulebooks",
-					"icon": "media/dep.svg",
+					"icon": "$(book)",
 					"contextualTitle": "ConfigMate"
-				}
-			],
-			"explorer": [
+				},
+				{
+					"id": "configFileExplorer",
+					"name": "Configuration Files",
+					"icon": "$(settings)",
+					"contextualTitle": "ConfigMate"
+				},
 				{
 					"id": "jsonOutline",
 					"name": "Json Outline",
 					"when": "jsonOutlineEnabled"
-				},
-				{
-					"id": "ftpExplorer",
-					"name": "FTP Explorer"
-				},
-				{
-					"id": "fileExplorer",
-					"name": "File Explorer"
-				},
-				{
-					"id": "testView",
-					"name": "Test View"
-				},
-				{
-					"id": "testViewDragAndDrop",
-					"name": "Test View Drag and Drop"
 				}
 			]
 		},
@@ -68,90 +66,50 @@
 			{
 				"command": "rulebooks.refreshEntry",
 				"title": "Refresh",
-				"icon": {
-					"light": "resources/light/refresh.svg",
-					"dark": "resources/dark/refresh.svg"
-				}
+				"icon": "$(refresh)"
 			},
 			{
 				"command": "rulebooks.addEntry",
-				"title": "Add"
+				"title": "Add",
+				"icon": "$(add)"
 			},
 			{
 				"command": "rulebooks.editEntry",
 				"title": "Edit",
-				"icon": {
-					"light": "resources/light/edit.svg",
-					"dark": "resources/dark/edit.svg"
-				}
+				"icon": "$(edit)"
 			},
 			{
 				"command": "rulebooks.deleteEntry",
-				"title": "Delete"
-			},
-			{
-				"command": "ftpExplorer.refresh",
-				"title": "Refresh",
-				"icon": {
-					"light": "resources/light/refresh.svg",
-					"dark": "resources/dark/refresh.svg"
-				}
-			},
-			{
-				"command": "ftpExplorer.openFtpResource",
-				"title": "Open FTP Resource"
-			},
-			{
-				"command": "ftpExplorer.revealResource",
-				"title": "Reveal in FTP View"
+				"title": "Delete",
+				"icon": "$(trash)"
 			},
 			{
 				"command": "jsonOutline.refresh",
 				"title": "Refresh",
-				"icon": {
-					"light": "resources/light/refresh.svg",
-					"dark": "resources/dark/refresh.svg"
-				}
+				"icon": "$(refresh)"
 			},
 			{
 				"command": "jsonOutline.refreshNode",
 				"title": "Refresh",
-				"icon": {
-					"light": "resources/light/refresh.svg",
-					"dark": "resources/dark/refresh.svg"
-				}
+				"icon": "$(refresh)"
 			},
 			{
 				"command": "jsonOutline.renameNode",
-				"title": "Rename"
+				"title": "Rename",
+				"icon": "$(edit)"
 			},
 			{
-				"command": "fileExplorer.refreshFile",
+				"command": "configFileExplorer.refreshFile",
 				"title": "Refresh",
-				"icon": {
-					"light": "resources/light/refresh.svg",
-					"dark": "resources/dark/refresh.svg"
-				}
+				"icon": "$(refresh)"
 			},
 			{
-				"command": "fileExplorer.openFile",
-				"title": "Open File"
-			},
-			{
-				"command": "testView.reveal",
-				"title": "Test View: Reveal"
-			},
-			{
-				"command": "testView.changeTitle",
-				"title": "Test View: Change Title"
+				"command": "configFileExplorer.openFile",
+				"title": "Open File",
+				"icon": "$(folder-opened)"
 			}
 		],
 		"menus": {
-			"commandPalette": [
-				{
-					"command": "ftpExplorer.revealResource"
-				}
-			],
 			"view/title": [
 				{
 					"command": "rulebooks.refreshEntry",
@@ -169,11 +127,6 @@
 				{
 					"command": "jsonOutline.refresh",
 					"when": "view == jsonOutline",
-					"group": "navigation"
-				},
-				{
-					"command": "ftpExplorer.refresh",
-					"when": "view == ftpExplorer",
 					"group": "navigation"
 				}
 			],
@@ -197,8 +150,8 @@
 					"group": "inline"
 				},
 				{
-					"command": "fileExplorer.refreshFile",
-					"when": "view == fileExplorer && viewItem == file",
+					"command": "configFileExplorer.refreshFile",
+					"when": "view == configFileExplorer && viewItem == file",
 					"group": "inline"
 				}
 			]
@@ -209,7 +162,7 @@
 				"properties": {
 					"jsonOutline.autorefresh": {
 						"type": "boolean",
-						"default": false
+						"default": true
 					}
 				}
 			}
@@ -223,14 +176,12 @@
 		"test": "npm run compile && node ./node_modules/vscode/bin/test"
 	},
 	"dependencies": {
-		"ftp": "^0.3.10",
 		"jsonc-parser": "^0.4.2",
 		"minimist": "^1.2.6",
 		"mkdirp": "^0.5.1",
 		"rimraf": "^2.6.2"
 	},
 	"devDependencies": {
-		"@types/ftp": "^0.3.33",
 		"@types/mkdirp": "^0.5.2",
 		"@types/mocha": "^10.0.1",
 		"@types/node": "^16.18.34",
@@ -239,7 +190,7 @@
 		"@typescript-eslint/eslint-plugin": "^5.42.0",
 		"@typescript-eslint/parser": "^5.42.0",
 		"@vscode/test-electron": "^2.3.4",
-		"eslint": "^8.26.0",
+		"eslint": "^8.49.0",
 		"mocha": "^10.2.0",
 		"typescript": "^5.1.3"
 	}

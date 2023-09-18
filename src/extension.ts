@@ -2,25 +2,22 @@
 
 import * as vscode from 'vscode';
 
-import { DepNodeProvider, Rulebook } from './rulebooks';
+import { RuleProvider as RuleProvider, Rulebook } from './rulebooks';
 import { JsonOutlineProvider } from './jsonOutline';
-import { FtpExplorer } from './ftpExplorer';
-import { FileExplorer } from './fileExplorer';
-import { TestViewDragAndDrop } from './testViewDragAndDrop';
-import { TestView } from './testView';
+import { ConfigFileExplorer as ConfigFileExplorer } from './configFileExplorer';
 
 export function activate(context: vscode.ExtensionContext) {
 	const rootPath = (vscode.workspace.workspaceFolders && (vscode.workspace.workspaceFolders.length > 0))
 		? vscode.workspace.workspaceFolders[0].uri.fsPath : undefined;
 
 	// Samples of `window.registerTreeDataProvider`
-	const rulebooksProvider = new DepNodeProvider(rootPath);
-	vscode.window.registerTreeDataProvider('rulebooks', rulebooksProvider);
-	vscode.commands.registerCommand('rulebooks.refreshEntry', () => rulebooksProvider.refresh());
+	const ruleProvider = new RuleProvider(rootPath);
+	vscode.window.registerTreeDataProvider('rulebooks', ruleProvider);
+	vscode.commands.registerCommand('rulebooks.refreshEntry', () => ruleProvider.refresh());
 	vscode.commands.registerCommand('extension.openPackageOnNpm', moduleName => vscode.commands.executeCommand('vscode.open', vscode.Uri.parse(`https://www.npmjs.com/package/${moduleName}`)));
-	vscode.commands.registerCommand('rulebooks.addEntry', () => vscode.window.showInformationMessage(`Successfully called add entry.`));
-	vscode.commands.registerCommand('rulebooks.editEntry', (node: Rulebook) => vscode.window.showInformationMessage(`Successfully called edit entry on ${node.label}.`));
-	vscode.commands.registerCommand('rulebooks.deleteEntry', (node: Rulebook) => vscode.window.showInformationMessage(`Successfully called delete entry on ${node.label}.`));
+	vscode.commands.registerCommand('rulebooks.addEntry', () => vscode.window.showInformationMessage(`Added new rulebook.`));
+	vscode.commands.registerCommand('rulebooks.editEntry', (node: Rulebook) => vscode.window.showInformationMessage(`Updated rulebook ${node.label}.`));
+	vscode.commands.registerCommand('rulebooks.deleteEntry', (node: Rulebook) => vscode.window.showInformationMessage(`Deleted rulebook ${node.label}.`));
 
 	const jsonOutlineProvider = new JsonOutlineProvider(context);
 	vscode.window.registerTreeDataProvider('jsonOutline', jsonOutlineProvider);
@@ -40,11 +37,5 @@ export function activate(context: vscode.ExtensionContext) {
 	vscode.commands.registerCommand('extension.openJsonSelection', range => jsonOutlineProvider.select(range));
 
 	// Samples of `window.createView`
-	new FtpExplorer(context);
-	new FileExplorer(context);
-
-	// Test View
-	new TestView(context);
-
-	new TestViewDragAndDrop(context);
+	new ConfigFileExplorer(context);
 }

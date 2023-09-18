@@ -2,10 +2,10 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 
-export class RuleProvider implements vscode.TreeDataProvider<Rulebook> {
+export class RulesProvider implements vscode.TreeDataProvider<ConfigFile> {
 
-	private _onDidChangeTreeData: vscode.EventEmitter<Rulebook | undefined | void> = new vscode.EventEmitter<Rulebook | undefined | void>();
-	readonly onDidChangeTreeData: vscode.Event<Rulebook | undefined | void> = this._onDidChangeTreeData.event;
+	private _onDidChangeTreeData: vscode.EventEmitter<ConfigFile | undefined | void> = new vscode.EventEmitter<ConfigFile | undefined | void>();
+	readonly onDidChangeTreeData: vscode.Event<ConfigFile | undefined | void> = this._onDidChangeTreeData.event;
 
 	constructor(private workspaceRoot: string | undefined) {
 	}
@@ -14,13 +14,13 @@ export class RuleProvider implements vscode.TreeDataProvider<Rulebook> {
 		this._onDidChangeTreeData.fire();
 	}
 
-	getTreeItem(element: Rulebook): vscode.TreeItem {
+	getTreeItem(element: ConfigFile): vscode.TreeItem {
 		return element;
 	}
 
-	getChildren(element?: Rulebook): Thenable<Rulebook[]> {
+	getChildren(element?: ConfigFile): Thenable<ConfigFile[]> {
 		if (!this.workspaceRoot) {
-			// vscode.window.showInformationMessage('No rulebook in empty workspace');
+			// vscode.window.showInformationMessage('No configFile in empty workspace');
 			return Promise.resolve([]);
 		}
 
@@ -41,16 +41,16 @@ export class RuleProvider implements vscode.TreeDataProvider<Rulebook> {
 	/**
 	 * Given the path to package.json, read all its dependencies and devDependencies.
 	 */
-	private getDepsInPackageJson(packageJsonPath: string): Rulebook[] {
+	private getDepsInPackageJson(packageJsonPath: string): ConfigFile[] {
 		const workspaceRoot = this.workspaceRoot;
 		if (this.pathExists(packageJsonPath) && workspaceRoot) {
 			const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
 
-			const toDep = (moduleName: string, version: string): Rulebook => {
+			const toDep = (moduleName: string, version: string): ConfigFile => {
 				if (this.pathExists(path.join(workspaceRoot, 'node_modules', moduleName))) {
-					return new Rulebook(moduleName, version, vscode.TreeItemCollapsibleState.Collapsed);
+					return new ConfigFile(moduleName, version, vscode.TreeItemCollapsibleState.Collapsed);
 				} else {
-					return new Rulebook(moduleName, version, vscode.TreeItemCollapsibleState.None, {
+					return new ConfigFile(moduleName, version, vscode.TreeItemCollapsibleState.None, {
 						command: 'extension.openPackageOnNpm',
 						title: '',
 						arguments: [moduleName]
@@ -81,7 +81,7 @@ export class RuleProvider implements vscode.TreeDataProvider<Rulebook> {
 	}
 }
 
-export class Rulebook extends vscode.TreeItem {
+export class ConfigFile extends vscode.TreeItem {
 
 	constructor(
 		public readonly label: string,
@@ -95,10 +95,7 @@ export class Rulebook extends vscode.TreeItem {
 		this.description = this.version;
 	}
 
-	iconPath = {
-		light: path.join(__filename, '..', '..', 'resources', 'light', 'dependency.svg'),
-		dark: path.join(__filename, '..', '..', 'resources', 'dark', 'dependency.svg')
-	};
+	iconPath = "$(file-code)";
 
-	contextValue = 'rulebook';
+	contextValue = 'configFile';
 }

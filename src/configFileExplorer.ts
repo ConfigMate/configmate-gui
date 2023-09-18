@@ -290,18 +290,18 @@ export class FileSystemProvider implements vscode.TreeDataProvider<Entry>, vscod
 	getTreeItem(element: Entry): vscode.TreeItem {
 		const treeItem = new vscode.TreeItem(element.uri, element.type === vscode.FileType.Directory ? vscode.TreeItemCollapsibleState.Collapsed : vscode.TreeItemCollapsibleState.None);
 		if (element.type === vscode.FileType.File) {
-			treeItem.command = { command: 'fileExplorer.openFile', title: "Open File", arguments: [element.uri], };
+			treeItem.command = { command: 'configFileExplorer.openFile', title: "Open File", arguments: [element.uri], };
 			treeItem.contextValue = 'file';
 		}
 		return treeItem;
 	}
 }
 
-export class FileExplorer {
+export class ConfigFileExplorer {
 	constructor(context: vscode.ExtensionContext) {
 		const treeDataProvider = new FileSystemProvider();
-		context.subscriptions.push(vscode.window.createTreeView('fileExplorer', { treeDataProvider }));
-		vscode.commands.registerCommand('fileExplorer.openFile', (resource) => this.openResource(resource));
+		context.subscriptions.push(vscode.window.createTreeView('configFileExplorer', { treeDataProvider }));
+		vscode.commands.registerCommand('configFileExplorer.openFile', (resource) => this.openResource(resource));
 	}
 
 	private openResource(resource: vscode.Uri): void {
