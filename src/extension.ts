@@ -2,7 +2,7 @@
 
 import * as vscode from 'vscode';
 
-import { DepNodeProvider, Dependency } from './nodeDependencies';
+import { DepNodeProvider, Rulebook } from './rulebooks';
 import { JsonOutlineProvider } from './jsonOutline';
 import { FtpExplorer } from './ftpExplorer';
 import { FileExplorer } from './fileExplorer';
@@ -14,13 +14,13 @@ export function activate(context: vscode.ExtensionContext) {
 		? vscode.workspace.workspaceFolders[0].uri.fsPath : undefined;
 
 	// Samples of `window.registerTreeDataProvider`
-	const nodeDependenciesProvider = new DepNodeProvider(rootPath);
-	vscode.window.registerTreeDataProvider('nodeDependencies', nodeDependenciesProvider);
-	vscode.commands.registerCommand('nodeDependencies.refreshEntry', () => nodeDependenciesProvider.refresh());
+	const rulebooksProvider = new DepNodeProvider(rootPath);
+	vscode.window.registerTreeDataProvider('rulebooks', rulebooksProvider);
+	vscode.commands.registerCommand('rulebooks.refreshEntry', () => rulebooksProvider.refresh());
 	vscode.commands.registerCommand('extension.openPackageOnNpm', moduleName => vscode.commands.executeCommand('vscode.open', vscode.Uri.parse(`https://www.npmjs.com/package/${moduleName}`)));
-	vscode.commands.registerCommand('nodeDependencies.addEntry', () => vscode.window.showInformationMessage(`Successfully called add entry.`));
-	vscode.commands.registerCommand('nodeDependencies.editEntry', (node: Dependency) => vscode.window.showInformationMessage(`Successfully called edit entry on ${node.label}.`));
-	vscode.commands.registerCommand('nodeDependencies.deleteEntry', (node: Dependency) => vscode.window.showInformationMessage(`Successfully called delete entry on ${node.label}.`));
+	vscode.commands.registerCommand('rulebooks.addEntry', () => vscode.window.showInformationMessage(`Successfully called add entry.`));
+	vscode.commands.registerCommand('rulebooks.editEntry', (node: Rulebook) => vscode.window.showInformationMessage(`Successfully called edit entry on ${node.label}.`));
+	vscode.commands.registerCommand('rulebooks.deleteEntry', (node: Rulebook) => vscode.window.showInformationMessage(`Successfully called delete entry on ${node.label}.`));
 
 	const jsonOutlineProvider = new JsonOutlineProvider(context);
 	vscode.window.registerTreeDataProvider('jsonOutline', jsonOutlineProvider);
