@@ -33,25 +33,29 @@ Stay updated with the changes to the extension by viewing our [CHANGELOG.md](htt
 Thanks to these wonderful people:
 
 <div style="display: flex; justify-content: space-evenly;">
-    <a href="https://github.com/javier-arango" target="_blank"
-	 style="display: block; text-align: center;">
-      <img src="https://avatars.githubusercontent.com/u/58098790?s=60"/><br />
-      <sub><b>Javier Arango</b></sub>
+    <a href="https://github.com/javier-arango" target="_blank">
+	    <div style="text-align: center;">
+        <img src="https://avatars.githubusercontent.com/u/58098790?s=60"/><br />
+        <sub><b>Javier Arango</b></sub>
+      </div>
     </a>
-    <a href="https://github.com/Jcabza008" target="_blank"
-	 style="display: block; text-align: center;">
-      <img src="https://avatars.githubusercontent.com/u/34218922?s=60"/><br />
-      <sub><b>Julio J. Cabrera</b></sub>
+    <a href="https://github.com/Jcabza008" target="_blank">
+	    <div style="text-align: center;">
+        <img src="https://avatars.githubusercontent.com/u/34218922?s=60"/><br />
+        <sub><b>Julio J. Cabrera</b></sub>
+      </div>
     </a>
-    <a href="https://github.com/jeangregorfonrose" target="_blank"
-	 style="display: block; text-align: center;">
-      <img src="https://avatars.githubusercontent.com/u/21975726?s=60"/><br />
-      <sub><b>Jean Gregor Fonrose</b></sub>
+    <a href="https://github.com/jeangregorfonrose" target="_blank">
+	    <div style="text-align: center;">
+        <img src="https://avatars.githubusercontent.com/u/21975726?s=60"/><br />
+        <sub><b>Jean Gregor Fonrose</b></sub>
+      </div>
     </a>
-    <a href="https://github.com/ktminks" target="_blank"
-	 style="display: block; text-align: center;">
-      <img src="https://avatars.githubusercontent.com/u/19628386?s=60"/><br />
-      <sub><b>Katie Minckler</b></sub>
+    <a href="https://github.com/ktminks" target="_blank">
+	    <div style="text-align: center;">
+        <img src="https://avatars.githubusercontent.com/u/19628386?s=60"/><br />
+        <sub><b>Katie Minckler</b></sub>
+      </div>
     </a>
 </div>
 
