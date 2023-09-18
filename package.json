@@ -1,14 +1,14 @@
 {
 	"name": "configmate-gui",
-	"displayName": "configmate-gui",
+	"displayName": "ConfigMate",
 	"description": "",
-	"version": "0.0.1",
-	"publisher": "Kathleen Minckler",
+	"version": "0.1.0",
+	"publisher": "ConfigMate",
 	"private": true,
 	"license": "MIT",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/ktminks/configmate-gui"
+		"url": "https://github.com/ConfigMate/configmate-gui"
 	},
 	"engines": {
 		"vscode": "^1.74.0"
