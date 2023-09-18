@@ -220,7 +220,7 @@
 		"compile": "tsc -p ./",
 		"watch": "tsc -watch -p ./",
 		"lint": "eslint \"src/**/*.ts\"",
-		"test": "code \\ --extensionDevelopmentPath=<EXTENSION-ROOT-PATH> \\ --extensionTestsPath=<TEST-RUNNER-SCRIPT-PATH>"
+		"test": "npm run compile && node ./node_modules/vscode/bin/test"
 	},
 	"dependencies": {
 		"ftp": "^0.3.10",
