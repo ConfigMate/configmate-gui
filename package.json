@@ -28,8 +28,8 @@
 				"contents": "No rulebooks found.\n[Add Rulebook](command:rulebooks.addEntry)"
 			},
 			{
-				"view": "configFileExplorer",
-				"contents": "Select a rulebook above, or\n[Open File](command:configFileExplorer.openFile)"
+				"view": "configFiles",
+				"contents": "Select a rulebook above, or\n[Open Folder](command:configFiles.openFolder)"
 			}
 		],
 		"viewsContainers": {
@@ -50,15 +50,12 @@
 					"contextualTitle": "ConfigMate"
 				},
 				{
-					"id": "configFileExplorer",
+					"id": "configFiles",
 					"name": "Configuration Files",
 					"icon": "$(settings)",
-					"contextualTitle": "ConfigMate"
-				},
-				{
-					"id": "jsonOutline",
-					"name": "Json Outline",
-					"when": "jsonOutlineEnabled"
+					"contextualTitle": "ConfigMate",
+					"type": "tree",
+					"treeDataProvider": "configFileProvider"
 				}
 			]
 		},
@@ -84,28 +81,13 @@
 				"icon": "$(trash)"
 			},
 			{
-				"command": "jsonOutline.refresh",
-				"title": "Refresh",
+				"command": "extension.refreshConfigFiles",
+				"title": "Refresh Config Files",
 				"icon": "$(refresh)"
 			},
 			{
-				"command": "jsonOutline.refreshNode",
-				"title": "Refresh",
-				"icon": "$(refresh)"
-			},
-			{
-				"command": "jsonOutline.renameNode",
-				"title": "Rename",
-				"icon": "$(edit)"
-			},
-			{
-				"command": "configFileExplorer.refreshFile",
-				"title": "Refresh",
-				"icon": "$(refresh)"
-			},
-			{
-				"command": "configFileExplorer.openFile",
-				"title": "Open File",
+				"command": "configFiles.openFolder",
+				"title": "Open Folder",
 				"icon": "$(folder-opened)"
 			}
 		],
@@ -117,16 +99,12 @@
 					"group": "navigation"
 				},
 				{
-					"command": "jsonOutline.renameNode",
-					"when": "view == jsonOutline"
-				},
-				{
 					"command": "rulebooks.addEntry",
 					"when": "view == rulebooks"
 				},
 				{
-					"command": "jsonOutline.refresh",
-					"when": "view == jsonOutline",
+					"command": "extension.refreshConfigFiles",
+					"when": "view == configFiles",
 					"group": "navigation"
 				}
 			],
@@ -139,34 +117,9 @@
 				{
 					"command": "rulebooks.deleteEntry",
 					"when": "view == rulebooks && viewItem == rulebook"
-				},
-				{
-					"command": "jsonOutline.renameNode",
-					"when": "view == jsonOutline"
-				},
-				{
-					"command": "jsonOutline.refreshNode",
-					"when": "view == jsonOutline",
-					"group": "inline"
-				},
-				{
-					"command": "configFileExplorer.refreshFile",
-					"when": "view == configFileExplorer && viewItem == file",
-					"group": "inline"
 				}
 			]
-		},
-		"configuration": [
-			{
-				"title": "JSON Outline",
-				"properties": {
-					"jsonOutline.autorefresh": {
-						"type": "boolean",
-						"default": true
-					}
-				}
-			}
-		]
+		}
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",

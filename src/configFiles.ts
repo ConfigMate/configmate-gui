@@ -1,8 +1,7 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
-
-export class RulesProvider implements vscode.TreeDataProvider<ConfigFile> {
+export class ConfigFileProvider implements vscode.TreeDataProvider<ConfigFile> {
 
 	private _onDidChangeTreeData: vscode.EventEmitter<ConfigFile | undefined | void> = new vscode.EventEmitter<ConfigFile | undefined | void>();
 	readonly onDidChangeTreeData: vscode.Event<ConfigFile | undefined | void> = this._onDidChangeTreeData.event;
@@ -18,56 +17,47 @@ export class RulesProvider implements vscode.TreeDataProvider<ConfigFile> {
 		return element;
 	}
 
-	getChildren(element?: ConfigFile): Thenable<ConfigFile[]> {
+	async getChildren(element?: ConfigFile): Promise<ConfigFile[]> {
 		if (!this.workspaceRoot) {
 			// vscode.window.showInformationMessage('No configFile in empty workspace');
 			return Promise.resolve([]);
 		}
 
-		if (element) {
-			return Promise.resolve(this.getDepsInPackageJson(path.join(this.workspaceRoot, 'node_modules', element.label, 'package.json')));
-		} else {
-			const packageJsonPath = path.join(this.workspaceRoot, 'package.json');
-			if (this.pathExists(packageJsonPath)) {
-				return Promise.resolve(this.getDepsInPackageJson(packageJsonPath));
-			} else {
-				vscode.window.showInformationMessage('Workspace has no package.json');
-				return Promise.resolve([]);
-			}
-		}
+		const pattern = '**/*.{json,yaml,yml,xml,ini,conf,.gitignore,.mod}'; // Add more extensions if needed
 
+		if (element) {
+			return Promise.resolve(this.getAllConfigFiles(pattern));
+		} else {
+			vscode.window.showInformationMessage('Workspace has no config files');
+			return Promise.resolve([]);
+		}
 	}
 
+
 	/**
-	 * Given the path to package.json, read all its dependencies and devDependencies.
+	 * Find all config files in the current workspace (including subfolders)
+	 * @param pattern Glob pattern to match config file extensions
 	 */
-	private getDepsInPackageJson(packageJsonPath: string): ConfigFile[] {
-		const workspaceRoot = this.workspaceRoot;
-		if (this.pathExists(packageJsonPath) && workspaceRoot) {
-			const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
+	private getAllConfigFiles(pattern: string): ConfigFile[] {
+		const toConfigFile = (label: string, uri: vscode.Uri): ConfigFile => {
+			return new ConfigFile(label, uri, vscode.TreeItemCollapsibleState.None, {
+				command: 'vscode.openFolder',
+				title: 'Open Folder',
+				arguments: [uri]
+			});
+		};
 
-			const toDep = (moduleName: string, version: string): ConfigFile => {
-				if (this.pathExists(path.join(workspaceRoot, 'node_modules', moduleName))) {
-					return new ConfigFile(moduleName, version, vscode.TreeItemCollapsibleState.Collapsed);
-				} else {
-					return new ConfigFile(moduleName, version, vscode.TreeItemCollapsibleState.None, {
-						command: 'extension.openPackageOnNpm',
-						title: '',
-						arguments: [moduleName]
-					});
-				}
-			};
+		const uris = vscode.workspace.findFiles(pattern, '**/node_modules/**');
+		const ConfigFiles: ConfigFile[] = [];
+		// Convert the uris to ConfigFile objects
+		Promise.resolve(uris).then((uris) => {
+				return uris.map((uri) => {
+					ConfigFiles.push(toConfigFile(path.basename(uri.fsPath), uri));
+				});
+			}
+		);
 
-			const deps = packageJson.dependencies
-				? Object.keys(packageJson.dependencies).map(dep => toDep(dep, packageJson.dependencies[dep]))
-				: [];
-			const devDeps = packageJson.devDependencies
-				? Object.keys(packageJson.devDependencies).map(dep => toDep(dep, packageJson.devDependencies[dep]))
-				: [];
-			return deps.concat(devDeps);
-		} else {
-			return [];
-		}
+		return ConfigFiles;
 	}
 
 	private pathExists(p: string): boolean {
@@ -79,22 +69,25 @@ export class RulesProvider implements vscode.TreeDataProvider<ConfigFile> {
 
 		return true;
 	}
+
+	public openFolder(): any {
+		return (uri: vscode.Uri) => {
+			vscode.commands.executeCommand('vscode.openFolder', uri);
+		};
+	}
 }
 
 export class ConfigFile extends vscode.TreeItem {
-
 	constructor(
 		public readonly label: string,
-		private readonly version: string,
+		public readonly uri: vscode.Uri,
 		public readonly collapsibleState: vscode.TreeItemCollapsibleState,
 		public readonly command?: vscode.Command
 	) {
 		super(label, collapsibleState);
-
-		this.tooltip = `${this.label}-${this.version}`;
-		this.description = this.version;
+		this.tooltip = uri.fsPath;
+		this.description = path.dirname(uri.fsPath);
 	}
-
 	iconPath = "$(file-code)";
 
 	contextValue = 'configFile';

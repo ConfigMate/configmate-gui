@@ -31,7 +31,7 @@ export class RuleProvider implements vscode.TreeDataProvider<Rulebook> {
 			if (this.pathExists(packageJsonPath)) {
 				return Promise.resolve(this.getDepsInPackageJson(packageJsonPath));
 			} else {
-				vscode.window.showInformationMessage('Workspace has no package.json');
+				vscode.window.showInformationMessage('No rulebook found');
 				return Promise.resolve([]);
 			}
 		}
