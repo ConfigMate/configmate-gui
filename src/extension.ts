@@ -17,10 +17,7 @@ export function activate(context: vscode.ExtensionContext) {
 	vscode.commands.registerCommand('rulebooks.editEntry', (node: Rulebook) => vscode.window.showInformationMessage(`Updated rulebook ${node.label}.`));
 	vscode.commands.registerCommand('rulebooks.deleteEntry', (node: Rulebook) => vscode.window.showInformationMessage(`Deleted rulebook ${node.label}.`));
 
-	const configFileProvider = new ConfigFileProvider(rootPath);
-	vscode.window.registerTreeDataProvider('configFiles', configFileProvider);
-
-	// Optional: Command to refresh the tree view
-	vscode.commands.registerCommand('extension.refreshConfigFiles', () => configFileProvider.refresh());
-	vscode.commands.registerCommand('configFiles.openFolder', configFileProvider.openFolder());
+	const configFileProvider = new ConfigFileProvider();
+	context.subscriptions.push(vscode.window.registerTreeDataProvider('configFiles', configFileProvider));
+	context.subscriptions.push(vscode.commands.registerCommand('extension.refreshConfigFiles', () => configFileProvider.refresh()));
 }
