@@ -2,15 +2,11 @@
 
 import * as vscode from 'vscode';
 
-import { RuleProvider, Rulebook } from './rulebooks';
+import { RulebookProvider, Rulebook } from './rulebooks';
 import { ConfigFileProvider} from './configFiles';
 
 export function activate(context: vscode.ExtensionContext) {
-	const rootPath = (vscode.workspace.workspaceFolders && (vscode.workspace.workspaceFolders.length > 0))
-		? vscode.workspace.workspaceFolders[0].uri.fsPath : undefined;
-
-	// Sample of `window.registerTreeDataProvider`
-	const ruleProvider = new RuleProvider(rootPath);
+	const ruleProvider = new RulebookProvider();
 	vscode.window.registerTreeDataProvider('rulebooks', ruleProvider);
 	vscode.commands.registerCommand('rulebooks.refreshEntry', () => ruleProvider.refresh());
 	vscode.commands.registerCommand('rulebooks.addEntry', () => vscode.window.showInformationMessage(`Added new rulebook.`));
