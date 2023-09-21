@@ -16,204 +16,99 @@
 	"categories": [
 		"Other"
 	],
-	"activationEvents": [
-		"onLanguage:json",
-		"onLanguage:jsonc"
-	],
 	"main": "./out/extension.js",
 	"contributes": {
+		"viewsWelcome": [
+			{
+				"view": "rulebooks",
+				"contents": "No rulebooks found.\n[Add Rulebook](command:rulebooks.addEntry)"
+			},
+			{
+				"view": "configFiles",
+				"contents": "Select a rulebook above, or\n[Open Folder](command:vscode.openFolder)"
+			}
+		],
 		"viewsContainers": {
 			"activitybar": [
 				{
-					"id": "package-explorer",
+					"id": "configmate",
 					"title": "ConfigMate",
-					"icon": "media/dep.svg"
+					"icon": "$(beaker)"
 				}
 			]
 		},
 		"views": {
-			"package-explorer": [
+			"configmate": [
 				{
-					"id": "nodeDependencies",
-					"name": "Node Dependencies",
-					"icon": "media/dep.svg",
+					"id": "rulebooks",
+					"name": "Rulebooks",
+					"icon": "$(book)",
 					"contextualTitle": "ConfigMate"
-				}
-			],
-			"explorer": [
-				{
-					"id": "jsonOutline",
-					"name": "Json Outline",
-					"when": "jsonOutlineEnabled"
 				},
 				{
-					"id": "ftpExplorer",
-					"name": "FTP Explorer"
-				},
-				{
-					"id": "fileExplorer",
-					"name": "File Explorer"
-				},
-				{
-					"id": "testView",
-					"name": "Test View"
-				},
-				{
-					"id": "testViewDragAndDrop",
-					"name": "Test View Drag and Drop"
+					"id": "configFiles",
+					"name": "Configuration Files",
+					"icon": "$(settings)",
+					"contextualTitle": "ConfigMate"
 				}
 			]
 		},
 		"commands": [
 			{
-				"command": "nodeDependencies.refreshEntry",
+				"command": "rulebooks.refreshEntry",
 				"title": "Refresh",
-				"icon": {
-					"light": "resources/light/refresh.svg",
-					"dark": "resources/dark/refresh.svg"
-				}
+				"icon": "$(refresh)"
 			},
 			{
-				"command": "nodeDependencies.addEntry",
-				"title": "Add"
+				"command": "rulebooks.addEntry",
+				"title": "Add",
+				"icon": "$(add)"
 			},
 			{
-				"command": "nodeDependencies.editEntry",
+				"command": "rulebooks.editEntry",
 				"title": "Edit",
-				"icon": {
-					"light": "resources/light/edit.svg",
-					"dark": "resources/dark/edit.svg"
-				}
+				"icon": "$(edit)"
 			},
 			{
-				"command": "nodeDependencies.deleteEntry",
-				"title": "Delete"
+				"command": "rulebooks.deleteEntry",
+				"title": "Delete",
+				"icon": "$(trash)"
 			},
 			{
-				"command": "ftpExplorer.refresh",
-				"title": "Refresh",
-				"icon": {
-					"light": "resources/light/refresh.svg",
-					"dark": "resources/dark/refresh.svg"
-				}
-			},
-			{
-				"command": "ftpExplorer.openFtpResource",
-				"title": "Open FTP Resource"
-			},
-			{
-				"command": "ftpExplorer.revealResource",
-				"title": "Reveal in FTP View"
-			},
-			{
-				"command": "jsonOutline.refresh",
-				"title": "Refresh",
-				"icon": {
-					"light": "resources/light/refresh.svg",
-					"dark": "resources/dark/refresh.svg"
-				}
-			},
-			{
-				"command": "jsonOutline.refreshNode",
-				"title": "Refresh",
-				"icon": {
-					"light": "resources/light/refresh.svg",
-					"dark": "resources/dark/refresh.svg"
-				}
-			},
-			{
-				"command": "jsonOutline.renameNode",
-				"title": "Rename"
-			},
-			{
-				"command": "fileExplorer.refreshFile",
-				"title": "Refresh",
-				"icon": {
-					"light": "resources/light/refresh.svg",
-					"dark": "resources/dark/refresh.svg"
-				}
-			},
-			{
-				"command": "fileExplorer.openFile",
-				"title": "Open File"
-			},
-			{
-				"command": "testView.reveal",
-				"title": "Test View: Reveal"
-			},
-			{
-				"command": "testView.changeTitle",
-				"title": "Test View: Change Title"
+				"command": "extension.refreshConfigFiles",
+				"title": "Refresh Config Files",
+				"icon": "$(refresh)"
 			}
 		],
 		"menus": {
-			"commandPalette": [
-				{
-					"command": "ftpExplorer.revealResource"
-				}
-			],
 			"view/title": [
 				{
-					"command": "nodeDependencies.refreshEntry",
-					"when": "view == nodeDependencies",
+					"command": "rulebooks.refreshEntry",
+					"when": "view == rulebooks",
 					"group": "navigation"
 				},
 				{
-					"command": "jsonOutline.renameNode",
-					"when": "view == jsonOutline"
+					"command": "rulebooks.addEntry",
+					"when": "view == rulebooks"
 				},
 				{
-					"command": "nodeDependencies.addEntry",
-					"when": "view == nodeDependencies"
-				},
-				{
-					"command": "jsonOutline.refresh",
-					"when": "view == jsonOutline",
-					"group": "navigation"
-				},
-				{
-					"command": "ftpExplorer.refresh",
-					"when": "view == ftpExplorer",
+					"command": "extension.refreshConfigFiles",
+					"when": "view == configFiles",
 					"group": "navigation"
 				}
 			],
 			"view/item/context": [
 				{
-					"command": "nodeDependencies.editEntry",
-					"when": "view == nodeDependencies && viewItem == dependency",
+					"command": "rulebooks.editEntry",
+					"when": "view == rulebooks && viewItem == rulebook",
 					"group": "inline"
 				},
 				{
-					"command": "nodeDependencies.deleteEntry",
-					"when": "view == nodeDependencies && viewItem == dependency"
-				},
-				{
-					"command": "jsonOutline.renameNode",
-					"when": "view == jsonOutline"
-				},
-				{
-					"command": "jsonOutline.refreshNode",
-					"when": "view == jsonOutline",
-					"group": "inline"
-				},
-				{
-					"command": "fileExplorer.refreshFile",
-					"when": "view == fileExplorer && viewItem == file",
-					"group": "inline"
+					"command": "rulebooks.deleteEntry",
+					"when": "view == rulebooks && viewItem == rulebook"
 				}
 			]
-		},
-		"configuration": [
-			{
-				"title": "JSON Outline",
-				"properties": {
-					"jsonOutline.autorefresh": {
-						"type": "boolean",
-						"default": false
-					}
-				}
-			}
-		]
+		}
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
@@ -223,14 +118,12 @@
 		"test": "npm run compile && node ./node_modules/vscode/bin/test"
 	},
 	"dependencies": {
-		"ftp": "^0.3.10",
 		"jsonc-parser": "^0.4.2",
 		"minimist": "^1.2.6",
 		"mkdirp": "^0.5.1",
 		"rimraf": "^2.6.2"
 	},
 	"devDependencies": {
-		"@types/ftp": "^0.3.33",
 		"@types/mkdirp": "^0.5.2",
 		"@types/mocha": "^10.0.1",
 		"@types/node": "^16.18.34",
@@ -239,7 +132,7 @@
 		"@typescript-eslint/eslint-plugin": "^5.42.0",
 		"@typescript-eslint/parser": "^5.42.0",
 		"@vscode/test-electron": "^2.3.4",
-		"eslint": "^8.26.0",
+		"eslint": "^8.49.0",
 		"mocha": "^10.2.0",
 		"typescript": "^5.1.3"
 	}
