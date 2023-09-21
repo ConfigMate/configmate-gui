@@ -1,9 +1,11 @@
 'use strict';
 
 import * as vscode from 'vscode';
+import * as path from 'path';
 
 import { RulebookProvider, Rulebook } from './rulebooks';
 import { ConfigFileProvider} from './configFiles';
+import { ConfigMateProvider } from './configMate';
 
 export function activate(context: vscode.ExtensionContext) {
 	const ruleProvider = new RulebookProvider();
@@ -16,4 +18,12 @@ export function activate(context: vscode.ExtensionContext) {
 	const configFileProvider = new ConfigFileProvider();
 	context.subscriptions.push(vscode.window.registerTreeDataProvider('configFiles', configFileProvider));
 	context.subscriptions.push(vscode.commands.registerCommand('extension.refreshConfigFiles', () => configFileProvider.refresh()));
+
+	const mockProgramPath = path.join(context.extensionPath, 'ConfigMate');
+	// console.log(`Using mock program path: ${mockProgramPath}`);
+	const configMateProvider = new ConfigMateProvider(mockProgramPath);
+	context.subscriptions.push(vscode.commands.registerCommand('extension.runConfigMateCommand', (uri: vscode.Uri) => {
+		console.log('Run ConfigMate Command Invoked'); // Log when the command is invoked
+		configMateProvider.runCommand(uri.fsPath);
+	}));
 }

@@ -55,6 +55,11 @@
 		},
 		"commands": [
 			{
+				"command": "extension.runConfigMateCommand",
+				"title": "Run ConfigMate Command",
+				"category": "configMate"
+			},
+			{
 				"command": "rulebooks.refreshEntry",
 				"title": "Refresh",
 				"icon": "$(refresh)"
@@ -106,12 +111,18 @@
 				{
 					"command": "rulebooks.deleteEntry",
 					"when": "view == rulebooks && viewItem == rulebook"
+				},
+				{
+					"command": "extension.runConfigMateCommand",
+					"when": "view == configFiles && viewItem == configFile",
+					"group": "inline"
 				}
 			]
 		}
 	},
 	"scripts": {
-		"vscode:prepublish": "npm run compile",
+		"vscode:prepublish": "npm run configMate && npm run compile",
+		"configMate": "go build bin/configMate.go",
 		"compile": "tsc -p ./",
 		"watch": "tsc -watch -p ./",
 		"lint": "eslint \"src/**/*.ts\"",

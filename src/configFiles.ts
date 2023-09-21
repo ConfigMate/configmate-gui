@@ -8,6 +8,7 @@ class ConfigFile extends vscode.TreeItem {
 		public readonly command?: vscode.Command
 	) {
 		super(label, collapsibleState);
+		this.contextValue = 'configFile';
 	}
 }
 
@@ -41,7 +42,7 @@ export class ConfigFileProvider implements vscode.TreeDataProvider<ConfigFile> {
 							path.basename(uri.fsPath),
 							vscode.TreeItemCollapsibleState.None,
 							{
-								command: 'vscode.open',
+								command: 'vscode.open' || 'extension.runConfigMateCommand',
 								title: '',
 								arguments: [uri],
 							}
