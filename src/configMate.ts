@@ -9,9 +9,23 @@ export class ConfigMateProvider {
 		this.cliPath = cliPath;
 	}
 
-	runCommand(filePath: string): void {
+	checkConfigFile(filePath: string): void {
 		console.log(`Executing ${this.cliPath} with ${filePath}`);
+		vscode.window.showInformationMessage(`Executing ${this.cliPath} with ${filePath}`);
 
+		this.logFilePath(filePath);
+	}
+
+	checkAllConfigFiles(): void {
+		// get all ConfigFile nodes
+		
+		
+		// for each node, call checkConfigFile
+
+
+	}
+
+	logFilePath(filePath: string): void {
 		const child = spawn(this.cliPath, [filePath]);
 
 		child.stdout.on('data', (data) => {

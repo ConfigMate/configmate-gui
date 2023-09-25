@@ -42,7 +42,7 @@ export class ConfigFileProvider implements vscode.TreeDataProvider<ConfigFile> {
 							path.basename(uri.fsPath),
 							vscode.TreeItemCollapsibleState.None,
 							{
-								command: 'vscode.open' || 'extension.runConfigMateCommand',
+								command: 'vscode.open' || 'extension.checkConfigFile',
 								title: '',
 								arguments: [uri.fsPath],
 							}

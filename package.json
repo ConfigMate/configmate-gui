@@ -55,9 +55,14 @@
 		},
 		"commands": [
 			{
-				"command": "extension.runConfigMateCommand",
-				"title": "Run ConfigMate Command",
-				"category": "configMate"
+				"command": "extension.checkConfigFiles",
+				"title": "Check All Config Files",
+				"icon": "$(check)"
+			},
+			{
+				"command": "extension.checkConfigFile",
+				"title": "Check Config File",
+				"icon": "$(check-all)"
 			},
 			{
 				"command": "rulebooks.refreshEntry",
@@ -88,6 +93,11 @@
 		"menus": {
 			"view/title": [
 				{
+					"command": "extension.checkConfigFile",
+					"when": "view == configFiles",
+					"group": "navigation"
+				},
+				{
 					"command": "rulebooks.refreshEntry",
 					"when": "view == rulebooks",
 					"group": "navigation"
@@ -113,7 +123,7 @@
 					"when": "view == rulebooks && viewItem == rulebook"
 				},
 				{
-					"command": "extension.runConfigMateCommand",
+					"command": "extension.checkConfigFile",
 					"when": "view == configFiles && viewItem == configFile",
 					"group": "inline"
 				}
@@ -125,26 +135,19 @@
 		"configMate": "cd bin && go build ConfigMate.go",
 		"compile": "tsc -p ./",
 		"watch": "tsc -watch -p ./",
-		"lint": "eslint \"src/**/*.ts\"",
+		"lint": "eslint --ext .ts --ignore-path .gitignore .",
 		"test": "npm run compile && node ./node_modules/vscode/bin/test"
 	},
-	"dependencies": {
-		"jsonc-parser": "^0.4.2",
-		"minimist": "^1.2.6",
-		"mkdirp": "^0.5.1",
-		"rimraf": "^2.6.2"
-	},
 	"devDependencies": {
-		"@types/mkdirp": "^0.5.2",
+		"@types/glob": "^8.1.0",
 		"@types/mocha": "^10.0.1",
 		"@types/node": "^16.18.34",
-		"@types/rimraf": "^2.0.2",
 		"@types/vscode": "^1.73.0",
 		"@typescript-eslint/eslint-plugin": "^5.42.0",
 		"@typescript-eslint/parser": "^5.42.0",
 		"@vscode/test-electron": "^2.3.4",
 		"eslint": "^8.49.0",
 		"mocha": "^10.2.0",
-		"typescript": "^5.1.3"
+		"typescript": "~5.1.3"
 	}
 }
