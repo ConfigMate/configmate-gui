@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { spawn } from 'child_process';
-import * as path from 'path';
+// import * as path from 'path';
 
 export class ConfigMateProvider {
 	private cliPath: string;
@@ -9,34 +9,37 @@ export class ConfigMateProvider {
 		this.cliPath = cliPath;
 	}
 
-	checkConfigFile(filePath: string): void {
-		console.log(`Executing ${this.cliPath} with ${filePath}`);
-		vscode.window.showInformationMessage(`Executing ${this.cliPath} with ${filePath}`);
+	checkConfigFile(filepath: string): void {
+		console.log(`Executing ${this.cliPath} with ${filepath}`);
+		void vscode.window.showInformationMessage(`Executing ${this.cliPath} with ${filepath}`);
 
-		this.logFilePath(filePath);
+		this.logFilePath(filepath);
 	}
 
 	checkAllConfigFiles(): void {
 		// get all ConfigFile nodes
-		
-		
 		// for each node, call checkConfigFile
-
-
 	}
 
-	logFilePath(filePath: string): void {
-		const child = spawn(this.cliPath, [filePath]);
+	checkRulebook(filepath: string): void {
+		console.log(`Executing ${this.cliPath} with ${filepath}`);
+		void vscode.window.showInformationMessage(`Executing ${this.cliPath} with ${filepath}`);
 
-		child.stdout.on('data', (data) => {
+		this.logFilePath(filepath);
+	}
+
+	logFilePath(filepath: string): void {
+		const child = spawn(this.cliPath, [filepath]);
+
+		child.stdout.on('data', (data: string) => {
 			console.log(`stdout: ${data}`);
 		}); 
 
-		child.stderr.on('data', (data) => {
+		child.stderr.on('data', (data: string) => {
 			console.error(`stderr: ${data}`);
 		});
 
-		child.on('close', (code) => {
+		child.on('close', (code: number) => {
 			console.log(`child process exited with code ${code}`);
 		}); 
 		

@@ -5,10 +5,11 @@ export class ConfigFile extends vscode.TreeItem {
 	constructor(
 		public readonly label: string,
 		public readonly collapsibleState: vscode.TreeItemCollapsibleState,
-		public readonly command?: vscode.Command
+		public readonly filepath: string
 	) {
 		super(label, collapsibleState);
 		this.contextValue = 'configFile';
+		this.filepath = filepath;
 	}
 }
 
@@ -41,11 +42,7 @@ export class ConfigFileProvider implements vscode.TreeDataProvider<ConfigFile> {
 						const configFile = new ConfigFile(
 							path.basename(uri.fsPath),
 							vscode.TreeItemCollapsibleState.None,
-							{
-								command: 'vscode.open' || 'extension.checkConfigFile',
-								title: '',
-								arguments: [uri.fsPath],
-							}
+							uri.fsPath
 						);
 						configFiles.push(configFile);
 					});

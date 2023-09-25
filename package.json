@@ -21,7 +21,7 @@
 		"viewsWelcome": [
 			{
 				"view": "rulebooks",
-				"contents": "No rulebooks found.\n[Add Rulebook](command:rulebooks.addEntry)"
+				"contents": "No rulebooks found.\n[Add Rulebook](command:rulebooks.addRulebook)"
 			},
 			{
 				"view": "configFiles",
@@ -55,75 +55,127 @@
 		},
 		"commands": [
 			{
-				"command": "extension.checkConfigFiles",
-				"title": "Check All Config Files",
-				"icon": "$(check)"
-			},
-			{
-				"command": "extension.checkConfigFile",
-				"title": "Check Config File",
+				"command": "configMate.checkRulebooks",
+				"title": "Check All Rulebooks",
 				"icon": "$(check-all)"
 			},
 			{
-				"command": "rulebooks.refreshEntry",
+				"command": "configMate.checkRulebook",
+				"title": "Check Rulebook",
+				"icon": "$(check)"
+			},
+			{
+				"command": "rulebooks.refreshRulebooks",
 				"title": "Refresh",
 				"icon": "$(refresh)"
 			},
 			{
-				"command": "rulebooks.addEntry",
+				"command": "rulebooks.addRulebook",
 				"title": "Add",
 				"icon": "$(add)"
 			},
 			{
-				"command": "rulebooks.editEntry",
+				"command": "rulebooks.editRulebook",
 				"title": "Edit",
 				"icon": "$(edit)"
 			},
 			{
-				"command": "rulebooks.deleteEntry",
+				"command": "rulebooks.deleteRulebook",
 				"title": "Delete",
 				"icon": "$(trash)"
 			},
 			{
-				"command": "extension.refreshConfigFiles",
+				"command": "configMate.checkConfigFiles",
+				"title": "Check All Config Files",
+				"icon": "$(check-all)"
+			},
+			{
+				"command": "configMate.checkConfigFile",
+				"title": "Check Config File",
+				"icon": "$(check)"
+			},
+			{
+				"command": "configFiles.refreshConfigFiles",
 				"title": "Refresh Config Files",
 				"icon": "$(refresh)"
+			},
+			{
+				"command": "configFiles.addConfigFile",
+				"title": "Add",
+				"icon": "$(add)"
+			},
+			{
+				"command": "configFiles.editConfigFile",
+				"title": "Edit",
+				"icon": "$(edit)"
+			},
+			{
+				"command": "configFiles.deleteConfigFile",
+				"title": "Delete",
+				"icon": "$(trash)"
 			}
 		],
 		"menus": {
 			"view/title": [
 				{
-					"command": "extension.checkConfigFile",
-					"when": "view == configFiles",
-					"group": "navigation"
-				},
-				{
-					"command": "rulebooks.refreshEntry",
+					"command": "configMate.checkRulebooks",
 					"when": "view == rulebooks",
 					"group": "navigation"
 				},
 				{
-					"command": "rulebooks.addEntry",
-					"when": "view == rulebooks"
+					"command": "rulebooks.refreshRulebooks",
+					"when": "view == rulebooks",
+					"group": "navigation"
 				},
 				{
-					"command": "extension.refreshConfigFiles",
+					"command": "rulebooks.addRulebook",
+					"when": "view == rulebooks",
+					"group": "navigation"
+				},
+				{
+					"command": "configMate.checkConfigFiles",
+					"when": "view == configFiles",
+					"group": "navigation"
+				},
+				{
+					"command": "configFiles.refreshConfigFiles",
+					"when": "view == configFiles",
+					"group": "navigation"
+				},
+				{
+					"command": "configFiles.addConfigFile",
 					"when": "view == configFiles",
 					"group": "navigation"
 				}
 			],
 			"view/item/context": [
 				{
-					"command": "rulebooks.editEntry",
+					"command": "configMate.checkRulebook",
 					"when": "view == rulebooks && viewItem == rulebook",
 					"group": "inline"
 				},
 				{
-					"command": "rulebooks.deleteEntry",
-					"when": "view == rulebooks && viewItem == rulebook"
+					"command": "rulebooks.editRulebook",
+					"when": "view == rulebooks && viewItem == rulebook",
+					"group": "inline"
 				},
 				{
-					"command": "extension.checkConfigFile",
+					"command": "rulebooks.deleteRulebook",
+					"when": "view == rulebooks && viewItem == rulebook",
+					"group": "inline"
+				},
+				{
+					"command": "configMate.checkConfigFile",
+					"when": "view == configFiles && viewItem == configFile",
+					"group": "inline"
+				},
+				{
+					"command": "configFiles.editConfigFile",
+					"when": "view == configFiles && viewItem == configFile",
+					"group": "inline"
+				},
+				{
+					"command": "configFiles.deleteConfigFile",
 					"when": "view == configFiles && viewItem == configFile",
 					"group": "inline"
 				}

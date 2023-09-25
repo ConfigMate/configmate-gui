@@ -5,9 +5,11 @@ export class Rulebook extends vscode.TreeItem {
 	constructor(
 		public readonly label: string,
 		public readonly collapsibleState: vscode.TreeItemCollapsibleState,
-		public readonly command?: vscode.Command
+		public readonly filepath: string
 	) {
 		super(label, collapsibleState);
+		this.contextValue = 'rulebook';
+		this.filepath = filepath;
 	}
 }
 
@@ -40,11 +42,7 @@ export class RulebookProvider implements vscode.TreeDataProvider<Rulebook> {
 						const rulebook = new Rulebook(
 							path.basename(uri.fsPath),
 							vscode.TreeItemCollapsibleState.None,
-							{
-								command: 'vscode.open',
-								title: '',
-								arguments: [uri],
-							}
+							uri.fsPath
 						);
 						rulebooks.push(rulebook);
 					});
