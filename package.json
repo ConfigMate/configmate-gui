@@ -122,7 +122,7 @@
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run configMate && npm run compile",
-		"configMate": "go build bin/configMate.go",
+		"configMate": "cd bin && go build ConfigMate.go",
 		"compile": "tsc -p ./",
 		"watch": "tsc -watch -p ./",
 		"lint": "eslint \"src/**/*.ts\"",

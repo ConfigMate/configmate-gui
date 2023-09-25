@@ -4,7 +4,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 
 import { RulebookProvider, Rulebook } from './rulebooks';
-import { ConfigFileProvider} from './configFiles';
+import { ConfigFileProvider, ConfigFile } from './configFiles';
 import { ConfigMateProvider } from './configMate';
 
 export function activate(context: vscode.ExtensionContext) {
@@ -19,11 +19,11 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(vscode.window.registerTreeDataProvider('configFiles', configFileProvider));
 	context.subscriptions.push(vscode.commands.registerCommand('extension.refreshConfigFiles', () => configFileProvider.refresh()));
 
-	const mockProgramPath = path.join(context.extensionPath, 'ConfigMate');
+	const mockProgramPath = path.join(context.extensionPath, 'bin', 'ConfigMate');
 	// console.log(`Using mock program path: ${mockProgramPath}`);
 	const configMateProvider = new ConfigMateProvider(mockProgramPath);
-	context.subscriptions.push(vscode.commands.registerCommand('extension.runConfigMateCommand', (uri: vscode.Uri) => {
-		console.log('Run ConfigMate Command Invoked'); // Log when the command is invoked
-		configMateProvider.runCommand(uri.fsPath);
+	context.subscriptions.push(vscode.commands.registerCommand('extension.runConfigMateCommand', (node: ConfigFile) => {
+		const path = node.command?.arguments?.[0];
+		configMateProvider.runCommand(path);
 	}));
 }

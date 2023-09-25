@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 
-class ConfigFile extends vscode.TreeItem {
+export class ConfigFile extends vscode.TreeItem {
 	constructor(
 		public readonly label: string,
 		public readonly collapsibleState: vscode.TreeItemCollapsibleState,
@@ -44,7 +44,7 @@ export class ConfigFileProvider implements vscode.TreeDataProvider<ConfigFile> {
 							{
 								command: 'vscode.open' || 'extension.runConfigMateCommand',
 								title: '',
-								arguments: [uri],
+								arguments: [uri.fsPath],
 							}
 						);
 						configFiles.push(configFile);
