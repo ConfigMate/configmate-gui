@@ -6,6 +6,7 @@ export class RulebookFile extends vscode.TreeItem {
 	constructor(
 		public readonly label: string,
 		public readonly collapsibleState: vscode.TreeItemCollapsibleState,
+		// public readonly checkboxState: vscode.TreeItemCheckboxState,
 		public readonly filepath: string
 	) {
 		super(label, collapsibleState);
@@ -14,8 +15,12 @@ export class RulebookFile extends vscode.TreeItem {
 	}
 }
 
-export class RulebookProvider implements vscode.TreeDataProvider<RulebookFile> {
-	private rulebookManager: RulebookManager = new RulebookManager();
+export class RulebookFileProvider implements vscode.TreeDataProvider<RulebookFile> {
+	private rulebookManager: RulebookManager;
+
+	constructor(rulebookManager: RulebookManager) {
+		this.rulebookManager = rulebookManager;
+	}
 
 	private _onDidChangeTreeData: vscode.EventEmitter<RulebookFile | undefined | void> = new vscode.EventEmitter<RulebookFile | undefined | void>();
 	readonly onDidChangeTreeData: vscode.Event<RulebookFile | undefined | void> = this._onDidChangeTreeData.event;
@@ -36,12 +41,14 @@ export class RulebookProvider implements vscode.TreeDataProvider<RulebookFile> {
 				.then(uris => {
 					uris.forEach(uri => {
 						const filepath: string = uri.fsPath;
-						this.rulebookManager.addRulebook(filepath);
-						rulebookFiles.push(new RulebookFile(
+						const newRulebookFile: RulebookFile = new RulebookFile(
 							path.basename(filepath),
 							vscode.TreeItemCollapsibleState.None,
+							// vscode.TreeItemCheckboxState.Unchecked,
 							filepath
-						));
+						);
+						this.rulebookManager.addRulebook(newRulebookFile);
+						rulebookFiles.push(newRulebookFile);
 					});
 					resolve(rulebookFiles);
 				}, reject);

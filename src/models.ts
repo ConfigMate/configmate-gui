@@ -17,8 +17,7 @@ export interface Node {
 		Line: Number,
 		Column: Number,
 		Length: Number
-	},
-	Error: Boolean
+	}
 }
 
 export interface Rule {

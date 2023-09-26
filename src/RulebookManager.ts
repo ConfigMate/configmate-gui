@@ -2,16 +2,27 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 import { Rulebook } from './models';
+import { DiagnosticManager } from './DiagnosticManager';
+import { RulebookFile } from './rulebooks';
 
 export class RulebookManager {
-	rulebooks: Rulebook[];
-	constructor(rulebooks?: Rulebook[]) {
-		this.rulebooks = rulebooks ? rulebooks : [];
+	rulebooks!: Rulebook[];
+	rulebookFiles!: RulebookFile[];
+	diagnosticProvider!: DiagnosticManager;
+	constructor(diagnosticManager: DiagnosticManager) {
+		this.rulebooks = [];
+		this.rulebookFiles = [];
+		this.diagnosticProvider = diagnosticManager;
 	}
 
-	addRulebook(filepath: string): void {
+	addRulebook(newRulebookFile: RulebookFile): void {
+		const {filepath} = newRulebookFile;
 		const rulebook: (Rulebook | undefined) = this.parseRulebook(filepath);
-		if (rulebook != undefined) this.rulebooks.push(rulebook);
+		if (rulebook != undefined) {
+			this.rulebooks.push(rulebook);
+			this.rulebookFiles.push(newRulebookFile);
+			this.diagnosticProvider.updateDecorations();
+		}
 	}
 
 	parseRulebook(filepath: string): (Rulebook | undefined) {

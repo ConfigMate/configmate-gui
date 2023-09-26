@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
+import { RulebookManager } from './RulebookManager';
 
 export class ConfigFile extends vscode.TreeItem {
 	constructor(
@@ -14,6 +15,12 @@ export class ConfigFile extends vscode.TreeItem {
 }
 
 export class ConfigFileProvider implements vscode.TreeDataProvider<ConfigFile> {
+	private rulebookManager: RulebookManager;
+
+	constructor(rulebookManager: RulebookManager) { 
+		this.rulebookManager = rulebookManager;
+	}
+
 	private _onDidChangeTreeData: vscode.EventEmitter<ConfigFile | undefined | void> = new vscode.EventEmitter<ConfigFile | undefined | void>();
 	readonly onDidChangeTreeData: vscode.Event<ConfigFile | undefined | void> = this._onDidChangeTreeData.event;
 
@@ -34,20 +41,19 @@ export class ConfigFileProvider implements vscode.TreeDataProvider<ConfigFile> {
 			return Promise.resolve([]);
 		} else {
 			const configFiles: ConfigFile[] = [];
-			const pattern = '**/*.{json,yaml,yml,xml,ini,conf,.gitignore,.mod}';
-
-			return new Promise((resolve, reject) => {
-				vscode.workspace.findFiles(pattern, '**/node_modules/**', 1000).then(uris => {
-					uris.forEach(uri => {
-						const configFile = new ConfigFile(
-							path.basename(uri.fsPath),
-							vscode.TreeItemCollapsibleState.None,
-							uri.fsPath
-						);
-						configFiles.push(configFile);
-					});
-					resolve(configFiles);
-				}, reject);
+			return new Promise(() => {
+				const {rulebooks, rulebookFiles} = this.rulebookManager;
+				for (let i = 0; i < rulebooks.length; i++) {
+					// if (rulebookFiles[i].checkboxState === vscode.TreeItemCheckboxState.Checked) {
+						for (const configFilepath of rulebooks[i].Files) {
+							configFiles.push(new ConfigFile(
+								path.basename(configFilepath),
+								vscode.TreeItemCollapsibleState.None,
+								configFilepath
+							));
+						}
+					// }
+				}
 			});
 		}
 	}
