@@ -1,7 +1,8 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
+import { RulebookManager } from './RulebookManager';
 
-export class Rulebook extends vscode.TreeItem {
+export class RulebookFile extends vscode.TreeItem {
 	constructor(
 		public readonly label: string,
 		public readonly collapsibleState: vscode.TreeItemCollapsibleState,
@@ -13,44 +14,39 @@ export class Rulebook extends vscode.TreeItem {
 	}
 }
 
-export class RulebookProvider implements vscode.TreeDataProvider<Rulebook> {
-	private _onDidChangeTreeData: vscode.EventEmitter<Rulebook | undefined | void> = new vscode.EventEmitter<Rulebook | undefined | void>();
-	readonly onDidChangeTreeData: vscode.Event<Rulebook | undefined | void> = this._onDidChangeTreeData.event;
+export class RulebookProvider implements vscode.TreeDataProvider<RulebookFile> {
+	private rulebookManager: RulebookManager = new RulebookManager();
 
-	refresh(): void {
-		this._onDidChangeTreeData.fire();
-	}
+	private _onDidChangeTreeData: vscode.EventEmitter<RulebookFile | undefined | void> = new vscode.EventEmitter<RulebookFile | undefined | void>();
+	readonly onDidChangeTreeData: vscode.Event<RulebookFile | undefined | void> = this._onDidChangeTreeData.event;
 
-	getTreeItem(element: Rulebook): vscode.TreeItem {
-		return element;
-	}
+	refresh = (): void => this._onDidChangeTreeData.fire();
 
-	getChildren(element?: Rulebook): Thenable<Rulebook[]> {
-		if (!vscode.workspace.workspaceFolders) {
-			return Promise.resolve([]);
-		}
+	getTreeItem = (element: RulebookFile): vscode.TreeItem => element;
 
-		if (element) {
-			return Promise.resolve([]);
-		} else {
-			const rulebooks: Rulebook[] = [];
-			const pattern = '**/*.{rulebook}';
+	getChildren(element?: RulebookFile): Thenable<RulebookFile[]> {
+		if (!vscode.workspace.workspaceFolders) return Promise.resolve([]);
+		if (element) return Promise.resolve([]);
+		else {
+			const rulebookFiles: RulebookFile[] = [];
+			const pattern = '**/*.{rulebook}.{json,toml,hocon}';
 
 			return new Promise((resolve, reject) => {
-				vscode.workspace.findFiles(pattern, '**/node_modules/**', 1000).then(uris => {
+				vscode.workspace.findFiles(pattern, '**/node_modules/**', 1000)
+				.then(uris => {
 					uris.forEach(uri => {
-						const rulebook = new Rulebook(
-							path.basename(uri.fsPath),
+						const filepath: string = uri.fsPath;
+						this.rulebookManager.addRulebook(filepath);
+						rulebookFiles.push(new RulebookFile(
+							path.basename(filepath),
 							vscode.TreeItemCollapsibleState.None,
-							uri.fsPath
-						);
-						rulebooks.push(rulebook);
+							filepath
+						));
 					});
-					resolve(rulebooks);
+					resolve(rulebookFiles);
 				}, reject);
 			});
 		}
 	}
-
 }
 

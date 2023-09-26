@@ -3,7 +3,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 
-import { RulebookProvider, Rulebook } from './rulebooks';
+import { RulebookProvider, RulebookFile } from './rulebooks';
 import { ConfigFileProvider, ConfigFile } from './configFiles';
 import { ConfigMateProvider } from './configMate';
 
@@ -14,8 +14,8 @@ export function activate(context: vscode.ExtensionContext) {
 	vscode.window.registerTreeDataProvider('rulebooks', ruleProvider);
 	vscode.commands.registerCommand('rulebooks.refreshRulebooks', () => ruleProvider.refresh());
 	vscode.commands.registerCommand('rulebooks.addRulebook', () => vscode.window.showInformationMessage(`Added new rulebook.`));
-	vscode.commands.registerCommand('rulebooks.editRulebook', (node: Rulebook) => vscode.window.showTextDocument(vscode.Uri.file(node.filepath)));
-	vscode.commands.registerCommand('rulebooks.deleteRulebook', (node: Rulebook) => vscode.window.showInformationMessage(`Deleted rulebook ${node.label}.`));
+	vscode.commands.registerCommand('rulebooks.editRulebook', (node: RulebookFile) => vscode.window.showTextDocument(vscode.Uri.file(node.filepath)));
+	vscode.commands.registerCommand('rulebooks.deleteRulebook', (node: RulebookFile) => vscode.window.showInformationMessage(`Deleted rulebook ${node.label}.`));
 
 
 	// ConfigFile treeview
@@ -23,7 +23,33 @@ export function activate(context: vscode.ExtensionContext) {
 
 	vscode.window.registerTreeDataProvider('configFiles', configFileProvider);
 	vscode.commands.registerCommand('configFiles.refreshConfigFiles', () => configFileProvider.refresh());
-	vscode.commands.registerCommand('configFiles.addConfigFile', () => vscode.window.showInformationMessage(`Added new configFile.`));
+	vscode.commands.registerCommand('configFiles.addConfigFile', () => 
+		// ask for filename/extension, create new text document within configFiles View, then open it
+		vscode.window.showInputBox({
+			prompt: 'Enter the name of the new config file',
+			placeHolder: 'config.json',
+			validateInput: (input: string) => {
+				if (input.length === 0)
+					return 'Please enter a name for the new config file.';
+				else if (input.indexOf('.') === -1)
+					return 'Please enter a valid filename with an extension.';
+				else return null;
+			}
+		}).then((input: string | undefined) => {
+			if (input) {
+				const workspaceEdit = new vscode.WorkspaceEdit();
+				const filepath = vscode.Uri.joinPath(context.extensionUri, input);
+				workspaceEdit.createFile(filepath, { ignoreIfExists: true });
+				vscode.workspace.applyEdit(workspaceEdit)
+				.then(() => vscode.workspace.openTextDocument(filepath),
+				(error: Error) => console.error('Error creating new config file: ', error));
+				// lol this creates the file in my actual workspace
+
+				// https://stackoverflow.com/questions/74339446/insert-default-text-into-newly-created-files-using-vscod-extension-api
+				// https://stackoverflow.com/questions/64475731/how-to-create-a-new-file-in-vscode-extension
+				// possibly createFileSystemWatcher
+			}
+		}));
 	vscode.commands.registerCommand('configFiles.editConfigFile', (node: ConfigFile) => vscode.window.showTextDocument(vscode.Uri.file(node.filepath)));
 	vscode.commands.registerCommand('configFiles.deleteConfigFile', (node: ConfigFile) => vscode.window.showInformationMessage(`Deleted configFile ${node.label}.`));
 
@@ -34,15 +60,18 @@ export function activate(context: vscode.ExtensionContext) {
 
 	vscode.commands.registerCommand('configMate.checkConfigFile', (node: ConfigFile) => configMateProvider.checkConfigFile(node.filepath));
 	vscode.commands.registerCommand('configMate.checkConfigFiles', () => configMateProvider.checkAllConfigFiles());
-	vscode.commands.registerCommand('configMate.checkRulebook', (node: Rulebook) => configMateProvider.checkRulebook(node.filepath));
+	vscode.commands.registerCommand('configMate.checkRulebook', (node: RulebookFile) => configMateProvider.checkRulebook(node.filepath));
 
 
-	// Text document coordination & decoration
+	// Text document coordination
 	vscode.workspace.onDidSaveTextDocument((document: vscode.TextDocument) => {
 		console.log(`Saved ${document.fileName}`);
 		void vscode.window.showInformationMessage(`Saved ${document.fileName}`);
 	});
 
+
+
+	// Text decoration
 	let timeout: NodeJS.Timer | undefined = undefined;
 
 	// create a decorator type that we use to decorate small numbers
