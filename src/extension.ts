@@ -25,18 +25,12 @@ export function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(vscode.commands.registerCommand('rulebooks.openRulebook', (rulebookPath: string, rulebook: Rulebook) => {
 		void vscode.commands.executeCommand('vscode.open', vscode.Uri.file(rulebookPath));
-			// .then(undefined, err => {
-			// 	console.error("Error opening rulebook file: ", err);
-			// });
 		configFileProvider.refresh(rulebook.Files);
 	}));
 
-	vscode.commands.registerCommand('rulebooks.openConfigFile', (filePath: string) => {
-		vscode.commands.executeCommand('vscode.open', vscode.Uri.file(filePath))
-			.then(undefined, err => {
-				console.error("Error opening config file: ", err);
-			});
-	});
+	context.subscriptions.push(vscode.commands.registerCommand('configFiles.openConfigFile', (filePath: string) => {
+		void vscode.commands.executeCommand('vscode.open', vscode.Uri.file(filePath));
+	}));
 
 	vscode.commands.registerCommand('rulebooks.refreshRulebooks', () => rulebookFileProvider.refresh());
 	vscode.commands.registerCommand('rulebooks.addRulebook', () => vscode.window.showInformationMessage(`Added new rulebook.`));

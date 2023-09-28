@@ -4,18 +4,17 @@ import * as path from 'path';
 export class ConfigFile extends vscode.TreeItem {
 	public readonly filepath: string;
 	
-	constructor(public readonly label: string,
-		public readonly filePath: string) {
+	constructor(
+		public readonly label: string,
+		public readonly filePath: string,
+		public readonly command: vscode.Command
+		) {
 		super(label, vscode.TreeItemCollapsibleState.None);
 		this.tooltip = label;
 		this.filepath = filePath;
+		this.command = command;
 	}
 
-	command = {
-		command: 'extension.openConfigFile',
-		title: 'Open Config File',
-		arguments: [this.filePath]
-	};
 }
 
 export class ConfigFileProvider implements vscode.TreeDataProvider<ConfigFile> {
@@ -44,6 +43,18 @@ export class ConfigFileProvider implements vscode.TreeDataProvider<ConfigFile> {
 	}
 
 	getConfigFiles(): Thenable<ConfigFile[]> {
-		return Promise.resolve(this.configFiles.map(filePath => new ConfigFile(path.basename(filePath), filePath)));
+		return Promise.resolve(
+			this.configFiles.map(filepath => 
+				new ConfigFile(
+					path.basename(filepath), 
+					filepath,
+					{
+						command: 'configFiles.openConfigFile',
+						title: 'Open Config File',
+						arguments: [filepath]
+					}
+				)
+			)
+		);
 	}
 }
