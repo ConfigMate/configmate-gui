@@ -7,12 +7,12 @@ export class DiagnosticManager {
 	activeEditor: vscode.TextEditor | undefined = undefined;
 
 	constructor(context: vscode.ExtensionContext) {
-		this.createDecorators();
-		this.activeEditor = vscode.window.activeTextEditor;
-		this.watchForChanges(context);
+		// this.createDecorators();
+		// this.activeEditor = vscode.window.activeTextEditor;
+		// this.watchForChanges(context);
 	}
 
-	createDecorators = (): void => {
+	createDecorators (): void {
 		this.smallNumberDecorationType = vscode.window.createTextEditorDecorationType({
 			borderWidth: '1px',
 			borderStyle: 'solid',
@@ -33,7 +33,7 @@ export class DiagnosticManager {
 			// use a themable color. See package.json for the declaration and default values.
 			backgroundColor: { id: 'myextension.largeNumberBackground' }
 		});
-	};
+	}
 
 
 	updateDecorations = (): void => {
@@ -54,19 +54,17 @@ export class DiagnosticManager {
 		this.activeEditor.setDecorations(this.largeNumberDecorationType, largeNumbers);
 	};
 
-	triggerUpdateDecorations = (throttle = false): void => {
+	triggerUpdateDecorations (throttle = false): void {
 		if (this.timeout) {
 			clearTimeout(this.timeout);
 			this.timeout = undefined;
 		}
-		if (throttle) {
+		if (throttle) 
 			this.timeout = setTimeout(this.updateDecorations, 500);
-		} else {
-			this.updateDecorations();
-		}
-	};
+		else this.updateDecorations();
+	}
 
-	watchForChanges = (context: vscode.ExtensionContext): void => {
+	watchForChanges (context: vscode.ExtensionContext): void {
 		if (this.activeEditor) this.triggerUpdateDecorations();
 
 		vscode.window.onDidChangeActiveTextEditor(editor => {
@@ -78,5 +76,5 @@ export class DiagnosticManager {
 			if (this.activeEditor && event.document === this.activeEditor.document)
 				this.triggerUpdateDecorations(true);
 		}, null, context.subscriptions);
-	};
+	}
 }

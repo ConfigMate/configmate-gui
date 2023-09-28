@@ -21,11 +21,11 @@
 		"viewsWelcome": [
 			{
 				"view": "rulebooks",
-				"contents": "No rulebooks found.\n[Add Rulebook](command:rulebooks.addRulebook)"
+				"contents": "No rulebooks found.\n[Add Rulebook](command:rulebooks.addRulebook)\n[Open Folder](command:vscode.openFolder)"
 			},
 			{
 				"view": "configFiles",
-				"contents": "Select a rulebook above, or\n[Open Folder](command:vscode.openFolder)"
+				"contents": "Select a rulebook above to view related files."
 			}
 		],
 		"viewsContainers": {
@@ -54,6 +54,14 @@
 			]
 		},
 		"commands": [
+			{
+				"command": "rulebooks.openRulebook",
+				"title": "Open Rulebook"
+			},
+			{
+				"command": "configFiles.openConfigFile",
+				"title": "Open Config File"
+			},
 			{
 				"command": "configMate.checkRulebooks",
 				"title": "Check All Rulebooks",
@@ -178,6 +186,14 @@
 					"command": "configFiles.deleteConfigFile",
 					"when": "view == configFiles && viewItem == configFile",
 					"group": "inline"
+				},
+				{
+					"command": "rulebooks.openRulebook",
+					"title": "Open Rulebook"
+				},
+				{
+					"command": "configFiles.openConfigFile",
+					"title": "Open Config File"
 				}
 			]
 		}
@@ -200,6 +216,7 @@
 		"@vscode/test-electron": "^2.3.4",
 		"eslint": "^8.49.0",
 		"mocha": "^10.2.0",
-		"typescript": "~5.1.3"
+		"typescript": "~5.1.3",
+		"url": "^0.11.3"
 	}
 }

@@ -6,11 +6,11 @@ LAYOUT_LANDSCAPE()
 Person(user, "Developer", "needs to verify their configurations")
 System_Boundary(extension, "VS Code Extension") {
 	System_Boundary(gui, "Activity Bar") {
-		Container(rulebooks, "Rulebooks", "TypeScript,\nVS Code TreeDataProvider API", "Graphical file manager for .rulebook files")
-		Container(configFiles, "Config Files", "TypeScript,\nVS Code TreeDataProvider API", "Graphical file manager for config files (.json, .yml, ...)")
+		Container(rulebooks, "Rulebooks", "TypeScript,\nVS Code TreeDataProvider API", "Graphical file manager for .rulebook files (.json, .toml, .hocon)")
+		Container(configFiles, "Config Files", "TypeScript,\nVS Code TreeDataProvider API", "Graphical file manager for config files specified in selected rulebook(s)")
 	}
 	Container(configmateProvider, "ConfigMate Provider", "TypeScript", "Translates GUI interactions into CLI commands")
-	Container(diagnosticsProvider, "Diagnostics Provider", "TypeScript", "Provides error highlighting & helpful diagnostic information")
+	Container(diagnosticsProvider, "Diagnostics Provider", "TypeScript", "Uses error data from response to provides error highlighting & helpful diagnostic information")
 	System_Boundary(configmate, "ConfigMate") {
 		Container(cli, "CLI", "GoLang", "Provides command-line interaction with the ConfigMate program")
 		Container(analyzer, "Analyzer", "GoLang", "Coordinates files, rules, and parsers")
@@ -22,9 +22,11 @@ Rel(user, extension, "Installs", "VS Code Marketplace\nor Extensions Tab")
 Rel(user, gui, "Uses", "VS Code GUI")
 Rel(user, cli, "Uses", "VS Code Terminal")
 
-Rel_L(configmateProvider, cli, "Uses")
-Rel_U(configmateProvider, rulebooks, "Provides")
-Rel_U(configmateProvider, configFiles, "Provides")
+Rel_R(rulebooks, configmateProvider, "Uses")
+Rel_R(configFiles, configmateProvider, "Uses")
+
+Rel_D(configmateProvider, cli, "Uses")
+Rel_U(cli, configmateProvider, "Provides")
 
 Rel_U(configmateProvider, diagnosticsProvider, "Provides")
 Rel_L(diagnosticsProvider, rulebooks, "Provides")

@@ -1,0 +1,39 @@
+@startuml c4
+!include  https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+LAYOUT_LANDSCAPE()
+
+' Person(user, "User", "Uses ConfigMate to manage config files")
+
+System_Boundary(extension, "ConfigMate VS Code Extension") {
+	System_Boundary(gui, "GUI [Activity Bar]") {
+		Container(rulebooks, "Rulebooks View", "TypeScript, VS Code API", "Graphical file manager for .rulebook files (.json, .toml, .hocon)")
+		Container(configFiles, "Config Files View", "TypeScript, VS Code API", "Graphical file manager for config files specified in selected rulebook(s)")
+	}
+	Container(configmateProvider, "ConfigMate Provider", "TypeScript", "Runs the ConfigMate server, then routes API requests & responses appropriately")
+	Container(diagnosticsProvider, "Diagnostics Provider", "TypeScript, VS Code API", "Uses error data in response to add in-editor feedback & helpful diagnostic information")
+	System_Boundary(configmate, "ConfigMate") {
+		Container(cli, "CLI", "GoLang", "Provides command-line interaction with the ConfigMate program")
+		Container(analyzer, "Analyzer", "GoLang", "Uses Parsers to apply rules, evaluate checks, & produce error information")
+		Container(parser, "Parser", "GoLang", "Parses config files depending on their type into a common format for the Analyzer")
+		Container(server, "Server", "GoLang", "Provides a JSON API for the GUI to interact with")
+	}
+}
+Rel_R(configmateProvider, server, "Request", "HTTPS/JSON")
+Rel_L(server, configmateProvider, "Response", "HTTPS/JSON")
+Rel_D(configmateProvider, diagnosticsProvider, "Response", "JSON")
+
+Rel_R(rulebooks, configmateProvider, "Request", "VS Code Command")
+Rel_R(configFiles, configmateProvider, "Request", "VS Code Command")
+Rel_L(diagnosticsProvider, rulebooks, "Response", "JSON")
+Rel_L(diagnosticsProvider, configFiles, "Response", "JSON")
+
+Rel_D(cli, analyzer, "Request", "JSON")
+Rel_L(analyzer, cli, "Response", "JSON")
+Rel_R(server, analyzer, "Request", "JSON")
+Rel_L(analyzer, server, "Response", "JSON")
+Rel_D(analyzer, parser, "Request", "JSON")
+Rel_U(parser, analyzer, "Response", "JSON")
+
+' SHOW_FLOATING_LEGEND()
+@enduml

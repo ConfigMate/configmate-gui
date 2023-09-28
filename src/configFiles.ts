@@ -1,30 +1,33 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { RulebookManager } from './RulebookManager';
 
 export class ConfigFile extends vscode.TreeItem {
-	constructor(
-		public readonly label: string,
-		public readonly collapsibleState: vscode.TreeItemCollapsibleState,
-		public readonly filepath: string
-	) {
-		super(label, collapsibleState);
-		this.contextValue = 'configFile';
-		this.filepath = filepath;
+	public readonly filepath: string;
+	
+	constructor(public readonly label: string,
+		public readonly filePath: string) {
+		super(label, vscode.TreeItemCollapsibleState.None);
+		this.tooltip = label;
+		this.filepath = filePath;
 	}
+
+	command = {
+		command: 'extension.openConfigFile',
+		title: 'Open Config File',
+		arguments: [this.filePath]
+	};
 }
 
 export class ConfigFileProvider implements vscode.TreeDataProvider<ConfigFile> {
-	private rulebookManager: RulebookManager;
+	private _onDidChangeTreeData: vscode.EventEmitter<ConfigFile | undefined | null | void> = new vscode.EventEmitter<ConfigFile | undefined | null | void>();
+	readonly onDidChangeTreeData: vscode.Event<ConfigFile | undefined | null | void> = this._onDidChangeTreeData.event;
 
-	constructor(rulebookManager: RulebookManager) { 
-		this.rulebookManager = rulebookManager;
-	}
+	private configFiles: string[] = [];
 
-	private _onDidChangeTreeData: vscode.EventEmitter<ConfigFile | undefined | void> = new vscode.EventEmitter<ConfigFile | undefined | void>();
-	readonly onDidChangeTreeData: vscode.Event<ConfigFile | undefined | void> = this._onDidChangeTreeData.event;
+	constructor() { }
 
-	refresh(): void {
+	refresh(configFiles: string[]): void {
+		this.configFiles = configFiles;
 		this._onDidChangeTreeData.fire();
 	}
 
@@ -33,30 +36,14 @@ export class ConfigFileProvider implements vscode.TreeDataProvider<ConfigFile> {
 	}
 
 	getChildren(element?: ConfigFile): Thenable<ConfigFile[]> {
-		if (!vscode.workspace.workspaceFolders) {
-			return Promise.resolve([]);
-		}
-
 		if (element) {
 			return Promise.resolve([]);
 		} else {
-			const configFiles: ConfigFile[] = [];
-			return new Promise(() => {
-				const {rulebooks, rulebookFiles} = this.rulebookManager;
-				for (let i = 0; i < rulebooks.length; i++) {
-					// if (rulebookFiles[i].checkboxState === vscode.TreeItemCheckboxState.Checked) {
-						for (const configFilepath of rulebooks[i].Files) {
-							configFiles.push(new ConfigFile(
-								path.basename(configFilepath),
-								vscode.TreeItemCollapsibleState.None,
-								configFilepath
-							));
-						}
-					// }
-				}
-			});
+			return this.getConfigFiles();
 		}
 	}
 
+	getConfigFiles(): Thenable<ConfigFile[]> {
+		return Promise.resolve(this.configFiles.map(filePath => new ConfigFile(path.basename(filePath), filePath)));
+	}
 }
-
