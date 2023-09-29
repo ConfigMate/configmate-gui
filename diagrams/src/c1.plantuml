@@ -1,20 +1,20 @@
 @startuml c1
 !include  https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
 
-title ConfigMate Context
+LAYOUT_LANDSCAPE()
 
 Person(user, "Developer", "needs to verify their configurations")
-System(configmate, "ConfigMate")
-Container(gui, "GUI")
-System(extension, "VS Code Extension")
-Container(cli, "CLI")
+System_Boundary(extension, "ConfigMate VS Code Extension") {
+	System(configmate, "ConfigMate")
+	System(gui, "GUI")
+	Container(cli, "CLI")
+}
 
-Rel_R(user, extension, "Installs", "HTTPS")
-Rel_R(user, gui, "Uses", "HTTPS")
-Rel_R(user, cli, "Uses", "HTTPS")
-Rel_R(extension, configmate, "Uses", "HTTPS")
-Rel_U(extension, gui, "Provides")
-Rel_U(configmate, cli, "Provides")
+Rel(user, extension, "Installs", "HTTPS")
+Rel_R(user, gui, "Uses", "VS Code\nActivity Bar")
+Rel_R(user, cli, "Uses", "VS Code\nTerminal")
+Rel_D(gui, cli, "Uses")
+Rel_D(configmate, cli, "Provides")
 
 ' SHOW_FLOATING_LEGEND()
 

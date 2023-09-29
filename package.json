@@ -21,11 +21,11 @@
 		"viewsWelcome": [
 			{
 				"view": "rulebooks",
-				"contents": "No rulebooks found.\n[Add Rulebook](command:rulebooks.addEntry)"
+				"contents": "No rulebooks found.\n[Add Rulebook](command:rulebooks.addRulebook)\n[Open Folder](command:vscode.openFolder)"
 			},
 			{
 				"view": "configFiles",
-				"contents": "Select a rulebook above, or\n[Open Folder](command:vscode.openFolder)"
+				"contents": "Select a rulebook above to view related files."
 			}
 		],
 		"viewsContainers": {
@@ -55,85 +55,140 @@
 		},
 		"commands": [
 			{
-				"command": "rulebooks.refreshEntry",
+				"command": "rulebooks.openRulebook",
+				"title": "Open Rulebook"
+			},
+			{
+				"command": "rulebooks.refreshRulebooks",
 				"title": "Refresh",
 				"icon": "$(refresh)"
 			},
 			{
-				"command": "rulebooks.addEntry",
+				"command": "rulebooks.addRulebook",
 				"title": "Add",
 				"icon": "$(add)"
 			},
 			{
-				"command": "rulebooks.editEntry",
-				"title": "Edit",
-				"icon": "$(edit)"
-			},
-			{
-				"command": "rulebooks.deleteEntry",
+				"command": "rulebooks.deleteRulebook",
 				"title": "Delete",
 				"icon": "$(trash)"
 			},
 			{
-				"command": "extension.refreshConfigFiles",
+				"command": "configFiles.openConfigFile",
+				"title": "Open Config File"
+			},
+			{
+				"command": "configFiles.refreshConfigFiles",
 				"title": "Refresh Config Files",
 				"icon": "$(refresh)"
+			},
+			{
+				"command": "configFiles.addConfigFile",
+				"title": "Add",
+				"icon": "$(add)"
+			},
+			{
+				"command": "configFiles.deleteConfigFile",
+				"title": "Delete",
+				"icon": "$(trash)"
+			},
+			{
+				"command": "configMate.checkConfigFiles",
+				"title": "Check All Config Files",
+				"icon": "$(check-all)"
+			},
+			{
+				"command": "configMate.checkConfigFile",
+				"title": "Check Config File",
+				"icon": "$(check)"
+			},
+			{
+				"command": "configMate.checkRulebooks",
+				"title": "Check All Rulebooks",
+				"icon": "$(check-all)"
+			},
+			{
+				"command": "configMate.checkRulebook",
+				"title": "Check Rulebook",
+				"icon": "$(check)"
 			}
 		],
 		"menus": {
 			"view/title": [
 				{
-					"command": "rulebooks.refreshEntry",
+					"command": "rulebooks.refreshRulebooks",
 					"when": "view == rulebooks",
 					"group": "navigation"
 				},
 				{
-					"command": "rulebooks.addEntry",
-					"when": "view == rulebooks"
+					"command": "rulebooks.addRulebook",
+					"when": "view == rulebooks",
+					"group": "navigation"
 				},
 				{
-					"command": "extension.refreshConfigFiles",
+					"command": "configFiles.refreshConfigFiles",
 					"when": "view == configFiles",
+					"group": "navigation"
+				},
+				{
+					"command": "configFiles.addConfigFile",
+					"when": "view == configFiles",
+					"group": "navigation"
+				},
+				{
+					"command": "configMate.checkConfigFiles",
+					"when": "view == configFiles",
+					"group": "navigation"
+				},
+				{
+					"command": "configMate.checkRulebooks",
+					"when": "view == rulebooks",
 					"group": "navigation"
 				}
 			],
 			"view/item/context": [
 				{
-					"command": "rulebooks.editEntry",
+					"command": "rulebooks.deleteRulebook",
 					"when": "view == rulebooks && viewItem == rulebook",
 					"group": "inline"
 				},
 				{
-					"command": "rulebooks.deleteEntry",
-					"when": "view == rulebooks && viewItem == rulebook"
+					"command": "configFiles.deleteConfigFile",
+					"when": "view == configFiles && viewItem == configFile",
+					"group": "inline"
+				},
+				{
+					"command": "configMate.checkRulebook",
+					"when": "view == rulebooks && viewItem == rulebook",
+					"group": "inline"
+				},
+				{
+					"command": "configMate.checkConfigFile",
+					"when": "view == configFiles && viewItem == configFile",
+					"group": "inline"
 				}
 			]
 		}
 	},
 	"scripts": {
-		"vscode:prepublish": "npm run compile",
+		"vscode:prepublish": "npm run configMate && npm run compile",
+		"configMate": "cd bin && go build ConfigMate.go",
 		"compile": "tsc -p ./",
 		"watch": "tsc -watch -p ./",
-		"lint": "eslint \"src/**/*.ts\"",
+		"lint": "eslint --ext .ts --ignore-path .gitignore .",
 		"test": "npm run compile && node ./node_modules/vscode/bin/test"
 	},
-	"dependencies": {
-		"jsonc-parser": "^0.4.2",
-		"minimist": "^1.2.6",
-		"mkdirp": "^0.5.1",
-		"rimraf": "^2.6.2"
-	},
 	"devDependencies": {
-		"@types/mkdirp": "^0.5.2",
+		"@types/glob": "^8.1.0",
 		"@types/mocha": "^10.0.1",
 		"@types/node": "^16.18.34",
-		"@types/rimraf": "^2.0.2",
 		"@types/vscode": "^1.73.0",
 		"@typescript-eslint/eslint-plugin": "^5.42.0",
 		"@typescript-eslint/parser": "^5.42.0",
 		"@vscode/test-electron": "^2.3.4",
 		"eslint": "^8.49.0",
 		"mocha": "^10.2.0",
-		"typescript": "^5.1.3"
+		"typescript": "~5.1.3",
+		"url": "^0.11.3"
 	}
 }

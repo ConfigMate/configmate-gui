@@ -1,27 +1,40 @@
 @startuml c4
 !include  https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
 
-title ConfigMate Containers
+LAYOUT_LANDSCAPE()
 
 Person(user, "Developer", "needs to verify their configurations")
 System_Boundary(extension, "VS Code Extension") {
-	Container(gui, "GUI", "TypeScript", "Provides graphical interaction with the ConfigMate program")
-	Container(api, "API", "TypeScript", "Routes requests and responses between GUI & server")
-	Container(server, "Server", "TypeScript", "Runs the ConfigMate program & hosts it for the API")
+	System_Boundary(gui, "Activity Bar") {
+		Container(rulebooks, "Rulebooks", "TypeScript,\nVS Code TreeDataProvider API", "Graphical file manager for .rulebook files (.json, .toml, .hocon)")
+		Container(configFiles, "Config Files", "TypeScript,\nVS Code TreeDataProvider API", "Graphical file manager for config files specified in selected rulebook(s)")
+	}
+	Container(configmateProvider, "ConfigMate Provider", "TypeScript", "Translates GUI interactions into CLI commands")
+	Container(diagnosticsProvider, "Diagnostics Provider", "TypeScript", "Uses error data from response to provides error highlighting & helpful diagnostic information")
 	System_Boundary(configmate, "ConfigMate") {
 		Container(cli, "CLI", "GoLang", "Provides command-line interaction with the ConfigMate program")
 		Container(analyzer, "Analyzer", "GoLang", "Coordinates files, rules, and parsers")
 		Container(parser, "Parser", "GoLang", "Applies rules against files")
+		Container(server, "Server", "GoLang", "Provides up-to-date rule verification")
 	}
 }
-Rel(user, extension, "Installs", "VS Code")
-Rel(gui, api, "Uses", "HTTPS")
-Rel(api, server, "Uses", "HTTPS")
-Rel_U(server, configmate, "Uses", "HTTPS")
-Rel(user, gui, "Uses", "Side bar")
-Rel(user, cli, "Uses", "Terminal")
+Rel(user, extension, "Installs", "VS Code Marketplace\nor Extensions Tab")
+Rel(user, gui, "Uses", "VS Code GUI")
+Rel(user, cli, "Uses", "VS Code Terminal")
+
+Rel_R(rulebooks, configmateProvider, "Uses")
+Rel_R(configFiles, configmateProvider, "Uses")
+
+Rel_D(configmateProvider, cli, "Uses")
+Rel_U(cli, configmateProvider, "Provides")
+
+Rel_U(configmateProvider, diagnosticsProvider, "Provides")
+Rel_L(diagnosticsProvider, rulebooks, "Provides")
+Rel_L(diagnosticsProvider, configFiles, "Provides")
+
 Rel(cli, analyzer, "Uses")
-Rel(analyzer, parser, "Uses")
-Lay_Distance(cli,server,1)
+Rel_U(analyzer, parser, "Uses")
+Rel_L(analyzer, server, "Uses")
+
 SHOW_FLOATING_LEGEND()
 @enduml

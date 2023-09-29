@@ -1,21 +1,33 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 
-class ConfigFile extends vscode.TreeItem {
+export class ConfigFile extends vscode.TreeItem {
+	public readonly filepath: string;
+	
 	constructor(
 		public readonly label: string,
-		public readonly collapsibleState: vscode.TreeItemCollapsibleState,
-		public readonly command?: vscode.Command
-	) {
-		super(label, collapsibleState);
+		public readonly filePath: string,
+		public readonly command: vscode.Command
+		) {
+		super(label, vscode.TreeItemCollapsibleState.None);
+		this.tooltip = label;
+		this.filepath = filePath;
+		this.command = command;
+		this.contextValue = 'configFile';
 	}
+
 }
 
 export class ConfigFileProvider implements vscode.TreeDataProvider<ConfigFile> {
-	private _onDidChangeTreeData: vscode.EventEmitter<ConfigFile | undefined | void> = new vscode.EventEmitter<ConfigFile | undefined | void>();
-	readonly onDidChangeTreeData: vscode.Event<ConfigFile | undefined | void> = this._onDidChangeTreeData.event;
+	private _onDidChangeTreeData: vscode.EventEmitter<ConfigFile | undefined | null | void> = new vscode.EventEmitter<ConfigFile | undefined | null | void>();
+	readonly onDidChangeTreeData: vscode.Event<ConfigFile | undefined | null | void> = this._onDidChangeTreeData.event;
 
-	refresh(): void {
+	private configFiles: string[] = [];
+
+	constructor() { }
+
+	refresh(configFiles: string[]): void {
+		this.configFiles = configFiles;
 		this._onDidChangeTreeData.fire();
 	}
 
@@ -24,35 +36,26 @@ export class ConfigFileProvider implements vscode.TreeDataProvider<ConfigFile> {
 	}
 
 	getChildren(element?: ConfigFile): Thenable<ConfigFile[]> {
-		if (!vscode.workspace.workspaceFolders) {
-			return Promise.resolve([]);
-		}
-
 		if (element) {
 			return Promise.resolve([]);
 		} else {
-			const configFiles: ConfigFile[] = [];
-			const pattern = '**/*.{json,yaml,yml,xml,ini,conf,.gitignore,.mod}';
-
-			return new Promise((resolve, reject) => {
-				vscode.workspace.findFiles(pattern, '**/node_modules/**', 1000).then(uris => {
-					uris.forEach(uri => {
-						const configFile = new ConfigFile(
-							path.basename(uri.fsPath),
-							vscode.TreeItemCollapsibleState.None,
-							{
-								command: 'vscode.open',
-								title: '',
-								arguments: [uri],
-							}
-						);
-						configFiles.push(configFile);
-					});
-					resolve(configFiles);
-				}, reject);
-			});
+			return this.getConfigFiles();
 		}
 	}
 
+	getConfigFiles(): Thenable<ConfigFile[]> {
+		return Promise.resolve(
+			this.configFiles.map(filepath => 
+				new ConfigFile(
+					path.basename(filepath), 
+					filepath,
+					{
+						command: 'configFiles.openConfigFile',
+						title: 'Open Config File',
+						arguments: [filepath]
+					}
+				)
+			)
+		);
+	}
 }
-
