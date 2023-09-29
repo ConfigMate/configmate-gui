@@ -59,20 +59,6 @@
 				"title": "Open Rulebook"
 			},
 			{
-				"command": "configFiles.openConfigFile",
-				"title": "Open Config File"
-			},
-			{
-				"command": "configMate.checkRulebooks",
-				"title": "Check All Rulebooks",
-				"icon": "$(check-all)"
-			},
-			{
-				"command": "configMate.checkRulebook",
-				"title": "Check Rulebook",
-				"icon": "$(check)"
-			},
-			{
 				"command": "rulebooks.refreshRulebooks",
 				"title": "Refresh",
 				"icon": "$(refresh)"
@@ -83,12 +69,26 @@
 				"icon": "$(add)"
 			},
 			{
-				"command": "rulebooks.editRulebook",
-				"title": "Edit",
-				"icon": "$(edit)"
+				"command": "rulebooks.deleteRulebook",
+				"title": "Delete",
+				"icon": "$(trash)"
 			},
 			{
-				"command": "rulebooks.deleteRulebook",
+				"command": "configFiles.openConfigFile",
+				"title": "Open Config File"
+			},
+			{
+				"command": "configFiles.refreshConfigFiles",
+				"title": "Refresh Config Files",
+				"icon": "$(refresh)"
+			},
+			{
+				"command": "configFiles.addConfigFile",
+				"title": "Add",
+				"icon": "$(add)"
+			},
+			{
+				"command": "configFiles.deleteConfigFile",
 				"title": "Delete",
 				"icon": "$(trash)"
 			},
@@ -103,33 +103,18 @@
 				"icon": "$(check)"
 			},
 			{
-				"command": "configFiles.refreshConfigFiles",
-				"title": "Refresh Config Files",
-				"icon": "$(refresh)"
+				"command": "configMate.checkRulebooks",
+				"title": "Check All Rulebooks",
+				"icon": "$(check-all)"
 			},
 			{
-				"command": "configFiles.addConfigFile",
-				"title": "Add",
-				"icon": "$(add)"
-			},
-			{
-				"command": "configFiles.editConfigFile",
-				"title": "Edit",
-				"icon": "$(edit)"
-			},
-			{
-				"command": "configFiles.deleteConfigFile",
-				"title": "Delete",
-				"icon": "$(trash)"
+				"command": "configMate.checkRulebook",
+				"title": "Check Rulebook",
+				"icon": "$(check)"
 			}
 		],
 		"menus": {
 			"view/title": [
-				{
-					"command": "configMate.checkRulebooks",
-					"when": "view == rulebooks",
-					"group": "navigation"
-				},
 				{
 					"command": "rulebooks.refreshRulebooks",
 					"when": "view == rulebooks",
@@ -141,11 +126,6 @@
 					"group": "navigation"
 				},
 				{
-					"command": "configMate.checkConfigFiles",
-					"when": "view == configFiles",
-					"group": "navigation"
-				},
-				{
 					"command": "configFiles.refreshConfigFiles",
 					"when": "view == configFiles",
 					"group": "navigation"
@@ -154,32 +134,22 @@
 					"command": "configFiles.addConfigFile",
 					"when": "view == configFiles",
 					"group": "navigation"
+				},
+				{
+					"command": "configMate.checkConfigFiles",
+					"when": "view == configFiles",
+					"group": "navigation"
+				},
+				{
+					"command": "configMate.checkRulebooks",
+					"when": "view == rulebooks",
+					"group": "navigation"
 				}
 			],
 			"view/item/context": [
 				{
-					"command": "configMate.checkRulebook",
-					"when": "view == rulebooks && viewItem == rulebook",
-					"group": "inline"
-				},
-				{
-					"command": "rulebooks.editRulebook",
-					"when": "view == rulebooks && viewItem == rulebook",
-					"group": "inline"
-				},
-				{
 					"command": "rulebooks.deleteRulebook",
 					"when": "view == rulebooks && viewItem == rulebook",
-					"group": "inline"
-				},
-				{
-					"command": "configMate.checkConfigFile",
-					"when": "view == configFiles && viewItem == configFile",
-					"group": "inline"
-				},
-				{
-					"command": "configFiles.editConfigFile",
-					"when": "view == configFiles && viewItem == configFile",
 					"group": "inline"
 				},
 				{
@@ -188,12 +158,14 @@
 					"group": "inline"
 				},
 				{
-					"command": "rulebooks.openRulebook",
-					"title": "Open Rulebook"
+					"command": "configMate.checkRulebook",
+					"when": "view == rulebooks && viewItem == rulebook",
+					"group": "inline"
 				},
 				{
-					"command": "configFiles.openConfigFile",
-					"title": "Open Config File"
+					"command": "configMate.checkConfigFile",
+					"when": "view == configFiles && viewItem == configFile",
+					"group": "inline"
 				}
 			]
 		}

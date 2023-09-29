@@ -13,6 +13,7 @@ export class ConfigFile extends vscode.TreeItem {
 		this.tooltip = label;
 		this.filepath = filePath;
 		this.command = command;
+		this.contextValue = 'configFile';
 	}
 
 }
