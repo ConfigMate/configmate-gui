@@ -35,8 +35,8 @@ export function activate(context: vscode.ExtensionContext) {
 			configFileProvider.refresh(rulebookTreeView)
 		),
 
-		vscode.commands.registerCommand('configMate.checkConfigFile', (node: ConfigFile) => 
-			configMateProvider.checkConfigFile(node.filepath)
+		vscode.commands.registerCommand('configMate.checkConfigFile', async (node: ConfigFile) => 
+			await configMateProvider.checkConfigFile(node.filepath)
 		),
 
 		vscode.commands.registerCommand('rulebooks.addRulebook', async () => {

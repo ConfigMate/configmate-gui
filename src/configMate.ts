@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import { spawn } from 'child_process';
-import { Response } from './models';
+import { cmResponse, cmRequest } from './models';
+import axios from 'axios';
 // import * as path from 'path';
 
 export class ConfigMateProvider {
@@ -11,53 +11,27 @@ export class ConfigMateProvider {
 		this.cliPath = cliPath;
 	}
 
-	checkConfigFile(filepath: string): Response {
-		console.log(`Executing ${this.cliPath} with ${filepath}`);
-		void vscode.window.showInformationMessage(`Executing ${this.cliPath} with ${filepath}`);
+	checkConfigFile = async (filepath: string): Promise<cmResponse> => {
+		const message = `Checking ${filepath} with ConfigMate`;
+		console.log(message);
+		void vscode.window.showInformationMessage(message);
+		return await this.sendRequest(filepath);
+	};
 
-		this.logFilePath(filepath);
-		return this.sendRequest(filepath);
-	}
-
-	logFilePath(filepath: string): void {
-		const child = spawn(this.cliPath, [filepath]);
-
-		child.stdout.on('data', (data: string) => {
-			console.log(`stdout: ${data}`);
-		}); 
-
-		child.stderr.on('data', (data: string) => {
-			console.error(`stderr: ${data}`);
-		});
-
-		child.on('close', (code: number) => {
-			console.log(`child process exited with code ${code}`);
-		}); 
-		
-		child.on('error', (error) => {
-			console.error('Spawn Error: ', error);
-		});
-
-	}
-
-	sendRequest(filepath: string): Response {
-		// connect to JSON API & send request
-		
-		// const request: Request = {
-		// 	rulebook: filepath
-		// };
-
-		const response: Response = {
-			passed: true,
-			response_comment: "This is a mock response.",
-			token_list: [{
-				file: filepath,
-				row: 1,
-				col: 1,
-				length: 1
-			}]
+	async sendRequest(filepath: string): Promise<cmResponse> {
+		const url: string = 'http://localhost:8080/api/check';
+		const request: cmRequest = {
+			rulebook: filepath
 		};
 
-		return response;
+		await axios({
+			method: 'post',
+			url: url,
+			data: request
+		}).then((response) => {
+			console.log(response.data);
+			return response.data as cmResponse;
+		});
+		return {} as cmResponse;
 	}
 }
