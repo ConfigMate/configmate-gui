@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { spawn } from 'child_process';
-import { Request, Response, Token } from './models';
+import { Response } from './models';
 // import * as path from 'path';
 
 export class ConfigMateProvider {
@@ -11,18 +11,12 @@ export class ConfigMateProvider {
 		this.cliPath = cliPath;
 	}
 
-	checkConfigFile(filepath: string): void {
+	checkConfigFile(filepath: string): Response {
 		console.log(`Executing ${this.cliPath} with ${filepath}`);
 		void vscode.window.showInformationMessage(`Executing ${this.cliPath} with ${filepath}`);
 
 		this.logFilePath(filepath);
-	}
-
-	checkRulebook(filepath: string): void {
-		console.log(`Executing ${this.cliPath} with ${filepath}`);
-		void vscode.window.showInformationMessage(`Executing ${this.cliPath} with ${filepath}`);
-
-		this.logFilePath(filepath);
+		return this.sendRequest(filepath);
 	}
 
 	logFilePath(filepath: string): void {

@@ -21,11 +21,11 @@
 		"viewsWelcome": [
 			{
 				"view": "rulebooks",
-				"contents": "No rulebooks found.\n[Add Rulebook](command:rulebooks.addRulebook)\n[Open Folder](command:vscode.openFolder)"
+				"contents": "No rulebooks found.\n[Add Rulebook](command:rulebooks.addRulebook)"
 			},
 			{
 				"view": "configFiles",
-				"contents": "Select a rulebook above to view related files."
+				"contents": "Select a rulebook above to view related files, or\n[Add Config File to Rulebook](command:configFiles.addConfigFile)"
 			}
 		],
 		"viewsContainers": {
@@ -60,17 +60,17 @@
 			},
 			{
 				"command": "rulebooks.refreshRulebooks",
-				"title": "Refresh",
+				"title": "Refresh Rulebooks",
 				"icon": "$(refresh)"
 			},
 			{
 				"command": "rulebooks.addRulebook",
-				"title": "Add",
+				"title": "Add Rulebook",
 				"icon": "$(add)"
 			},
 			{
 				"command": "rulebooks.deleteRulebook",
-				"title": "Delete",
+				"title": "Delete Rulebook",
 				"icon": "$(trash)"
 			},
 			{
@@ -84,27 +84,17 @@
 			},
 			{
 				"command": "configFiles.addConfigFile",
-				"title": "Add",
+				"title": "Add Config File",
 				"icon": "$(add)"
 			},
 			{
 				"command": "configFiles.deleteConfigFile",
-				"title": "Delete",
+				"title": "Delete Config File",
 				"icon": "$(trash)"
 			},
 			{
 				"command": "configMate.checkConfigFile",
 				"title": "Check Config File",
-				"icon": "$(check)"
-			},
-			{
-				"command": "configMate.checkRulebooks",
-				"title": "Check All Rulebooks",
-				"icon": "$(check-all)"
-			},
-			{
-				"command": "configMate.checkRulebook",
-				"title": "Check Rulebook",
 				"icon": "$(check)"
 			}
 		],
@@ -145,6 +135,11 @@
 				{
 					"command": "configMate.checkConfigFile",
 					"when": "view == configFiles && viewItem == configFile",
+					"group": "inline"
+				},
+				{
+					"command": "configFiles.addConfigFile",
+					"when": "view == rulebooks && viewItem == rulebook",
 					"group": "inline"
 				}
 			]
