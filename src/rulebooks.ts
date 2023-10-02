@@ -7,7 +7,7 @@ export class RulebookFile extends vscode.TreeItem {
 		public readonly label: string,
 		public readonly command: vscode.Command,
 		public readonly filepath: string,
-		public readonly rulebook: Rulebook
+		public rulebook: Rulebook
 	) {
 		super(label, vscode.TreeItemCollapsibleState.None);
 		this.description = rulebook.Name;
@@ -67,8 +67,8 @@ export class RulebookFileProvider implements vscode.TreeDataProvider<RulebookFil
 		return Buffer.from(buffer).toString();
 	}
 
-	async parseRulebook(filepath: string): Promise<Rulebook> {
-		const fileContents: string = await this.readFile(filepath);
+	async parseRulebook(filepath: string, contents?: string): Promise<Rulebook> {
+		const fileContents: string = contents || await this.readFile(filepath);
 
 		// const fileContents: string = '';
 		const fileExtension: string = path.extname(filepath);
@@ -93,4 +93,89 @@ export class RulebookFileProvider implements vscode.TreeDataProvider<RulebookFil
 
 		return rulebook;
 	}
+	writeRulebook = async (uri: vscode.Uri, rulebook: Rulebook): Promise<void> => {
+		try {
+			const contentAsUint8Array = Buffer.from(JSON.stringify(rulebook, null, 4));
+			await vscode.workspace.fs.writeFile(uri, contentAsUint8Array);
+			this.refresh();
+		} catch (error) {
+			void vscode.window.showErrorMessage(`Error writing rulebook: ${error as string}`);
+		}
+	};
+
+	addRulebook = async (uri: vscode.Uri): Promise<void> => {
+		try {
+			const filename = (path.basename(uri.fsPath)).split('.')[0];
+			const rulebook: Rulebook = {
+				Name: filename,
+				Description: "Rulebook description",
+				Files: [],
+				Rules: [
+					{
+						"Description": "Rule description",
+						"CheckName": "Name of check to run",
+						"Args": "Arguments to pass to check"
+					}
+				]
+			};
+			await this.writeRulebook(uri, rulebook);
+			void vscode.window.showInformationMessage(`Added new rulebook ${uri.fsPath}.`);
+		} catch (error) {
+			void vscode.window.showErrorMessage(`Error creating rulebook: ${error as string}`);
+		}
+	};
+
+	deleteRulebook = async (node: RulebookFile) => {
+		const confirm = await vscode.window.showWarningMessage(`Are you sure you want to delete rulebook ${node.label}?`, { modal: true }, 'Delete');
+		if (confirm === 'Delete') {
+			try {
+				const uri = vscode.Uri.file(node.filepath);
+				await vscode.workspace.fs.delete(uri, { recursive: true });
+				void vscode.window.showInformationMessage(`Deleted rulebook ${node.label}.`);
+			} catch (error) {
+				void vscode.window.showErrorMessage(`Error deleting rulebook: ${error as string}`);
+			}
+		}
+	};
+
+	addConfigFileToRulebook = async (uri: vscode.Uri, selectedRulebook: RulebookFile): Promise<void> => {
+		try {
+			selectedRulebook.rulebook.Files.push(uri.fsPath);
+			const rulebookUri = vscode.Uri.file(selectedRulebook.filepath);
+			await this.writeRulebook(rulebookUri, selectedRulebook.rulebook);
+		} catch (error) {
+			void vscode.window.showErrorMessage(`Error: ${error as string}`);
+		}
+	};
+
+	removeConfigFileFromRulebooks = async (uri: vscode.Uri): Promise<void> => {
+		try {
+			const rulebookFiles = await this.getChildren();
+			for (const rulebookFile of rulebookFiles) {
+				const index = rulebookFile.rulebook.Files.indexOf(uri.fsPath);
+				if (index > -1) {
+					rulebookFile.rulebook.Files.splice(index, 1);
+					const rulebookUri = vscode.Uri.file(rulebookFile.filepath);
+					await this.writeRulebook(rulebookUri, rulebookFile.rulebook);
+				}
+			}
+		} catch (error) {
+			void vscode.window.showErrorMessage(`Error: ${error as string}`);
+		}
+	};
+
+	saveRulebook = async (uri: vscode.Uri, text: string): Promise<void> => {
+		try {
+			const rulebook: Rulebook = await this.parseRulebook(uri.fsPath, text);
+			const rulebookFiles = await this.getChildren();
+			for (const rulebookFile of rulebookFiles) {
+				if (rulebookFile.filepath === uri.fsPath) {
+					rulebookFile.rulebook = rulebook;
+					break;
+				}
+			}
+		} catch (error) {
+			void vscode.window.showErrorMessage(`Error: ${error as string}`);
+		}
+	};
 }

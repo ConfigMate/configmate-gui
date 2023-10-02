@@ -1,13 +1,13 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
+import { RulebookFile } from './rulebooks';
 
 export class ConfigFile extends vscode.TreeItem {
 	public readonly filepath: string;
-	
 	constructor(
 		public readonly label: string,
 		public readonly filePath: string,
-		public readonly command: vscode.Command
+		public readonly command: vscode.Command,
 		) {
 		super(label, vscode.TreeItemCollapsibleState.None);
 		this.tooltip = label;
@@ -26,8 +26,10 @@ export class ConfigFileProvider implements vscode.TreeDataProvider<ConfigFile> {
 
 	constructor() { }
 
-	refresh(configFiles: string[]): void {
-		this.configFiles = configFiles;
+	refresh(rulebookTreeView: vscode.TreeView<RulebookFile>): void {
+		const rulebook = rulebookTreeView.selection[0];
+		if (rulebook instanceof RulebookFile)
+			this.configFiles = rulebook.rulebook.Files;
 		this._onDidChangeTreeData.fire();
 	}
 
@@ -58,4 +60,32 @@ export class ConfigFileProvider implements vscode.TreeDataProvider<ConfigFile> {
 			)
 		);
 	}
+
+	addConfigFile = async (uri: vscode.Uri): Promise<void> => {
+		try {
+			const name = (path.basename(uri.fsPath)).split('.')[0];
+			const workspaceFolders = vscode.workspace.workspaceFolders;
+			if (workspaceFolders) {
+				// const uri = vscode.Uri.joinPath(workspaceFolders[0].uri, name);
+				await vscode.workspace.fs.writeFile(uri, new Uint8Array());
+				void vscode.window.showInformationMessage(`Added new config file ${name}.`);
+			}
+		} catch (error) {
+			void vscode.window.showErrorMessage(`Error creating config file: ${error as string}`);
+		}
+	};
+
+
+	deleteConfigFile = async (node: ConfigFile) => {
+		const confirm = await vscode.window.showWarningMessage(`Are you sure you want to delete config file ${node.label}?`, { modal: true }, 'Delete');
+		if (confirm === 'Delete') {
+			try {
+				const uri = vscode.Uri.file(node.filepath);
+				await vscode.workspace.fs.delete(uri, { recursive: true });
+				void vscode.window.showInformationMessage(`Deleted config file ${node.label}.`);
+			} catch (error) {
+				void vscode.window.showErrorMessage(`Error deleting config file: ${error as string}`);
+			}
+		}
+	};
 }

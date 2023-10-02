@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 
-export class DiagnosticManager {
+export class DiagnosticsProvider {
 	timeout: NodeJS.Timer | undefined = undefined;
 	smallNumberDecorationType!: vscode.TextEditorDecorationType;
 	largeNumberDecorationType!: vscode.TextEditorDecorationType;
