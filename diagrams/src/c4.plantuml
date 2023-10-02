@@ -3,38 +3,38 @@
 
 LAYOUT_LANDSCAPE()
 
-Person(user, "Developer", "needs to verify their configurations")
-System_Boundary(extension, "VS Code Extension") {
-	System_Boundary(gui, "Activity Bar") {
-		Container(rulebooks, "Rulebooks", "TypeScript,\nVS Code TreeDataProvider API", "Graphical file manager for .rulebook files (.json, .toml, .hocon)")
-		Container(configFiles, "Config Files", "TypeScript,\nVS Code TreeDataProvider API", "Graphical file manager for config files specified in selected rulebook(s)")
+Person(user, "Developer", "Needs to verify their configurations")
+
+System_Boundary(extension, "ConfigMate VS Code Extension") {
+	System_Boundary(gui, "GUI [Activity Bar]") {
+		Container(rulebooks, "Rulebooks View", "TypeScript, VS Code API", "Graphical file manager for .rulebook files (.json, .toml, .hocon)")
+		Container(configFiles, "Config Files View", "TypeScript, VS Code API", "Graphical file manager for config files specified in selected rulebook(s)")
 	}
-	Container(configmateProvider, "ConfigMate Provider", "TypeScript", "Translates GUI interactions into CLI commands")
-	Container(diagnosticsProvider, "Diagnostics Provider", "TypeScript", "Uses error data from response to provides error highlighting & helpful diagnostic information")
+	Container(configmateProvider, "ConfigMate Provider", "TypeScript", "Runs the ConfigMate server, then routes API requests & responses appropriately")
+	Container(diagnosticsProvider, "Diagnostics Provider", "TypeScript, VS Code API", "Uses error data in response to add in-editor feedback & helpful diagnostic information")
 	System_Boundary(configmate, "ConfigMate") {
 		Container(cli, "CLI", "GoLang", "Provides command-line interaction with the ConfigMate program")
-		Container(analyzer, "Analyzer", "GoLang", "Coordinates files, rules, and parsers")
-		Container(parser, "Parser", "GoLang", "Applies rules against files")
-		Container(server, "Server", "GoLang", "Provides up-to-date rule verification")
+		Container(analyzer, "Analyzer", "GoLang", "Uses Parsers to apply rules, evaluate checks, & produce error information")
+		Container(parser, "Parser", "GoLang", "Parses config files depending on their type into a common format for the Analyzer")
+		Container(server, "Server", "GoLang", "Provides a JSON API for the GUI to interact with")
 	}
 }
-Rel(user, extension, "Installs", "VS Code Marketplace\nor Extensions Tab")
-Rel(user, gui, "Uses", "VS Code GUI")
-Rel(user, cli, "Uses", "VS Code Terminal")
+Rel_U(configmateProvider, server, "\n\nUses")
+Rel_D(server, configmateProvider, "\n\nProvides")
+Rel_D(configmateProvider, diagnosticsProvider, "\n\nProvides")
 
 Rel_R(rulebooks, configmateProvider, "Uses")
 Rel_R(configFiles, configmateProvider, "Uses")
-
-Rel_D(configmateProvider, cli, "Uses")
-Rel_U(cli, configmateProvider, "Provides")
-
-Rel_U(configmateProvider, diagnosticsProvider, "Provides")
 Rel_L(diagnosticsProvider, rulebooks, "Provides")
 Rel_L(diagnosticsProvider, configFiles, "Provides")
 
-Rel(cli, analyzer, "Uses")
-Rel_U(analyzer, parser, "Uses")
-Rel_L(analyzer, server, "Uses")
+Rel_R(cli, analyzer, "Uses")
+Rel_U(server, analyzer, "Uses")
+Rel_L(analyzer, parser, "Uses")
+
+Rel_R(user, extension, "Installs")
+Rel_R(user, gui, "Uses")
+Rel_R(user, cli, "Uses")
 
 SHOW_FLOATING_LEGEND()
 @enduml

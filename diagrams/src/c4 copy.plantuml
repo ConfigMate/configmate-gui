@@ -19,21 +19,21 @@ System_Boundary(extension, "ConfigMate VS Code Extension") {
 		Container(server, "Server", "GoLang", "Provides a JSON API for the GUI to interact with")
 	}
 }
-Rel_R(configmateProvider, server, "Request", "HTTPS/JSON")
-Rel_L(server, configmateProvider, "Response", "HTTPS/JSON")
-Rel_D(configmateProvider, diagnosticsProvider, "Response", "JSON")
+Rel_R(configmateProvider, server, " ")
+Rel_L(server, configmateProvider, " ")
+Rel_D(configmateProvider, diagnosticsProvider, " ")
 
-Rel_R(rulebooks, configmateProvider, "Request", "VS Code Command")
-Rel_R(configFiles, configmateProvider, "Request", "VS Code Command")
-Rel_L(diagnosticsProvider, rulebooks, "Response", "JSON")
-Rel_L(diagnosticsProvider, configFiles, "Response", "JSON")
+Rel_R(rulebooks, configmateProvider, " ")
+Rel_R(configFiles, configmateProvider, " ")
+Rel_L(diagnosticsProvider, rulebooks, " ")
+Rel_L(diagnosticsProvider, configFiles, " ")
 
-Rel_D(cli, analyzer, "Request", "JSON")
-Rel_L(analyzer, cli, "Response", "JSON")
-Rel_R(server, analyzer, "Request", "JSON")
-Rel_L(analyzer, server, "Response", "JSON")
-Rel_D(analyzer, parser, "Request", "JSON")
-Rel_U(parser, analyzer, "Response", "JSON")
+Rel_D(cli, analyzer, " ")
+Rel_L(analyzer, cli, " ")
+Rel_R(server, analyzer, " ")
+Rel_L(analyzer, server, " ")
+Rel_D(analyzer, parser, " ")
+Rel_U(parser, analyzer, " ")
 
 ' SHOW_FLOATING_LEGEND()
 @enduml

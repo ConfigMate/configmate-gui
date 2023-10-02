@@ -1,21 +1,27 @@
 @startuml c4
 !include  https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
 
-title ConfigMate VS Code Extension
+LAYOUT_LANDSCAPE()
 
-Person(user, "Developer", "needs to verify their configurations")
-System(configmate, "ConfigMate")
-Container(gui, "GUI")
-System(extension, "VS Code Extension")
-Container(cli, "CLI")
+' Person(user, "User", "Uses ConfigMate to manage config files")
 
-Rel_R(user, extension, "Installs", "HTTPS")
-Rel_R(user, gui, "Uses", "HTTPS")
-Rel_R(user, cli, "Uses", "HTTPS")
-Rel_R(extension, configmate, "Uses", "HTTPS")
-Rel_U(extension, gui, "Provides")
-Rel_U(configmate, cli, "Provides")
+System_Boundary(extension, "ConfigMate VS Code Extension") {
+	System_Boundary(gui, "GUI [Activity Bar]") {
+		Container(rulebooks, "Rulebooks View", "TypeScript, VS Code API", "Graphical file manager for .rulebook files (.json, .toml, .hocon)")
+		Container(configFiles, "Config Files View", "TypeScript, VS Code API", "Graphical file manager for config files specified in selected rulebook(s)")
+	}
+	Container(configmateProvider, "ConfigMate Provider", "TypeScript", "Runs the ConfigMate server, then routes API requests & responses appropriately")
+	Container(diagnosticsProvider, "Diagnostics Provider", "TypeScript, VS Code API", "Uses error data in response to add in-editor feedback & helpful diagnostic information")
+	System(configmate, "ConfigMate")
+}
+Rel_U(configmateProvider, configmate, "\n\n\nRequest", "HTTPS/JSON")
+Rel_D(configmate, configmateProvider, "\n\n\nResponse", "HTTPS/JSON")
+Rel_U(configmateProvider, diagnosticsProvider, "Response", "JSON")
 
-SHOW_FLOATING_LEGEND()
+Rel_R(rulebooks, configmateProvider, "Request", "VS Code Command")
+Rel_R(configFiles, configmateProvider, "Request", "VS Code Command")
+Rel_L(diagnosticsProvider, rulebooks, "Response", "JSON")
+Rel_L(diagnosticsProvider, configFiles, "Response", "JSON")
 
+' SHOW_FLOATING_LEGEND()
 @enduml
