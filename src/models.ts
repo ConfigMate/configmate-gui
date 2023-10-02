@@ -1,10 +1,18 @@
-export interface Request { // ??
-	Files: string[][],
-	Rules: Rule[]
+export interface Request { 
+	rulebook: string,
 }
 
 export interface Response {
-	Nodes: Node[],
+	passed: boolean,
+	response_comment: string,
+	token_list: Token[]
+}
+
+export interface Token {
+	file: string,
+	row: number,
+	col: number,
+	length: number
 }
 
 export interface Node {

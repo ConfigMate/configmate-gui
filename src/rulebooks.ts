@@ -93,4 +93,5 @@ export class RulebookFileProvider implements vscode.TreeDataProvider<RulebookFil
 
 		return rulebook;
 	}
+
 }

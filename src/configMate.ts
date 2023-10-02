@@ -1,8 +1,10 @@
 import * as vscode from 'vscode';
 import { spawn } from 'child_process';
+import { Request, Response, Token } from './models';
 // import * as path from 'path';
 
 export class ConfigMateProvider {
+
 	private cliPath: string;
 
 	constructor(cliPath: string) {
@@ -14,11 +16,6 @@ export class ConfigMateProvider {
 		void vscode.window.showInformationMessage(`Executing ${this.cliPath} with ${filepath}`);
 
 		this.logFilePath(filepath);
-	}
-
-	checkAllConfigFiles(): void {
-		// get all ConfigFile nodes
-		// for each node, call checkConfigFile
 	}
 
 	checkRulebook(filepath: string): void {
@@ -47,5 +44,26 @@ export class ConfigMateProvider {
 			console.error('Spawn Error: ', error);
 		});
 
+	}
+
+	sendRequest(filepath: string): Response {
+		// connect to JSON API & send request
+		
+		// const request: Request = {
+		// 	rulebook: filepath
+		// };
+
+		const response: Response = {
+			passed: true,
+			response_comment: "This is a mock response.",
+			token_list: [{
+				file: filepath,
+				row: 1,
+				col: 1,
+				length: 1
+			}]
+		};
+
+		return response;
 	}
 }

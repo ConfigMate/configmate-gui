@@ -93,11 +93,6 @@
 				"icon": "$(trash)"
 			},
 			{
-				"command": "configMate.checkConfigFiles",
-				"title": "Check All Config Files",
-				"icon": "$(check-all)"
-			},
-			{
 				"command": "configMate.checkConfigFile",
 				"title": "Check Config File",
 				"icon": "$(check)"
@@ -134,16 +129,6 @@
 					"command": "configFiles.addConfigFile",
 					"when": "view == configFiles",
 					"group": "navigation"
-				},
-				{
-					"command": "configMate.checkConfigFiles",
-					"when": "view == configFiles",
-					"group": "navigation"
-				},
-				{
-					"command": "configMate.checkRulebooks",
-					"when": "view == rulebooks",
-					"group": "navigation"
 				}
 			],
 			"view/item/context": [
@@ -155,11 +140,6 @@
 				{
 					"command": "configFiles.deleteConfigFile",
 					"when": "view == configFiles && viewItem == configFile",
-					"group": "inline"
-				},
-				{
-					"command": "configMate.checkRulebook",
-					"when": "view == rulebooks && viewItem == rulebook",
 					"group": "inline"
 				},
 				{
