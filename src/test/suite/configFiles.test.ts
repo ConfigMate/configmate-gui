@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as assert from 'assert';
-import { ConfigFileProvider, ConfigFile } from '../../configFiles';
+import { ConfigFileProvider } from '../../configFiles';
 import { RulebookFile } from '../../rulebooks';
 
 suite('ConfigFile Tests', () => {
@@ -29,18 +29,15 @@ suite('ConfigFile Tests', () => {
 
 	test('Should delete a config file', async () => {
 		const uri = vscode.Uri.joinPath(vscode.workspace.workspaceFolders![0].uri, 'testConfig.json');
-		const configFile = new ConfigFile('testConfig', uri.fsPath, {
-			command: 'configFiles.openConfigFile',
-			title: 'Open Config File',
-			arguments: [uri.fsPath]
-		});
-		await configFileProvider.deleteConfigFile(configFile);
+		await configFileProvider.deleteConfigFileFile(uri);
+
+		let errorOccurred = false;
 		try {
-			await vscode.workspace.fs.readFile(uri);
-			assert.fail('Config file was not deleted successfully');
+			await vscode.workspace.fs.stat(uri);
 		} catch (error) {
-			assert.ok(true);
+			errorOccurred = true;
 		}
+		assert(errorOccurred, 'Config file was not deleted successfully');
 	});
 
 	test('Should refresh config files', async () => {

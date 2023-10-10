@@ -78,14 +78,16 @@ export class ConfigFileProvider implements vscode.TreeDataProvider<ConfigFile> {
 
 	deleteConfigFile = async (node: ConfigFile) => {
 		const confirm = await vscode.window.showWarningMessage(`Are you sure you want to delete config file ${node.label}?`, { modal: true }, 'Delete');
-		if (confirm === 'Delete') {
-			try {
-				const uri = vscode.Uri.file(node.filepath);
-				await vscode.workspace.fs.delete(uri, { recursive: true });
-				void vscode.window.showInformationMessage(`Deleted config file ${node.label}.`);
-			} catch (error) {
-				void vscode.window.showErrorMessage(`Error deleting config file: ${error as string}`);
-			}
+		if (confirm === 'Delete') 
+			await this.deleteConfigFileFile(vscode.Uri.file(node.filepath));
+	};
+
+	deleteConfigFileFile = async (uri: vscode.Uri) => {
+		try {
+			await vscode.workspace.fs.delete(uri, { recursive: true });
+			void vscode.window.showInformationMessage(`Deleted config file ${uri.fsPath}.`);
+		} catch (error) {
+			void vscode.window.showErrorMessage(`Error deleting config file: ${error as string}`);
 		}
 	};
 }

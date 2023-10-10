@@ -1,5 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import * as vscode from 'vscode';
 import * as assert from 'assert';
+import * as sinon from 'sinon';
 import { RulebookFileProvider, RulebookFile } from '../../rulebooks';
 
 suite('Rulebook Tests', () => {
@@ -19,6 +21,18 @@ suite('Rulebook Tests', () => {
 		]
 	};
 
+	let showWarningMessageStub: sinon.SinonStub;
+
+	suiteSetup(() => {
+		// Create the stub here and use it in multiple tests if needed
+		showWarningMessageStub = sinon.stub(vscode.window, 'showWarningMessage');
+	});
+
+	suiteTeardown(() => {
+		// Ensure the stub is always restored after all tests in the suite
+		showWarningMessageStub.restore();
+	});
+
 	test('Should create a new rulebook', async () => {
 		const uri = vscode.Uri.joinPath(vscode.workspace.workspaceFolders![0].uri, 'test.rulebook.json');
 		await rulebookProvider.addRulebook(uri);
@@ -28,13 +42,15 @@ suite('Rulebook Tests', () => {
 
 	test('Should delete a rulebook', async () => {
 		const uri = vscode.Uri.joinPath(vscode.workspace.workspaceFolders![0].uri, 'test.rulebook.json');
-		const rulebookFile = new RulebookFile('test', {
-			title: 'Open Rulebook',
-			command: 'rulebooks.openRulebook'
-		}, uri.fsPath, mockRulebook);
-		await rulebookProvider.deleteRulebook(rulebookFile);
-		const rulebook = await rulebookProvider.parseRulebook(uri.fsPath);
-		assert.ok(!rulebook, 'Rulebook was not deleted successfully');
+		await rulebookProvider.deleteRulebookFile(uri);
+
+		let errorOccurred = false;
+		try {
+			await vscode.workspace.fs.stat(uri);
+		} catch (error) {
+			errorOccurred = true;
+		}
+		assert(errorOccurred, 'Rulebook was not deleted successfully');
 	});
 
 	test('Should write to a rulebook', async () => {

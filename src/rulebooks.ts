@@ -127,15 +127,17 @@ export class RulebookFileProvider implements vscode.TreeDataProvider<RulebookFil
 
 	deleteRulebook = async (node: RulebookFile) => {
 		const confirm = await vscode.window.showWarningMessage(`Are you sure you want to delete rulebook ${node.label}?`, { modal: true }, 'Delete');
-		if (confirm === 'Delete') {
+		if (confirm === 'Delete') 
+			await this.deleteRulebookFile(vscode.Uri.file(node.filepath));
+	};
+
+	deleteRulebookFile = async (uri: vscode.Uri) => {
 			try {
-				const uri = vscode.Uri.file(node.filepath);
 				await vscode.workspace.fs.delete(uri, { recursive: true });
-				void vscode.window.showInformationMessage(`Deleted rulebook ${node.label}.`);
+				void vscode.window.showInformationMessage(`Deleted rulebook ${uri.fsPath}.`);
 			} catch (error) {
 				void vscode.window.showErrorMessage(`Error deleting rulebook: ${error as string}`);
 			}
-		}
 	};
 
 	addConfigFileToRulebook = async (uri: vscode.Uri, selectedRulebook: RulebookFile): Promise<void> => {
