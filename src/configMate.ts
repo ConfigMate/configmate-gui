@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { cmResponse, cmRequest } from './models';
 import axios from 'axios';
-// import * as path from 'path';
+import * as cp from 'child_process';
 
 export class ConfigMateProvider {
 
@@ -34,4 +34,29 @@ export class ConfigMateProvider {
 		});
 		return {} as cmResponse;
 	}
+
+	runServer = (context: vscode.ExtensionContext) => {
+		const serverPath = `${context.extensionPath}/bin`;
+
+		const goServer = cp.exec('go run ConfigMate.go', {
+			cwd: serverPath // Set the working directory
+		}, (error, stdout, stderr) => {
+			if (error) {
+				void vscode.window.showErrorMessage(`Error running Go server: ${error.message}`);
+				return;
+			}
+			console.log(`stdout: ${stdout}`);
+			console.error(`stderr: ${stderr}`);
+		});
+
+
+		// On VS Code close, close the Go server
+		context.subscriptions.push({
+			dispose: () => {
+				goServer.kill();
+			}
+		});
+
+		console.log("Go server running!");
+	};
 }

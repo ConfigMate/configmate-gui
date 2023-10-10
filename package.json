@@ -62,10 +62,6 @@
 				"title": "Run Go Server"
 			},
 			{
-				"command": "extension.fetchDataFromServer",
-				"title": "Fetch Data From Server"
-			},
-			{
 				"command": "rulebooks.openRulebook",
 				"title": "Open Rulebook"
 			},
