@@ -1,37 +1,74 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
-	"os"
-	"path/filepath"
+	"log"
+	"net/http"
 )
 
+// RulebookRequest represents the expected structure of the POST request body.
+type RulebookRequest struct {
+	Rulebook string `json:"rulebook"`
+}
+
+// Token represents the structure of the token_list in the response.
+type Token struct {
+	File   string `json:"file"`
+	Row    int    `json:"row"`
+	Col    int    `json:"col"`
+	Length int    `json:"length"`
+}
+
+// RuleResponse represents the structure of each rule in the response body.
+type RuleResponse struct {
+	Passed          bool    `json:"passed"`
+	ResponseComment string  `json:"result_comment"`
+	TokenList       []Token `json:"token_list"`
+}
+
 func main() {
-	args := os.Args[1:] // Get the arguments passed to the program
+	http.HandleFunc("/api/check", checkHandler)
 
-	// Get the directory where the executable is located
-	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "Error getting current directory:", err)
-		os.Exit(1)
+	// Set the port number
+	port := "8080"
+	fmt.Printf("ConfigMate is running on port %s...\n", port)
+	log.Fatal(http.ListenAndServe(":"+port, nil))
+}
+
+func checkHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
 	}
 
-	logFilePath := filepath.Join(dir, "configMateLog.txt") // Log file to write the arguments
-
-	// Open the log file in append mode, create if it doesn't exist
-	file, err := os.OpenFile(logFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	var req RulebookRequest
+	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "Error opening log file:", err)
-		os.Exit(1)
-	}
-	defer file.Close()
-
-	// Write the received arguments to the log file
-	_, err = file.WriteString(fmt.Sprintf("Received Arguments: %v\n", args))
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "Error writing to log file:", err)
-		os.Exit(1)
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
 	}
 
-	fmt.Println("ConfigMate Mock Program Executed")
+	// For the sake of this example, let's create a mock response.
+	// In a real-world scenario, you would perform some checks based on the rulebook file and populate the response accordingly.
+	resp := []RuleResponse{
+		{
+			Passed:          true,
+			ResponseComment: "Rule is being met",
+			TokenList: []Token{
+				{File: req.Rulebook, Row: 1, Col: 1, Length: 5},
+				{File: req.Rulebook, Row: 2, Col: 3, Length: 7},
+			},
+		},
+		{
+			Passed:          false,
+			ResponseComment: "Error: Rule is not being met",
+			TokenList: []Token{
+				{File: req.Rulebook, Row: 3, Col: 2, Length: 4},
+			},
+		},
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(resp)
 }

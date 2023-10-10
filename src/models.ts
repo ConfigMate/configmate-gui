@@ -1,10 +1,10 @@
-export interface Request { 
+export interface cmRequest { 
 	rulebook: string,
 }
 
-export interface Response {
+export interface cmResponse {
 	passed: boolean,
-	response_comment: string,
+	result_comment: string,
 	token_list: Token[]
 }
 

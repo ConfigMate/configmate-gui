@@ -35,8 +35,8 @@ export function activate(context: vscode.ExtensionContext) {
 			configFileProvider.refresh(rulebookTreeView)
 		),
 
-		vscode.commands.registerCommand('configMate.checkConfigFile', (node: ConfigFile) => 
-			configMateProvider.checkConfigFile(node.filepath)
+		vscode.commands.registerCommand('configMate.checkConfigFile', async (node: ConfigFile) => 
+			await configMateProvider.checkConfigFile(node.filepath)
 		),
 
 		vscode.commands.registerCommand('rulebooks.addRulebook', async () => {
@@ -71,6 +71,9 @@ export function activate(context: vscode.ExtensionContext) {
 			if (doc.languageId === 'json' && doc.uri.fsPath.endsWith('rulebook.json'))
 				await rulebookFileProvider.saveRulebook(doc.uri, doc.getText());
 		}),
+		
+		vscode.commands.registerCommand('extension.runGoServer', () => configMateProvider.runServer(context))
 	);
 
+	void vscode.commands.executeCommand('extension.runGoServer');
 }
