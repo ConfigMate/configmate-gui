@@ -3,7 +3,7 @@
 
 LAYOUT_LANDSCAPE()
 
-Person(user, "Developer", "Needs to verify their configurations")
+' Person(user, "User", "Uses ConfigMate to manage config files")
 
 System_Boundary(extension, "ConfigMate VS Code Extension") {
 	System_Boundary(gui, "GUI [Activity Bar]") {
@@ -19,22 +19,21 @@ System_Boundary(extension, "ConfigMate VS Code Extension") {
 		Container(server, "Server", "GoLang", "Provides a JSON API for the GUI to interact with")
 	}
 }
-Rel_U(configmateProvider, server, "\n\nUses")
-Rel_D(server, configmateProvider, "\n\nProvides")
-Rel_D(configmateProvider, diagnosticsProvider, "\n\nProvides")
+Rel_R(configmateProvider, server, " ")
+Rel_L(server, configmateProvider, " ")
+Rel_D(configmateProvider, diagnosticsProvider, " ")
 
-Rel_R(rulebooks, configmateProvider, "Uses")
-Rel_R(configFiles, configmateProvider, "Uses")
-Rel_L(diagnosticsProvider, rulebooks, "Provides")
-Rel_L(diagnosticsProvider, configFiles, "Provides")
+Rel_R(rulebooks, configmateProvider, " ")
+Rel_R(configFiles, configmateProvider, " ")
+Rel_L(diagnosticsProvider, rulebooks, " ")
+Rel_L(diagnosticsProvider, configFiles, " ")
 
-Rel_R(cli, analyzer, "Uses")
-Rel_U(server, analyzer, "Uses")
-Rel_L(analyzer, parser, "Uses")
+Rel_D(cli, analyzer, " ")
+Rel_L(analyzer, cli, " ")
+Rel_R(server, analyzer, " ")
+Rel_L(analyzer, server, " ")
+Rel_D(analyzer, parser, " ")
+Rel_U(parser, analyzer, " ")
 
-Rel_R(user, extension, "Installs")
-Rel_R(user, gui, "Uses")
-Rel_R(user, cli, "Uses")
-
-SHOW_FLOATING_LEGEND()
+' SHOW_FLOATING_LEGEND()
 @enduml
