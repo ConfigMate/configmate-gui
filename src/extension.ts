@@ -2,6 +2,7 @@
 
 import * as vscode from 'vscode';
 import * as path from 'path';
+import * as cp from 'child_process';
 
 import { RulebookFileProvider, RulebookFile } from './rulebooks';
 import { ConfigFileProvider, ConfigFile } from './configFiles';
@@ -71,6 +72,32 @@ export function activate(context: vscode.ExtensionContext) {
 			if (doc.languageId === 'json' && doc.uri.fsPath.endsWith('rulebook.json'))
 				await rulebookFileProvider.saveRulebook(doc.uri, doc.getText());
 		}),
+		
+		vscode.commands.registerCommand('extension.runGoServer', () => {
+			const serverPath = `${context.extensionPath}/bin`;
+
+			const goServer = cp.exec('go run ConfigMate.go', {
+				cwd: serverPath // Set the working directory
+			}, (error, stdout, stderr) => {
+				if (error) {
+					void vscode.window.showErrorMessage(`Error running Go server: ${error.message}`);
+					return;
+				}
+				console.log(`stdout: ${stdout}`);
+				console.error(`stderr: ${stderr}`);
+			});
+
+
+			// On VS Code close, close the Go server
+			context.subscriptions.push({
+				dispose: () => {
+					goServer.kill();
+				}
+			});
+
+			console.log("runGoServer command executed!");
+		})
 	);
 
+	void vscode.commands.executeCommand('extension.runGoServer');
 }

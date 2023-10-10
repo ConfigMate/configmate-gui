@@ -18,13 +18,12 @@ type Token struct {
 	Row    int    `json:"row"`
 	Col    int    `json:"col"`
 	Length int    `json:"length"`
-	Type   string `json:"type,omitempty"`
 }
 
 // RuleResponse represents the structure of each rule in the response body.
 type RuleResponse struct {
 	Passed          bool    `json:"passed"`
-	ResponseComment string  `json:"response_comment"`
+	ResponseComment string  `json:"result_comment"`
 	TokenList       []Token `json:"token_list"`
 }
 
@@ -57,15 +56,15 @@ func checkHandler(w http.ResponseWriter, r *http.Request) {
 			Passed:          true,
 			ResponseComment: "Rule is being met",
 			TokenList: []Token{
-				{File: req.Rulebook, Row: 1, Col: 1, Length: 5, Type: "Value"},
-				{File: req.Rulebook, Row: 2, Col: 3, Length: 7, Type: "FieldName"},
+				{File: req.Rulebook, Row: 1, Col: 1, Length: 5},
+				{File: req.Rulebook, Row: 2, Col: 3, Length: 7},
 			},
 		},
 		{
 			Passed:          false,
 			ResponseComment: "Error: Rule is not being met",
 			TokenList: []Token{
-				{File: req.Rulebook, Row: 3, Col: 2, Length: 4, Type: "Literal"},
+				{File: req.Rulebook, Row: 3, Col: 2, Length: 4},
 			},
 		},
 	}

@@ -17,6 +17,9 @@
 		"Other"
 	],
 	"main": "./out/extension.js",
+	"activationEvents": [
+		"onStartupFinished"
+	],
 	"contributes": {
 		"viewsWelcome": [
 			{
@@ -54,6 +57,14 @@
 			]
 		},
 		"commands": [
+			{
+				"command": "extension.runGoServer",
+				"title": "Run Go Server"
+			},
+			{
+				"command": "extension.fetchDataFromServer",
+				"title": "Fetch Data From Server"
+			},
 			{
 				"command": "rulebooks.openRulebook",
 				"title": "Open Rulebook"
@@ -167,6 +178,7 @@
 		"url": "^0.11.3"
 	},
 	"dependencies": {
-		"axios": "^1.5.1"
+		"axios": "^1.5.1",
+		"child_process": "^1.0.2"
 	}
 }

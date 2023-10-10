@@ -4,7 +4,7 @@ export interface cmRequest {
 
 export interface cmResponse {
 	passed: boolean,
-	response_comment: string,
+	result_comment: string,
 	token_list: Token[]
 }
 
