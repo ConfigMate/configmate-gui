@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import * as vscode from 'vscode';
 import * as assert from 'assert';
 import { RulebookFileProvider, RulebookFile } from '../../rulebooks';
