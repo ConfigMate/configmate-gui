@@ -1,0 +1,14 @@
+{
+	"Name": "test",
+	"Description": "Rulebook description",
+	"Files": [
+		"d:\\KT\\Projects\\Go\\src\\configmate\\go-server-extension\\src\\testConfig.json"
+	],
+	"Rules": [
+		{
+			"Description": "Rule description",
+			"CheckName": "Name of check to run",
+			"Args": "Arguments to pass to check"
+		}
+	]
+}
