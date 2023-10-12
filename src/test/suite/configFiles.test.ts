@@ -39,11 +39,6 @@ suite('ConfigFile Tests', () => {
 	
 	/*---------------------------------------- BROWSE ----------------------------------------*/
 
-	// test('Should retrieve config files [BROWSE]', async () => {
-	// 	const configFiles = await configFileProvider.getConfigFiles();
-	// 	assert.ok(configFiles.length > 0, 'Config files were not retrieved correctly');
-	// });
-
 	test('Should refresh config files [BROWSE]', async () => {
 		const rulebookUri = vscode.Uri.joinPath(vscode.workspace.workspaceFolders![0].uri, 'test.rulebook.json');
 		const rulebookFile = new RulebookFile('test', { title: 'Open Rulebook', command: 'rulebooks.openRulebook' }, rulebookUri.fsPath, mockRulebook);
@@ -55,39 +50,39 @@ suite('ConfigFile Tests', () => {
 		assert.ok(configFiles.length > 0, 'Config files were not refreshed correctly');
 	});
 
-	// Should show all .json files when no rulebooks present [BROWSE]
-	// Should show all .json files when no rulebooks selected [BROWSE]
-	// Should show welcome message when no .json files present in workspace [BROWSE]
-	// Should show welcome message when no .json files present in selected rulebook [BROWSE]
-	// Should show all files listed in Files when rulebook selected [BROWSE]
+	test.skip('Should show all .json files when no rulebooks present [BROWSE]', async () => {});
+	test.skip('Should show all .json files when no rulebooks selected [BROWSE]', async () => {});
+	test.skip('Should show welcome message when no .json files present in workspace [BROWSE]', async () => {});
+	test.skip('Should show welcome message when no .json files present in selected rulebook [BROWSE]', async () => {});
+	test.skip('Should show all files listed in Files when rulebook selected [BROWSE]', async () => {});
 
 	/*---------------------------------------- READ ----------------------------------------*/
 
-	test('Should open config file [READ]', async () => {   }); // TO DO
+	test.skip('Should open config file on click [READ]', async () => {   }); // TO DO
 
 
 	/*---------------------------------------- EDIT ----------------------------------------*/
 
-	test('Should update a config file [EDIT]', async () => { }); // TO DO
+	test.skip('Should update a config file on save [EDIT]', async () => { }); // TO DO
 
 	// ---ON TITLE CHANGE ---
-	// Should verify file extension [EDIT]
-	// Should handle errors in file extension [EDIT]
-	// Should refresh configFiles view [EDIT]
-	// Should update all rulebooks containing the previous filename [EDIT]
+	test.skip('Should only accept .json [EDIT]', async () => {});
+	test.skip('Should handle errors in file extension [EDIT]', async () => {});
+	test.skip('Should refresh configFiles view [EDIT]', async () => {});
+	test.skip('Should update all rulebooks containing the previous filename [EDIT]', async () => {});
 
 	
 	/*---------------------------------------- ADD ----------------------------------------*/
 
 	test('Should create a new config file [ADD]', async () => {
-		const uri = vscode.Uri.joinPath(vscode.workspace.workspaceFolders![0].uri, 'testConfig.json');
+		const uri = vscode.Uri.joinPath(vscode.workspace.workspaceFolders![0].uri, 'test2.json');
 		await configFileProvider.addConfigFile(uri);
 		const configFile = await vscode.workspace.fs.readFile(uri);
 		assert.ok(configFile, 'Config file was not created successfully');
 	});
 
-	// Should verify file extension [ADD]
-	// Should handle errors in file extension [ADD]
+	test.skip('Should only accept .json [EDIT]', async () => {});
+	test.skip('Should handle errors in file extension [ADD]', async () => {});
 
 
 	/*---------------------------------------- DELETE ----------------------------------------*/
@@ -105,6 +100,6 @@ suite('ConfigFile Tests', () => {
 		assert(errorOccurred, 'Config file was not deleted successfully');
 	});
 
-	//  Should ask for confirmation [DELETE]
-	//  Should refresh the configFiles View [DELETE]
+	test.skip('Should ask for confirmation [DELETE]', async () => {});
+	test.skip('Should refresh the configFiles View [DELETE]', async () => {});
 });

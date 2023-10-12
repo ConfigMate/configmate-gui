@@ -3,6 +3,7 @@ import * as assert from 'assert';
 import { ConfigFileProvider } from '../../configFiles';
 import * as axios from 'axios';
 import { RulebookFile } from '../../rulebooks';
+import { cmRequest, cmResponse } from '../../models';
 
 suite('ConfigMate Tests', () => {
 
@@ -25,18 +26,54 @@ suite('ConfigMate Tests', () => {
 
 
 	test('Should be able to access configMate at localhost:8080/api', async () => {	
-		const url: string = 'http://localhost:8080/api';
+		const url: string = 'http://localhost:8080/api/check';
 		await axios.default({
-			method: 'get',
-			url: url
+			method: 'post',
+			url: url,
+			data: {
+				rulebook: 'test'
+			}
 		}).then((response) => {
 			console.log(response.data);
-			assert.ok(response.data === 'ConfigMate API', 'ConfigMate API not found');
+			assert.ok(response.data, 'ConfigMate API not found');
 		});
 	});
-	// Should send request in correct format
-	// Should receive response in correct format
-	// Should handle response received in incorrect format
-	// Should pass filepath of configFile when 'check' button clicked
+	test('Should send request in correct format', async () => {
+		const url: string = 'http://localhost:8080/api/check';
+		const request: cmRequest = {
+			rulebook: 'test'
+		};
+		await axios.default({
+			method: 'post',
+			url: url,
+			data: request
+		}).then((response) => {
+			console.log(response.data);
+			assert.ok(response.data, 'Request not sent in correct format');
+		});
+	});
+
+	test('Should receive response in correct format', async () => {
+		const url: string = 'http://localhost:8080/api/check';
+		const request: cmRequest = {
+			rulebook: 'test'
+		};
+		await axios.default({
+			method: 'post',
+			url: url,
+			data: request
+		}).then((response) => {
+			console.log(response.data);
+			assert.ok(response.data as cmResponse, 'Request not sent in correct format');
+		});
+	});
+
+	// test('Should handle response received in incorrect format', async () => {
+		
+	// });
+
+	// test('Should pass filepath of configFile when check button clicked', async () => {
+		
+	// });
 
 });

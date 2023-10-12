@@ -39,15 +39,15 @@ suite('Rulebook Tests', () => {
 
 	/*---------------------------------------- BROWSE ----------------------------------------*/
 
-	// Should retrieve rulebook files [BROWSE]
-	// Should show welcome message when no rulebooks present [BROWSE]
-	// Should show only .rulebook.json files [BROWSE]
-	// Should parse rulebook for display data [BROWSE]
+	test.skip('Should retrieve rulebook files [BROWSE]', async () => {});
+	test.skip('Should show welcome message when no rulebooks present [BROWSE]', async () => {});
+	test.skip('Should show only .rulebook.json files [BROWSE]', async () => {});
+	test.skip('Should parse rulebook for display data [BROWSE]', async () => {});
 
 
 	/*---------------------------------------- READ ----------------------------------------*/
 
-	// Should open rulebook [READ]
+	test.skip('Should open rulebook [READ]', async () => {});
 
 
 	/*---------------------------------------- EDIT ----------------------------------------*/
@@ -59,17 +59,17 @@ suite('Rulebook Tests', () => {
         assert.deepStrictEqual(writtenRulebook, mockRulebook, 'Rulebook was not written successfully');
     });
 
-	// Should refresh rulebooks view [EDIT]
+	test.skip('Should refresh rulebooks view [EDIT]', async () => {});
 
 	// ---ON TITLE CHANGE ---
 
-	// Should verify file extension [EDIT]
-	// Should handle errors in file extension [EDIT]
+	test.skip('Should verify file extension [EDIT]', async () => {});
+	test.skip('Should handle errors in file extension [EDIT]', async () => {});
 	
 	// ---ON CONTENTS CHANGE ---
 
-	// Should verify file contents [EDIT]
-	// Should handle errors in file contents [EDIT]
+	test.skip('Should verify file contents [EDIT]', async () => {});
+	test.skip('Should handle errors in file contents [EDIT]', async () => {});
 
 	// ---ON CONFIGFILE CHANGE ---
 
@@ -100,15 +100,15 @@ suite('Rulebook Tests', () => {
 		assert.ok(rulebook, 'Rulebook was not created successfully');
 	});
 
-	// Should verify file extension [ADD]
-	// Should handle errors in file extension [ADD]
-	// Should write Rulebook template to new file [ADD]
-	// Should refresh rulebook view
+	test.skip('Should verify file extension [ADD]', async () => {});
+	test.skip('Should handle errors in file extension [ADD]', async () => {});
+	test.skip('Should write Rulebook template to new file [ADD]', async () => {});
+	test.skip('Should refresh rulebook view [ADD]', async () => {});
 
 
 	/*---------------------------------------- DELETE ----------------------------------------*/
 
-	test('Should delete a rulebook', async () => {
+	test('Should delete a rulebook [DELETE]', async () => {
 		const uri = vscode.Uri.joinPath(vscode.workspace.workspaceFolders![0].uri, 'test.rulebook.json');
 		await rulebookProvider.deleteRulebookFile(uri);
 
@@ -120,6 +120,6 @@ suite('Rulebook Tests', () => {
 		}
 		assert(errorOccurred, 'Rulebook was not deleted successfully');
 	});
-	//  Should ask for confirmation [DELETE]
-	//  Should refresh the rulebook and configFiles views [DELETE]
+	test.skip('Should ask for confirmation [DELETE]', async () => {});
+	test.skip('Should refresh the rulebook and configFiles views [DELETE]', async () => {});
 });
