@@ -154,7 +154,8 @@
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run configmate && npm run compile",
-		"configmate": "cd bin && go build ConfigMate.go && go run ConfigMate.go",
+		"buildserver": "cd bin && go build ConfigMate.go",
+		"configmate": "npm run buildserver && go run ConfigMate.go",
 		"compile": "tsc -p ./",
 		"watch": "tsc -watch -p ./",
 		"lint": "eslint --ext .ts --ignore-path .gitignore .",
