@@ -50,11 +50,6 @@ suite('ConfigFile Tests', () => {
 		assert.ok(configFiles.length > 0, 'Config files were not refreshed correctly');
 	});
 
-	test.skip('Should show all .json files when no rulebooks present [BROWSE]', async () => {});
-	test.skip('Should show all .json files when no rulebooks selected [BROWSE]', async () => {});
-	test.skip('Should show welcome message when no .json files present in workspace [BROWSE]', async () => {});
-	test.skip('Should show welcome message when no .json files present in selected rulebook [BROWSE]', async () => {});
-	test.skip('Should show all files listed in Files when rulebook selected [BROWSE]', async () => {});
 
 	/*---------------------------------------- READ ----------------------------------------*/
 

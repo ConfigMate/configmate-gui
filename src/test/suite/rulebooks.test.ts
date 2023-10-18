@@ -38,15 +38,25 @@ suite('Rulebook Tests', () => {
 
 	/*---------------------------------------- BROWSE ----------------------------------------*/
 
-	test.skip('Should retrieve rulebook files [BROWSE]', async () => {});
-	test.skip('Should show welcome message when no rulebooks present [BROWSE]', async () => {});
-	test.skip('Should show only .rulebook.json files [BROWSE]', async () => {});
-	test.skip('Should parse rulebook for display data [BROWSE]', async () => {});
+	test('Should retrieve rulebook files [BROWSE]', async () => {
+		const rulebookFiles = await rulebookProvider.getChildren();
+		assert.ok(rulebookFiles.length > 0, 'Rulebook files were not retrieved successfully');
+	});
+	test.skip('Should show only .rulebook.json files [BROWSE]', async () => {
 
+	});
+	test.skip('Should parse rulebook for display data [BROWSE]', async () => {
+
+	});
+	test.skip('Should show all config files listed in Files when rulebook selected [BROWSE]', async () => {
+
+	});
 
 	/*---------------------------------------- READ ----------------------------------------*/
 
-	test.skip('Should open rulebook [READ]', async () => {});
+	test.skip('Should open rulebook on click [READ]', async () => {
+
+	});
 
 
 	/*---------------------------------------- EDIT ----------------------------------------*/
