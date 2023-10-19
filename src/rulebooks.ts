@@ -35,6 +35,10 @@ export class RulebookFile extends vscode.TreeItem {
 		this.command = command;
 		this.contextValue = 'rulebook';
 	}
+
+	getConfigFiles(): string[]{
+		return this.rulebook.Files;
+	}
 }
 
 export class RulebookFileProvider implements vscode.TreeDataProvider<RulebookFile> {

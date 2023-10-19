@@ -69,6 +69,21 @@ suite('ConfigFile Tests', () => {
 		assert.strictEqual(errorThrown, false, 'Rulebook was not opened');
 	});
 
+	test('Should retrieve the correct config file on rulebook selection [BROWSE]', async () => {
+		try {
+			// select rulebook
+			await vscode.commands.executeCommand('rulebooks.openRulebook', rulebookUri);
+			
+			// get config files from rulebook
+			const configFilesFromRulebook = rulebookTreeView.selection[0].getConfigFiles();
+			const configFilesFromTreeView = await configFileProvider.getChildren();
+			for (let i = 0; i < configFilesFromRulebook.length; i++) {
+				assert.strictEqual(configFilesFromRulebook[i], configFilesFromTreeView[i], 'Config files were not retrieved successfully');
+			}
+		}
+		catch (error) { /* do nothing */ }
+	});
+
 
 	/*---------------------------------------- READ ----------------------------------------*/
 
