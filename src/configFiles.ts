@@ -99,4 +99,5 @@ export class ConfigFileProvider implements vscode.TreeDataProvider<ConfigFile> {
 			void vscode.window.showErrorMessage(`Error opening config file: ${error as string}`);
 		}
 	};
+
 }

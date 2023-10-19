@@ -7,24 +7,6 @@ import { cmRequest, cmResponse } from '../../models';
 
 suite('ConfigMate Tests', () => {
 
-
-	const configFileProvider = new ConfigFileProvider();
-	const mockRulebook = {
-		"Name": "test",
-		"Description": "Rulebook description",
-		"Files": [
-			"d:\\KT\\Projects\\Go\\src\\configmate\\go-server-extension\\src\\testConfig.json"
-		],
-		"Rules": [
-			{
-				"Description": "Rule description",
-				"CheckName": "Name of check to run",
-				"Args": "Arguments to pass to check"
-			}
-		]
-	};
-
-
 	test.skip('Should be able to access configMate at localhost:8080/api', async () => {	
 		const url: string = 'http://localhost:8080/api/check';
 		await axios.default({

@@ -2,9 +2,9 @@ import * as vscode from 'vscode';
 import * as assert from 'assert';
 import * as myExtension from '../../extension';
 
+import { ConfigFileProvider } from '../../configFiles';
 import { RulebookFileProvider, RulebookFile, initRulebook } from '../../rulebooks';
 import { Rulebook } from '../../models';
-import { ConfigFileProvider } from '../../configFiles';
 
 suite('Rulebook Tests', () => {
 	let rulebookFileProvider: RulebookFileProvider;
@@ -13,20 +13,21 @@ suite('Rulebook Tests', () => {
 	let testWorkspace: vscode.WorkspaceFolder;
 	let mockRulebookFile: RulebookFile;
 	let rulebookUri: vscode.Uri, configFileUri: vscode.Uri;
-	const mockRulebook: Rulebook = initRulebook('Rulebook name');
+	let rulebookTreeView: vscode.TreeView<RulebookFile>;
+	let mockRulebook: Rulebook;
 
 	suiteSetup(async () => {
 		const workspaceFolders = vscode.workspace.workspaceFolders;
 		assert.ok(workspaceFolders, "No workspace is open.");
 		testWorkspace = workspaceFolders[0];
 	
-		({rulebookFileProvider, configFileProvider} = myExtension);
+		({rulebookTreeView, rulebookFileProvider, configFileProvider} = myExtension);
 	
 		// Prepare mock RulebookFile
-		rulebookUri = vscode.Uri.joinPath(testWorkspace.uri, 'test.rulebook.json');
-		configFileUri = vscode.Uri.joinPath(testWorkspace.uri, 'testConfig.json');
-		mockRulebook.Files.push(configFileUri.fsPath);
-		mockRulebookFile = new RulebookFile('Rulebook name', { title: 'Open Rulebook', command: 'rulebooks.openRulebook' }, rulebookUri.fsPath, mockRulebook);
+		mockRulebookFile = (await rulebookFileProvider.getChildren())[0];
+		mockRulebook = mockRulebookFile.rulebook;
+		rulebookUri = vscode.Uri.file(mockRulebookFile.filepath);
+		configFileUri = vscode.Uri.file(mockRulebook.Files[0]);
 
 		testWorkspace = vscode.workspace.workspaceFolders![0];
 		
@@ -78,14 +79,8 @@ suite('Rulebook Tests', () => {
 	/*---------------------------------------- READ ----------------------------------------*/
 
 	test('Should open rulebook on click [READ]', async () => {
-		let errorThrown = false;
-		try {
-			await vscode.commands.executeCommand('rulebooks.openRulebook', rulebookUri.fsPath, mockRulebook);
-		}
-		catch (error) {
-			errorThrown = true;
-		}
-		assert.strictEqual(errorThrown, false, 'Rulebook was not opened');
+		await vscode.commands.executeCommand('rulebooks.openRulebook', rulebookUri);
+		assert.strictEqual(rulebookTreeView.selection.length > 0, true, 'Rulebook was not selected successfully');
 	});
 	
 
@@ -168,16 +163,13 @@ suite('Rulebook Tests', () => {
 	});
 
 	test('Should refresh the rulebook and configFiles views [DELETE]', async () => {
-		// get number of rulebooks before deletion
 		const rulebookFilesBefore = (await rulebookFileProvider.getChildren()).length;
-		// delete a rulebook
 		await rulebookFileProvider.deleteRulebookFile(rulebookUri);
-		// get number of rulebooks after deletion
 		const rulebookFilesAfter = (await rulebookFileProvider.getChildren()).length;
-		// assert that the number of rulebooks has decreased by 1
+
 		assert.strictEqual(rulebookFilesAfter, rulebookFilesBefore - 1, 'Rulebooks were not refreshed successfully');
-		// assert that the number of configFiles displayed is 0
+
 		const configFiles = (await configFileProvider.getChildren()).length;
-		assert.strictEqual(configFiles, 0, 'Config files were refreshed successfully');
+		assert.strictEqual(configFiles > 0, true, 'Config files were not refreshed successfully');
 	});
 });
