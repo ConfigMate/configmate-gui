@@ -7,12 +7,16 @@ import { RulebookFileProvider, RulebookFile } from './rulebooks';
 import { ConfigFileProvider, ConfigFile } from './configFiles';
 import { ConfigMateProvider } from './configMate';
 
+export let configFileProvider: ConfigFileProvider;
+export let rulebookFileProvider: RulebookFileProvider;
+export let rulebookTreeView: vscode.TreeView<RulebookFile>;
+
 export function activate(context: vscode.ExtensionContext) {
 	
-	const rulebookFileProvider = new RulebookFileProvider();
-	const rulebookTreeView = vscode.window.createTreeView('rulebooks', { treeDataProvider: rulebookFileProvider });
+	rulebookFileProvider = new RulebookFileProvider();
+	rulebookTreeView = vscode.window.createTreeView('rulebooks', { treeDataProvider: rulebookFileProvider });
 
-	const configFileProvider = new ConfigFileProvider();
+	configFileProvider = new ConfigFileProvider();
 	vscode.window.createTreeView('configFiles', { treeDataProvider: configFileProvider });
 
 	// ConfigMate CLI coordination

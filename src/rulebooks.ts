@@ -60,6 +60,9 @@ export class RulebookFileProvider implements vscode.TreeDataProvider<RulebookFil
 		}
 	};
 
+	getParent(element: RulebookFile): vscode.ProviderResult<RulebookFile> {
+		return null;
+	}
 
 	async readFile(filepath: string): Promise<string> {
 		const uri: vscode.Uri = vscode.Uri.file(filepath);

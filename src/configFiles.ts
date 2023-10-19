@@ -90,4 +90,13 @@ export class ConfigFileProvider implements vscode.TreeDataProvider<ConfigFile> {
 			void vscode.window.showErrorMessage(`Error deleting config file: ${error as string}`);
 		}
 	};
+
+	openConfigFile = async (uri: vscode.Uri) => {
+		try {
+			const document = await vscode.workspace.openTextDocument(uri);
+			await vscode.window.showTextDocument(document);
+		} catch (error) {
+			void vscode.window.showErrorMessage(`Error opening config file: ${error as string}`);
+		}
+	};
 }

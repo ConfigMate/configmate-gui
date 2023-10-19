@@ -25,7 +25,7 @@ suite('ConfigMate Tests', () => {
 	};
 
 
-	test('Should be able to access configMate at localhost:8080/api', async () => {	
+	test.skip('Should be able to access configMate at localhost:8080/api', async () => {	
 		const url: string = 'http://localhost:8080/api/check';
 		await axios.default({
 			method: 'post',
@@ -38,7 +38,7 @@ suite('ConfigMate Tests', () => {
 			assert.ok(response.data, 'ConfigMate API not found');
 		});
 	});
-	test('Should send request in correct format', async () => {
+	test.skip('Should send request in correct format', async () => {
 		const url: string = 'http://localhost:8080/api/check';
 		const request: cmRequest = {
 			rulebook: 'test'
@@ -53,7 +53,7 @@ suite('ConfigMate Tests', () => {
 		});
 	});
 
-	test('Should receive response in correct format', async () => {
+	test.skip('Should receive response in correct format', async () => {
 		const url: string = 'http://localhost:8080/api/check';
 		const request: cmRequest = {
 			rulebook: 'test'
@@ -68,11 +68,11 @@ suite('ConfigMate Tests', () => {
 		});
 	});
 
-	// test('Should handle response received in incorrect format', async () => {
+	// test.skip('Should handle response received in incorrect format', async () => {
 		
 	// });
 
-	// test('Should pass filepath of configFile when check button clicked', async () => {
+	// test.skip('Should pass filepath of configFile when check button clicked', async () => {
 		
 	// });
 
