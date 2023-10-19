@@ -93,7 +93,7 @@ suite('Rulebook Tests', () => {
         assert.deepStrictEqual(writtenRulebook, mockRulebook, 'Rulebook was not written successfully');
     });
 
-	test('Should verify file extension [EDIT / ON TITLE CHANGE]', async () => {
+	test('Should verify file extension [EDIT / ON FILENAME CHANGE]', async () => {
 		const invalidRulebookUri = vscode.Uri.joinPath(testWorkspace.uri, 'test.rulebook.txt'); // Invalid extension
 		const numRulebooksBefore = (await rulebookFileProvider.getChildren()).length;	
 			
@@ -104,7 +104,22 @@ suite('Rulebook Tests', () => {
 		assert.strictEqual(numRulebooksAfter, numRulebooksBefore, 'Operation accepted an invalid file extension');
 	});
 	
-	// test.skip('Should verify file contents [EDIT / ON CONTENTS CHANGE]', async () => {});
+	test('Should verify file contents [EDIT / ON CONTENTS CHANGE]', async () => {
+		
+		// verify that the rulebook's contents were changed
+		let errorOccurred = false;
+		try {
+			// overwrite the contents of the rulebook with invalid data
+			const invalidRulebookData = { ...mockRulebook, Name: '' };
+			await rulebookFileProvider.writeRulebook(rulebookUri, invalidRulebookData);
+			const rulebookData = await rulebookFileProvider.parseRulebook(rulebookUri.fsPath);
+			assert.ok(rulebookData, 'Rulebook data was not parsed correctly');
+		}
+		catch (error) {
+			errorOccurred = true;
+		}
+		assert.strictEqual(errorOccurred, true, 'Rulebook contents were not verified successfully');
+	});
 
 	// ---ON CONFIGFILE CHANGE ---
 

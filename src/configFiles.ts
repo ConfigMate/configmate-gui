@@ -81,7 +81,7 @@ export class ConfigFileProvider implements vscode.TreeDataProvider<ConfigFile> {
 			else await vscode.workspace.fs.writeFile(uri, new Uint8Array());
 			this.refresh();
 		} catch (error) {
-			console.error(`Error creating config file: ${error as string}`);
+			// console.error(`Error creating config file: ${error as string}`);
 		}
 	};
 
@@ -117,6 +117,15 @@ export class ConfigFileProvider implements vscode.TreeDataProvider<ConfigFile> {
 			await vscode.window.showTextDocument(document);
 		} catch (error) {
 			await vscode.window.showErrorMessage(`Error opening config file: ${error as string}`);
+		}
+	};
+
+	changeFilename = async (uri: vscode.Uri, newUri: vscode.Uri) => {
+		try {
+			await vscode.workspace.fs.rename(uri, newUri);
+			this.refresh();
+		} catch (error) {
+			await vscode.window.showErrorMessage(`Error renaming config file: ${error as string}`);
 		}
 	};
 }
