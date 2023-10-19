@@ -2,6 +2,23 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import {Rulebook} from './models';
 
+export const initRulebook = (filename: string, files?: string[]): Rulebook => {
+	const rulebook: Rulebook = {
+		Name: filename,
+		Description: "Rulebook description",
+		Files: [],
+		Rules: [
+			{
+				"Description": "Rule description",
+				"CheckName": "Name of check to run",
+				"Args": "Arguments to pass to check"
+			}
+		]
+	};
+	if (files) rulebook.Files.push(...files);
+	return rulebook;
+};
+
 export class RulebookFile extends vscode.TreeItem {
 	constructor(
 		public readonly label: string,
@@ -108,19 +125,10 @@ export class RulebookFileProvider implements vscode.TreeDataProvider<RulebookFil
 
 	addRulebook = async (uri: vscode.Uri): Promise<void> => {
 		try {
-			const filename = (path.basename(uri.fsPath)).split('.')[0];
-			const rulebook: Rulebook = {
-				Name: filename,
-				Description: "Rulebook description",
-				Files: [],
-				Rules: [
-					{
-						"Description": "Rule description",
-						"CheckName": "Name of check to run",
-						"Args": "Arguments to pass to check"
-					}
-				]
-			};
+			const filepath = (path.basename(uri.fsPath)).split('.');
+			const [filename, ...extension] = filepath;
+			if (extension.join('.') !== 'rulebook.json') throw new Error('Invalid file extension');
+			const rulebook = initRulebook(filename);
 			await this.writeRulebook(uri, rulebook);
 			void vscode.window.showInformationMessage(`Added new rulebook ${uri.fsPath}.`);
 		} catch (error) {

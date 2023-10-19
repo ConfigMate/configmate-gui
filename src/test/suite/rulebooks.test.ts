@@ -1,52 +1,52 @@
 import * as vscode from 'vscode';
 import * as assert from 'assert';
-import * as myExtension from '../../extension'; // Adjust path as necessary
+import * as myExtension from '../../extension';
 
-import { RulebookFileProvider, RulebookFile } from '../../rulebooks';
+import { RulebookFileProvider, RulebookFile, initRulebook } from '../../rulebooks';
+import { Rulebook } from '../../models';
+import { ConfigFileProvider } from '../../configFiles';
 
 suite('Rulebook Tests', () => {
 	let rulebookFileProvider: RulebookFileProvider;
-	let mock1: vscode.Uri, mock2: vscode.Uri, dest1: vscode.Uri, dest2: vscode.Uri;
+	let configFileProvider: ConfigFileProvider;
+	let mock1: vscode.Uri, mock2: vscode.Uri;
 	let testWorkspace: vscode.WorkspaceFolder;
 	let mockRulebookFile: RulebookFile;
-	const mockRulebook = {
-		"Name": "Rulebook name",
-		"Description": "Rulebook description",
-		"Files": [
-			"D:\\KT\\Projects\\Go\\src\\configmate\\configmate\\.github\\events\\bump_version_patch.json"
-		],
-		"Rules": [
-			{
-				"Description": "Rule description",
-				"CheckName": "Name of check to run",
-				"Args": "Arguments to pass to check"
-			}
-		]
-	};
+	let rulebookUri: vscode.Uri, configFileUri: vscode.Uri;
+	const mockRulebook: Rulebook = initRulebook('Rulebook name');
 
 	suiteSetup(async () => {
 		const workspaceFolders = vscode.workspace.workspaceFolders;
 		assert.ok(workspaceFolders, "No workspace is open.");
 		testWorkspace = workspaceFolders[0];
 	
-		({rulebookFileProvider} = myExtension);
+		({rulebookFileProvider, configFileProvider} = myExtension);
 	
 		// Prepare mock RulebookFile
-		const rulebookUri = vscode.Uri.joinPath(testWorkspace.uri, 'test.rulebook.json');
-		mockRulebookFile = new RulebookFile('test', { title: 'Open Rulebook', command: 'rulebooks.openRulebook' }, rulebookUri.fsPath, mockRulebook);
+		rulebookUri = vscode.Uri.joinPath(testWorkspace.uri, 'test.rulebook.json');
+		configFileUri = vscode.Uri.joinPath(testWorkspace.uri, 'testConfig.json');
+		mockRulebook.Files.push(configFileUri.fsPath);
+		mockRulebookFile = new RulebookFile('Rulebook name', { title: 'Open Rulebook', command: 'rulebooks.openRulebook' }, rulebookUri.fsPath, mockRulebook);
 
 		testWorkspace = vscode.workspace.workspaceFolders![0];
 		
 		mock1 = (await vscode.workspace.findFiles('**/mock/test.rulebook.json', '**/node_modules/**', 1))[0];
 		mock2 = (await vscode.workspace.findFiles('**/mock/testConfig.json', '**/node_modules/**', 1))[0];
-		dest1 = vscode.Uri.joinPath(testWorkspace.uri, 'test.rulebook.json');
-		dest2 = vscode.Uri.joinPath(testWorkspace.uri, 'testConfig.json');
 	});
 
 	teardown(async () => {
 		// reset the workspace to its original state
-		await vscode.workspace.fs.copy(mock1, dest1, { overwrite: true });
-		await vscode.workspace.fs.copy(mock2, dest2, { overwrite: true });
+
+		// delete everything in test-workspace, then copy mock files back in
+		const files = await vscode.workspace.fs.readDirectory(testWorkspace.uri);
+		for (const file of files) {
+			const uri = vscode.Uri.joinPath(testWorkspace.uri, file[0]);
+			// delete files but not folders
+			if (file[1] !== vscode.FileType.Directory)
+				await vscode.workspace.fs.delete(uri, { recursive: false });
+		}		
+		await vscode.workspace.fs.copy(mock1, rulebookUri, { overwrite: true });
+		await vscode.workspace.fs.copy(mock2, configFileUri, { overwrite: true });
 	});
 
 
@@ -74,16 +74,18 @@ suite('Rulebook Tests', () => {
 		assert.strictEqual(rulebookData.Name, mockRulebook.Name, 'Rulebook name mismatch');
 	});
 	
-	test('Should show all config files listed in Files when rulebook selected [BROWSE]', async () => {
-		// trigger command to open rulebook
-
-	});
-	
 
 	/*---------------------------------------- READ ----------------------------------------*/
 
 	test('Should open rulebook on click [READ]', async () => {
-		
+		let errorThrown = false;
+		try {
+			await vscode.commands.executeCommand('rulebooks.openRulebook', rulebookUri.fsPath, mockRulebook);
+		}
+		catch (error) {
+			errorThrown = true;
+		}
+		assert.strictEqual(errorThrown, false, 'Rulebook was not opened');
 	});
 	
 
@@ -91,85 +93,91 @@ suite('Rulebook Tests', () => {
 	/*---------------------------------------- EDIT ----------------------------------------*/
 
 	test('Should write to a rulebook [EDIT]', async () => {
-        const uri = vscode.Uri.joinPath(vscode.workspace.workspaceFolders![0].uri, 'test.rulebook.json');
-        await rulebookFileProvider.writeRulebook(uri, mockRulebook);
-        const writtenRulebook = await rulebookFileProvider.parseRulebook(uri.fsPath);
+        await rulebookFileProvider.writeRulebook(rulebookUri, mockRulebook);
+        const writtenRulebook = await rulebookFileProvider.parseRulebook(rulebookUri.fsPath);
         assert.deepStrictEqual(writtenRulebook, mockRulebook, 'Rulebook was not written successfully');
     });
 
-	test.skip('Should refresh rulebooks view [EDIT]', async () => {});
-
-	// ---ON TITLE CHANGE ---
-
-	test('Should verify file extension [EDIT]', async () => {
+	test('Should verify file extension [EDIT / ON TITLE CHANGE]', async () => {
 		const invalidRulebookUri = vscode.Uri.joinPath(testWorkspace.uri, 'test.rulebook.txt'); // Invalid extension
-		let errorThrown = false;
-		try {
-			// Try to perform an operation that should only accept .rulebook.json files
-			await rulebookFileProvider.addRulebook(invalidRulebookUri);
-		} catch (error) {
-			errorThrown = true;
-		}
-		assert.strictEqual(errorThrown, true, 'Operation accepted an invalid file extension');
+		const numRulebooksBefore = (await rulebookFileProvider.getChildren()).length;	
+			
+		// Try to perform an operation that should only accept .rulebook.json files
+		await rulebookFileProvider.addRulebook(invalidRulebookUri);
+		const numRulebooksAfter = (await rulebookFileProvider.getChildren()).length;
+
+		assert.strictEqual(numRulebooksAfter, numRulebooksBefore, 'Operation accepted an invalid file extension');
 	});
 	
-	test.skip('Should handle errors in file extension [EDIT]', async () => {});
-	
-	// ---ON CONTENTS CHANGE ---
-
-	test.skip('Should verify file contents [EDIT]', async () => {});
-	test.skip('Should handle errors in file contents [EDIT]', async () => {});
+	// test.skip('Should verify file contents [EDIT / ON CONTENTS CHANGE]', async () => {});
 
 	// ---ON CONFIGFILE CHANGE ---
 
 	test('Should add a config file to a rulebook [EDIT]', async () => {
-		const rulebookUri = vscode.Uri.joinPath(vscode.workspace.workspaceFolders![0].uri, 'test.rulebook.json');
-		const configUri = vscode.Uri.joinPath(vscode.workspace.workspaceFolders![0].uri, 'testConfig.json');
-		const rulebookFile = new RulebookFile('test', { title: 'Open Rulebook', command: 'rulebooks.openRulebook' }, rulebookUri.fsPath, mockRulebook);
-		await rulebookFileProvider.addConfigFileToRulebook(configUri, rulebookFile);
+		// const rulebookFile = new RulebookFile('test', { title: 'Open Rulebook', command: 'rulebooks.openRulebook' }, rulebookUri.fsPath, mockRulebook);
+		await rulebookFileProvider.addConfigFileToRulebook(configFileUri, mockRulebookFile);
 		const updatedRulebook = await rulebookFileProvider.parseRulebook(rulebookUri.fsPath);
-		assert.ok(updatedRulebook.Files.includes(configUri.fsPath), 'Config file was not added to rulebook');
+		assert.ok(updatedRulebook.Files.includes(configFileUri.fsPath), 'Config file was not added to rulebook');
 	});
 
 	test('Should remove a config file from rulebooks [EDIT]', async () => {
-		const rulebookUri = vscode.Uri.joinPath(vscode.workspace.workspaceFolders![0].uri, 'test.rulebook.json');
-		const configUri = vscode.Uri.joinPath(vscode.workspace.workspaceFolders![0].uri, 'testConfig.json');
-		await rulebookFileProvider.removeConfigFileFromRulebooks(configUri);
+		await rulebookFileProvider.removeConfigFileFromRulebooks(configFileUri);
 		const updatedRulebook = await rulebookFileProvider.parseRulebook(rulebookUri.fsPath);
-		assert.ok(!updatedRulebook.Files.includes(configUri.fsPath), 'Config file was not removed from rulebook');
+		assert.ok(!updatedRulebook.Files.includes(configFileUri.fsPath), 'Config file was not removed from rulebook');
 	});
 
 
 	/*---------------------------------------- ADD ----------------------------------------*/
 
 	test('Should create a new rulebook', async () => {
-		const uri = vscode.Uri.joinPath(vscode.workspace.workspaceFolders![0].uri, 'test.rulebook.json');
-		await rulebookFileProvider.addRulebook(uri);
-		const rulebookFiles = await rulebookFileProvider.getChildren();
-		assert.strictEqual(rulebookFiles.includes(mockRulebookFile), true, 'Rulebook file was not added correctly');
+		const newRulebookUri = vscode.Uri.joinPath(testWorkspace.uri, 'new.rulebook.json');
+		await rulebookFileProvider.addRulebook(newRulebookUri);
+
+		let errorOccurred = false;
+		try {
+			await vscode.workspace.fs.stat(newRulebookUri);
+		} catch (error) {
+			errorOccurred = true;
+		}
+		assert.strictEqual(errorOccurred, false, 'Rulebook was not created successfully');
 	});
 
-	test.skip('Should verify file extension [ADD]', async () => {});
-	test.skip('Should handle errors in file extension [ADD]', async () => {});
-	test.skip('Should write Rulebook template to new file [ADD]', async () => {});
-	test.skip('Should refresh rulebook view [ADD]', async () => {});
+	test('Should write Rulebook template to new file [ADD]', async () => {
+		const newRulebookUri = vscode.Uri.joinPath(testWorkspace.uri, 'new.rulebook.json');
+		await rulebookFileProvider.addRulebook(newRulebookUri);
+
+		const createdRulebook = await rulebookFileProvider.parseRulebook(newRulebookUri.fsPath);
+		const expectedInitialData = initRulebook('new');
+
+		assert.deepStrictEqual(createdRulebook, expectedInitialData, 'New rulebook does not contain the expected initial data');
+	});
 
 
 	/*---------------------------------------- DELETE ----------------------------------------*/
 
 	test('Should delete a rulebook [DELETE]', async () => {
-		const uri = vscode.Uri.joinPath(vscode.workspace.workspaceFolders![0].uri, 'test.rulebook.json');
-		await rulebookFileProvider.deleteRulebookFile(uri);
+		await rulebookFileProvider.deleteRulebookFile(rulebookUri);
 
 		let errorOccurred = false;
 		try {
-			await vscode.workspace.fs.stat(uri);
+			await vscode.workspace.fs.stat(rulebookUri);
 		} catch (error) {
 			errorOccurred = true;
 		}
-		assert(errorOccurred, 'Rulebook was not deleted successfully');
+		assert.strictEqual(errorOccurred, true, 'Rulebook was not deleted successfully');
 	});
 
-	test.skip('Should ask for confirmation [DELETE]', async () => {});
-	test.skip('Should refresh the rulebook and configFiles views [DELETE]', async () => {});
+	test('Should refresh the rulebook and configFiles views [DELETE]', async () => {
+		// get number of rulebooks before deletion
+		const rulebookFilesBefore = (await rulebookFileProvider.getChildren()).length;
+		// delete a rulebook
+		await rulebookFileProvider.deleteRulebookFile(rulebookUri);
+		// get number of rulebooks after deletion
+		const rulebookFilesAfter = (await rulebookFileProvider.getChildren()).length;
+		// assert that the number of rulebooks has decreased by 1
+		assert.strictEqual(rulebookFilesAfter, rulebookFilesBefore - 1, 'Rulebooks were not refreshed successfully');
+		// assert that the number of configFiles displayed is 0
+		const configFiles = (await configFileProvider.getChildren()).length;
+		assert.strictEqual(configFiles, 0, 'Config files were refreshed successfully');
+	});
 });

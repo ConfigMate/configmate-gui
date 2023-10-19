@@ -159,7 +159,7 @@
 		"compile": "tsc -p ./",
 		"watch": "tsc -watch -p ./",
 		"lint": "eslint --ext .ts --ignore-path .gitignore .",
-		"test": "npm run compile && node ./node_modules/vscode/bin/test"
+		"test": "tsc -p ./ && node out/test/runTest.js"
 	},
 	"devDependencies": {
 		"@types/glob": "^8.1.0",
