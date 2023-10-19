@@ -29,18 +29,19 @@
             ]
         },
         {
-            "name": "Test Extension",
             "type": "extensionHost",
             "request": "launch",
+            "name": "Test Extension",
             "runtimeExecutable": "${execPath}",
             "args": [
-                "--disable-extensions",
                 "--extensionDevelopmentPath=${workspaceFolder}",
-                "--extensionTestsPath=${workspaceFolder}/out/test/suite/index"
+                "--extensionTestsPath=${workspaceFolder}/out/test/suite/index",
+                "--folder-uri=${workspaceFolder}/test-workspace"
             ],
             "outFiles": [
                 "${workspaceFolder}/out/test/**/*.js"
-            ]
+            ],
+            "preLaunchTask": "npm: compile"
         }
     ]
 }

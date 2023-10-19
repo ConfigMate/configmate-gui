@@ -7,12 +7,16 @@ import { RulebookFileProvider, RulebookFile } from './rulebooks';
 import { ConfigFileProvider, ConfigFile } from './configFiles';
 import { ConfigMateProvider } from './configMate';
 
+export let configFileProvider: ConfigFileProvider;
+export let rulebookFileProvider: RulebookFileProvider;
+export let rulebookTreeView: vscode.TreeView<RulebookFile>;
+
 export function activate(context: vscode.ExtensionContext) {
 	
-	const rulebookFileProvider = new RulebookFileProvider();
-	const rulebookTreeView = vscode.window.createTreeView('rulebooks', { treeDataProvider: rulebookFileProvider });
+	rulebookFileProvider = new RulebookFileProvider();
+	rulebookTreeView = vscode.window.createTreeView('rulebooks', { treeDataProvider: rulebookFileProvider });
 
-	const configFileProvider = new ConfigFileProvider();
+	configFileProvider = new ConfigFileProvider(rulebookFileProvider);
 	vscode.window.createTreeView('configFiles', { treeDataProvider: configFileProvider });
 
 	// ConfigMate CLI coordination
@@ -20,19 +24,25 @@ export function activate(context: vscode.ExtensionContext) {
 	const configMateProvider = new ConfigMateProvider(mockProgramPath);
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand('rulebooks.openRulebook', (rulebookPath: string) => {
-			void vscode.commands.executeCommand('vscode.open', vscode.Uri.file(rulebookPath));
-			configFileProvider.refresh(rulebookTreeView);
+		vscode.commands.registerCommand('rulebooks.openRulebook', async (uri: vscode.Uri) => {
+			try {
+				await vscode.workspace.fs.stat(uri);
+				await rulebookFileProvider.selectRulebook(uri);
+				await vscode.commands.executeCommand('vscode.open', uri);
+			}
+			catch (error) {
+				await vscode.window.showErrorMessage(`Error: ${error as string}`);
+			}
 		}),
 		vscode.commands.registerCommand('rulebooks.refreshRulebooks', () => 
 			rulebookFileProvider.refresh()
 		),
 
-		vscode.commands.registerCommand('configFiles.openConfigFile', (filePath: string) => {
-			void vscode.commands.executeCommand('vscode.open', vscode.Uri.file(filePath));
+		vscode.commands.registerCommand('configFiles.openConfigFile', async (filePath: string) => {
+			await vscode.commands.executeCommand('vscode.open', vscode.Uri.file(filePath));
 		}),
-		vscode.commands.registerCommand('configFiles.refreshConfigFiles', (rulebookTreeView: vscode.TreeView<RulebookFile>) => 
-			configFileProvider.refresh(rulebookTreeView)
+		vscode.commands.registerCommand('configFiles.refreshConfigFiles', () => 
+			configFileProvider.refresh()
 		),
 
 		vscode.commands.registerCommand('configMate.checkConfigFile', async (node: ConfigFile) => 
@@ -45,7 +55,6 @@ export function activate(context: vscode.ExtensionContext) {
 		}),
 		vscode.commands.registerCommand('rulebooks.deleteRulebook', async (node: RulebookFile) => {
 			await rulebookFileProvider.deleteRulebook(node);
-			rulebookFileProvider.refresh();
 		}),
 		vscode.commands.registerCommand('configFiles.addConfigFile', async () => {
 			const uri = await vscode.window.showSaveDialog({ saveLabel: 'Create Config File', filters: { 'JSON': ['json'] } });
@@ -54,16 +63,13 @@ export function activate(context: vscode.ExtensionContext) {
 				if (selectedRulebook instanceof RulebookFile) {
 					await configFileProvider.addConfigFile(uri);
 					await rulebookFileProvider.addConfigFileToRulebook(uri, selectedRulebook);
-					configFileProvider.refresh(rulebookTreeView);
+					// await rulebookFileProvider.selectRulebook(selectedRulebook.uri);
 				} else
-					void vscode.window.showErrorMessage(`Choose a rulebook first!`);
+					await vscode.window.showErrorMessage(`Choose a rulebook first!`);
 			}
 		}),
 		vscode.commands.registerCommand('configFiles.deleteConfigFile', async (node: ConfigFile) => {
 			await configFileProvider.deleteConfigFile(node);
-			const uri = vscode.Uri.file(node.filepath);
-			await rulebookFileProvider.removeConfigFileFromRulebooks(uri);
-			configFileProvider.refresh(rulebookTreeView);
 		}),
 
 
@@ -75,5 +81,5 @@ export function activate(context: vscode.ExtensionContext) {
 		vscode.commands.registerCommand('extension.runGoServer', () => configMateProvider.runServer(context))
 	);
 
-	void vscode.commands.executeCommand('extension.runGoServer');
+	// void vscode.commands.executeCommand('extension.runGoServer');
 }

@@ -1,19 +1,19 @@
-import * as assert from 'assert';
-
-// You can import and use all API from the 'vscode' module
-// as well as import your extension to test it
 import * as vscode from 'vscode';
-// import * as myExtension from '../../extension';
+import * as assert from 'assert';
+import * as myExtension from '../../extension'; // Adjust path as necessary
 
-suite('Extension Test Suite', () => {
-	vscode.window.showInformationMessage('Start all tests.');
-
-	test('Sample pass', () => {
-		assert.strictEqual([1, 2, 3].indexOf(5), -1);
-		assert.strictEqual([1, 2, 3].indexOf(0), -1);
-	});
-	test('Sample failure', () => {
-		assert.strictEqual([1, 2, 3].indexOf(5), -1);
-		assert.strictEqual([0, 2, 3].indexOf(0), -1);
+suite('TreeView Tests', () => {
+	test('TreeView content should be valid', async () => {
+		// Directly access the treeDataProvider from your extension
+		const treeDataProvider = myExtension.rulebookFileProvider;
+	
+		// Perform operations specific to your TreeDataProvider
+		const children = await treeDataProvider.getChildren(); // Assuming 'getChildren' is a method of your TreeDataProvider
+	
+		assert.ok(children); // Check if 'children' is not undefined or null
+		assert.strictEqual(children.length > 0, true); // Check if 'children' is not empty
+	
+		// Perform other checks, e.g., on the properties of the items returned by getChildren
+		// based on what your TreeDataProvider is supposed to return.
 	});
 });

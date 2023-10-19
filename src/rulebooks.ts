@@ -1,6 +1,24 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import {Rulebook} from './models';
+import { Rulebook } from './models';
+import { configFileProvider, rulebookTreeView } from './extension';
+
+export const initRulebook = (filename: string, files?: string[]): Rulebook => {
+	const rulebook: Rulebook = {
+		Name: filename,
+		Description: "Rulebook description",
+		Files: [],
+		Rules: [
+			{
+				"Description": "Rule description",
+				"CheckName": "Name of check to run",
+				"Args": "Arguments to pass to check"
+			}
+		]
+	};
+	if (files) rulebook.Files.push(...files);
+	return rulebook;
+};
 
 export class RulebookFile extends vscode.TreeItem {
 	constructor(
@@ -18,125 +36,140 @@ export class RulebookFile extends vscode.TreeItem {
 		this.contextValue = 'rulebook';
 	}
 
+	getConfigFiles(): string[]{
+		return this.rulebook.Files;
+	}
 }
+
 export class RulebookFileProvider implements vscode.TreeDataProvider<RulebookFile> {
 	private _onDidChangeTreeData: vscode.EventEmitter<RulebookFile | undefined | void> = new vscode.EventEmitter<RulebookFile | undefined | void>();
 	readonly onDidChangeTreeData: vscode.Event<RulebookFile | undefined | void> = this._onDidChangeTreeData.event;
 
-	refresh = (): void => this._onDidChangeTreeData.fire();
+	
 
-	getTreeItem = (element: RulebookFile): vscode.TreeItem => element;
+	refresh(): void {
+		this._onDidChangeTreeData.fire();
+	}
 
-	getChildren = (element?: RulebookFile): Thenable<RulebookFile[]> => {
-		if (!vscode.workspace.workspaceFolders) return Promise.resolve([]);
-		if (element) return Promise.resolve([]);
-		else {
-			const pattern = '**/*.{rulebook}.{json,toml,hocon}';
-			return vscode.workspace.findFiles(pattern, '**/node_modules/**', 1000)
-				.then(uris => {
-					const promises = uris.map(uri => {
-						const filepath: string = uri.fsPath;
-						return this.parseRulebook(filepath)
-							.then((rulebook: Rulebook) => {
-								return new RulebookFile(
-									path.basename(filepath),
-									{
-										command: 'rulebooks.openRulebook',
-										title: 'Open Rulebook',
-										arguments: [filepath, rulebook]
-									},
-									filepath,
-									rulebook
-								);
-							})
-							.catch((err) => {
-								console.error(`Error parsing rulebook file ${filepath}: `, err);
-								return null;
-							});
-					});
-					return Promise.all(promises);
-				})
-				.then(rulebookFiles => rulebookFiles.filter((file): file is RulebookFile => file !== null));
+	getTreeItem(element: RulebookFile): vscode.TreeItem {
+		return element;
+	}
+
+	async getChildren(element?: RulebookFile): Promise<RulebookFile[]> {
+		if (element || !vscode.workspace.workspaceFolders) {
+			return []; // if element is present, it means we are at the leaf node, or there's no workspace opened
 		}
-	};
 
+		const pattern = '**/*.{rulebook}.{json,toml,hocon}';
+		const uris = await vscode.workspace.findFiles(pattern, '**/node_modules/**', 1000);
+
+		const rulebookFiles: RulebookFile[] = [];
+		for (const uri of uris) {
+			const filepath = uri.fsPath;
+			try {
+				const rulebook = await this.parseRulebook(filepath);
+				const rulebookFile = new RulebookFile(
+					path.basename(filepath),
+					{
+						command: 'rulebooks.openRulebook',
+						title: 'Open Rulebook',
+						arguments: [uri, rulebook]
+					},
+					filepath,
+					rulebook
+				);
+				rulebookFiles.push(rulebookFile);
+			} catch (err) {
+				// console.error(`Error parsing rulebook file ${filepath}: `, err);
+				// Handle or log error as appropriate
+			}
+		}
+		return rulebookFiles;
+	}
+
+	getParent(): vscode.ProviderResult<RulebookFile> {
+		return null;
+	}
 
 	async readFile(filepath: string): Promise<string> {
-		const uri: vscode.Uri = vscode.Uri.file(filepath);
-		const buffer: Uint8Array = await vscode.workspace.fs.readFile(uri);
+		const uri = vscode.Uri.file(filepath);
+		const buffer = await vscode.workspace.fs.readFile(uri);
 		return Buffer.from(buffer).toString();
 	}
 
 	async parseRulebook(filepath: string, contents?: string): Promise<Rulebook> {
 		const fileContents: string = contents || await this.readFile(filepath);
 
-		// const fileContents: string = '';
-		const fileExtension: string = path.extname(filepath);
-		const fileName: string = path.basename(filepath);
-		const fileContentsAreValid: boolean = fileContents !== '' && fileContents !== undefined;
-
-		if (!fileExtension || !fileContents || !fileName || !fileContentsAreValid) {
-			if (!fileExtension) void vscode.window.showErrorMessage(`Rulebook file ${fileName} has no valid file extension`);
-			if (!fileContents) void vscode.window.showErrorMessage(`Rulebook file ${fileName} is empty`);
-			if (!fileName) void vscode.window.showErrorMessage(`Rulebook file ${fileName} has no valid file name`);
+		// Check for valid file contents before proceeding
+		if (!fileContents) {
+			throw new Error(`Rulebook file is empty or unreadable.`);
 		}
 
+		// Try parsing the JSON content
+		let rulebook: Rulebook;
+		try {
+			rulebook = JSON.parse(fileContents) as Rulebook;
+		} catch (error) {
+			throw new Error(`Error parsing rulebook content: ${error as string}`);
+		}
 
-		const rulebook: Rulebook = JSON.parse(fileContents) as Rulebook;
+		// Validate the necessary fields in the rulebook
 		const { Name, Description, Files, Rules } = rulebook;
 		if (!Name || !Description || !Files || !Rules) {
-			if (!Name) void vscode.window.showErrorMessage(`Rulebook file ${fileName} has no valid name`);
-			if (!Description) void vscode.window.showErrorMessage(`Rulebook file ${fileName} has no valid description`);
-			if (!Files) void vscode.window.showErrorMessage(`Rulebook file ${fileName} has no valid files`);
-			if (!Rules) void vscode.window.showErrorMessage(`Rulebook file ${fileName} has no valid rules`);
+			throw new Error(`Rulebook file is missing required fields.`);
 		}
 
 		return rulebook;
 	}
+
 	writeRulebook = async (uri: vscode.Uri, rulebook: Rulebook): Promise<void> => {
 		try {
 			const contentAsUint8Array = Buffer.from(JSON.stringify(rulebook, null, 4));
 			await vscode.workspace.fs.writeFile(uri, contentAsUint8Array);
-			this.refresh();
+			this.refresh(); // Assuming this doesn't return a promise; otherwise, await this too.
 		} catch (error) {
-			void vscode.window.showErrorMessage(`Error writing rulebook: ${error as string}`);
+			// Handle or throw the error
+			throw new Error(`Error writing rulebook: ${error as string}`);
 		}
 	};
 
 	addRulebook = async (uri: vscode.Uri): Promise<void> => {
 		try {
-			const filename = (path.basename(uri.fsPath)).split('.')[0];
-			const rulebook: Rulebook = {
-				Name: filename,
-				Description: "Rulebook description",
-				Files: [],
-				Rules: [
-					{
-						"Description": "Rule description",
-						"CheckName": "Name of check to run",
-						"Args": "Arguments to pass to check"
-					}
-				]
-			};
+			const filepath = (path.basename(uri.fsPath)).split('.');
+			const [filename, ...extension] = filepath;
+			if (extension.join('.') !== 'rulebook.json') throw new Error('Invalid file extension');
+			const rulebook = initRulebook(filename);
 			await this.writeRulebook(uri, rulebook);
 			void vscode.window.showInformationMessage(`Added new rulebook ${uri.fsPath}.`);
 		} catch (error) {
 			void vscode.window.showErrorMessage(`Error creating rulebook: ${error as string}`);
 		}
 	};
-
-	deleteRulebook = async (node: RulebookFile) => {
+	
+	deleteRulebook = async (node: RulebookFile): Promise<void> => {
 		const confirm = await vscode.window.showWarningMessage(`Are you sure you want to delete rulebook ${node.label}?`, { modal: true }, 'Delete');
 		if (confirm === 'Delete') {
 			try {
-				const uri = vscode.Uri.file(node.filepath);
-				await vscode.workspace.fs.delete(uri, { recursive: true });
-				void vscode.window.showInformationMessage(`Deleted rulebook ${node.label}.`);
-			} catch (error) {
-				void vscode.window.showErrorMessage(`Error deleting rulebook: ${error as string}`);
+				await this.deleteRulebookFile(vscode.Uri.file(node.filepath));
+				this.refresh();
+			}
+			catch(error) {
+				throw new Error(`Error deleting rulebook: ${error as string}`);
 			}
 		}
 	};
+	
+	async deleteRulebookFile(uri: vscode.Uri): Promise<void> {
+		try {
+			await vscode.workspace.fs.delete(uri, { recursive: false });
+			void vscode.window.showInformationMessage(`Deleted rulebook ${uri.fsPath}.`);
+			this.refresh();
+		} catch (error) {
+			void vscode.window.showErrorMessage(`Error deleting rulebook: ${error as string}`);
+			console.error(`Error deleting rulebook ${uri.fsPath}: `, error);
+		}
+	}
+
 
 	addConfigFileToRulebook = async (uri: vscode.Uri, selectedRulebook: RulebookFile): Promise<void> => {
 		try {
@@ -151,14 +184,10 @@ export class RulebookFileProvider implements vscode.TreeDataProvider<RulebookFil
 	removeConfigFileFromRulebooks = async (uri: vscode.Uri): Promise<void> => {
 		try {
 			const rulebookFiles = await this.getChildren();
-			for (const rulebookFile of rulebookFiles) {
+			rulebookFiles.forEach((rulebookFile) => {
 				const index = rulebookFile.rulebook.Files.indexOf(uri.fsPath);
-				if (index > -1) {
-					rulebookFile.rulebook.Files.splice(index, 1);
-					const rulebookUri = vscode.Uri.file(rulebookFile.filepath);
-					await this.writeRulebook(rulebookUri, rulebookFile.rulebook);
-				}
-			}
+				if (index > -1) rulebookFile.rulebook.Files.splice(index, 1);		
+			});
 		} catch (error) {
 			void vscode.window.showErrorMessage(`Error: ${error as string}`);
 		}
@@ -177,5 +206,29 @@ export class RulebookFileProvider implements vscode.TreeDataProvider<RulebookFil
 		} catch (error) {
 			void vscode.window.showErrorMessage(`Error: ${error as string}`);
 		}
+	};
+
+	selectRulebook = async (uri: vscode.Uri): Promise<RulebookFile | undefined> => {
+		try {
+			await vscode.workspace.fs.stat(uri);
+			const rulebookFiles = await this.getChildren();
+			for (const rulebookFile of rulebookFiles) {
+				if (rulebookFile.filepath === uri.fsPath) {
+					await rulebookTreeView.reveal(rulebookFile);
+					configFileProvider.refresh();
+					return rulebookFile;
+				}
+			}
+		}
+		catch (error) {
+			void vscode.window.showErrorMessage(`Error: ${error as string}`);
+		}
+		return undefined;
+	};
+
+	getSelectedRulebook = (): RulebookFile | undefined => {
+		const selectedRulebook = rulebookTreeView.selection[0];
+		if (selectedRulebook instanceof RulebookFile) return selectedRulebook;
+		return undefined;
 	};
 }
