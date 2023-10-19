@@ -110,12 +110,15 @@ suite('ConfigFile Tests', () => {
 	test('Should only accept .json [EDIT]', async () => {
 		const invalidConfigUri = vscode.Uri.joinPath(testWorkspace.uri, 'testConfig.txt'); // Invalid extension
 		let errorThrown = false;
+		const numFilesBefore = (await configFileProvider.getChildren()).length;
 		try {
 			await configFileProvider.addConfigFile(invalidConfigUri);
 		} catch (error) {
 			errorThrown = true;
 		}
 		assert.strictEqual(errorThrown, true, 'Operation accepted an invalid file extension');
+		const numFilesAfter = (await configFileProvider.getChildren()).length;
+		assert.strictEqual(numFilesAfter, numFilesBefore, 'Operation created a file with an invalid extension');
 	});
 	
 	// test.skip('Should refresh configFiles view [EDIT]', async () => {});
