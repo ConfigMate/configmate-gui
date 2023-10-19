@@ -81,7 +81,7 @@ export class RulebookFileProvider implements vscode.TreeDataProvider<RulebookFil
 		return rulebookFiles;
 	}
 
-	getParent(element: RulebookFile): vscode.ProviderResult<RulebookFile> {
+	getParent(): vscode.ProviderResult<RulebookFile> {
 		return null;
 	}
 

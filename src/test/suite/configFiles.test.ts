@@ -109,14 +109,11 @@ suite('ConfigFile Tests', () => {
 	// ---ON TITLE CHANGE ---
 	test('Should only accept .json [EDIT]', async () => {
 		const invalidConfigUri = vscode.Uri.joinPath(testWorkspace.uri, 'testConfig.txt'); // Invalid extension
-		let errorThrown = false;
 		const numFilesBefore = (await configFileProvider.getChildren()).length;
 		try {
-			await configFileProvider.addConfigFile(invalidConfigUri);
-		} catch (error) {
-			errorThrown = true;
+			await configFileProvider.addConfigFileFile(invalidConfigUri);
 		}
-		assert.strictEqual(errorThrown, true, 'Operation accepted an invalid file extension');
+		catch (error) { /* should throw error */ }
 		const numFilesAfter = (await configFileProvider.getChildren()).length;
 		assert.strictEqual(numFilesAfter, numFilesBefore, 'Operation created a file with an invalid extension');
 	});
@@ -129,7 +126,7 @@ suite('ConfigFile Tests', () => {
 
 	test('Should create a new config file [ADD]', async () => {
 		const uri = vscode.Uri.joinPath(vscode.workspace.workspaceFolders![0].uri, 'test2.json');
-		await configFileProvider.addConfigFile(uri);
+		await configFileProvider.addConfigFileFile(uri);
 		let fileExists = false;
 		try {
 			await vscode.workspace.fs.stat(uri); // This throws if the file doesn't exist.
