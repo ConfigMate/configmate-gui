@@ -1,8 +1,8 @@
 {
-	"Name": "test",
+	"Name": "Rulebook name",
 	"Description": "Rulebook description",
 	"Files": [
-		"d:\\KT\\Projects\\Go\\src\\configmate\\go-server-extension\\src\\testConfig.json"
+		"D:\\KT\\Projects\\Go\\src\\configmate\\configmate-gui\\test-workspace\\testConfig.json"
 	],
 	"Rules": [
 		{

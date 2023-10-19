@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { Rulebook } from './models';
-import { rulebookTreeView } from './extension';
+import { configFileProvider, rulebookTreeView } from './extension';
 
 export const initRulebook = (filename: string, files?: string[]): Rulebook => {
 	const rulebook: Rulebook = {
@@ -45,6 +45,8 @@ export class RulebookFileProvider implements vscode.TreeDataProvider<RulebookFil
 	private _onDidChangeTreeData: vscode.EventEmitter<RulebookFile | undefined | void> = new vscode.EventEmitter<RulebookFile | undefined | void>();
 	readonly onDidChangeTreeData: vscode.Event<RulebookFile | undefined | void> = this._onDidChangeTreeData.event;
 
+	
+
 	refresh(): void {
 		this._onDidChangeTreeData.fire();
 	}
@@ -78,7 +80,7 @@ export class RulebookFileProvider implements vscode.TreeDataProvider<RulebookFil
 				);
 				rulebookFiles.push(rulebookFile);
 			} catch (err) {
-				console.error(`Error parsing rulebook file ${filepath}: `, err);
+				// console.error(`Error parsing rulebook file ${filepath}: `, err);
 				// Handle or log error as appropriate
 			}
 		}
@@ -147,16 +149,19 @@ export class RulebookFileProvider implements vscode.TreeDataProvider<RulebookFil
 	deleteRulebook = async (node: RulebookFile): Promise<void> => {
 		const confirm = await vscode.window.showWarningMessage(`Are you sure you want to delete rulebook ${node.label}?`, { modal: true }, 'Delete');
 		if (confirm === 'Delete') {
-			await this.deleteRulebookFile(vscode.Uri.file(node.filepath))
-			.catch((error) => {
+			try {
+				await this.deleteRulebookFile(vscode.Uri.file(node.filepath));
+				this.refresh();
+			}
+			catch(error) {
 				throw new Error(`Error deleting rulebook: ${error as string}`);
-			});
+			}
 		}
 	};
 	
 	async deleteRulebookFile(uri: vscode.Uri): Promise<void> {
 		try {
-			await vscode.workspace.fs.delete(uri, { recursive: true });
+			await vscode.workspace.fs.delete(uri, { recursive: false });
 			void vscode.window.showInformationMessage(`Deleted rulebook ${uri.fsPath}.`);
 			this.refresh();
 		} catch (error) {
@@ -177,17 +182,15 @@ export class RulebookFileProvider implements vscode.TreeDataProvider<RulebookFil
 	};
 
 	removeConfigFileFromRulebooks = async (uri: vscode.Uri): Promise<void> => {
-		const rulebookFiles = await this.getChildren();
-		await Promise.all(rulebookFiles.map(async (rulebookFile) => {
-			const index = rulebookFile.rulebook.Files.indexOf(uri.fsPath);
-			if (index > -1) {
-				rulebookFile.rulebook.Files.splice(index, 1);
-				const rulebookUri = vscode.Uri.file(rulebookFile.filepath);
-				await this.writeRulebook(rulebookUri, rulebookFile.rulebook);
-			}
-		})).catch((error) => {
-			throw new Error(`Error removing config file from rulebooks: ${error as string}`);
-		});
+		try {
+			const rulebookFiles = await this.getChildren();
+			rulebookFiles.forEach((rulebookFile) => {
+				const index = rulebookFile.rulebook.Files.indexOf(uri.fsPath);
+				if (index > -1) rulebookFile.rulebook.Files.splice(index, 1);		
+			});
+		} catch (error) {
+			void vscode.window.showErrorMessage(`Error: ${error as string}`);
+		}
 	};
 
 	saveRulebook = async (uri: vscode.Uri, text: string): Promise<void> => {
@@ -212,6 +215,7 @@ export class RulebookFileProvider implements vscode.TreeDataProvider<RulebookFil
 			for (const rulebookFile of rulebookFiles) {
 				if (rulebookFile.filepath === uri.fsPath) {
 					await rulebookTreeView.reveal(rulebookFile);
+					configFileProvider.refresh();
 					return rulebookFile;
 				}
 			}
@@ -219,6 +223,12 @@ export class RulebookFileProvider implements vscode.TreeDataProvider<RulebookFil
 		catch (error) {
 			void vscode.window.showErrorMessage(`Error: ${error as string}`);
 		}
+		return undefined;
+	};
+
+	getSelectedRulebook = (): RulebookFile | undefined => {
+		const selectedRulebook = rulebookTreeView.selection[0];
+		if (selectedRulebook instanceof RulebookFile) return selectedRulebook;
 		return undefined;
 	};
 }

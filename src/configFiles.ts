@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { RulebookFile } from './rulebooks';
-// import { rulebookTreeView } from './extension';
+import { RulebookFileProvider } from './rulebooks';
 
 export class ConfigFile extends vscode.TreeItem {
 	public readonly filepath: string;
@@ -23,51 +22,52 @@ export class ConfigFileProvider implements vscode.TreeDataProvider<ConfigFile> {
 	private _onDidChangeTreeData: vscode.EventEmitter<ConfigFile | undefined | null | void> = new vscode.EventEmitter<ConfigFile | undefined | null | void>();
 	readonly onDidChangeTreeData: vscode.Event<ConfigFile | undefined | null | void> = this._onDidChangeTreeData.event;
 
-	private configFiles: string[] = [];
+	private configFiles: ConfigFile[] = [];
+	private rulebookFileProvider: RulebookFileProvider;
 
-	constructor() { }
+	constructor(rulebookFileProvider: RulebookFileProvider) {
+		this.rulebookFileProvider = rulebookFileProvider;
+		this.rulebookFileProvider.onDidChangeTreeData(() => this.refresh());
+	}
 
-	refresh(rulebookTreeView: vscode.TreeView<RulebookFile>): void {
-		const rulebook = rulebookTreeView.selection[0];
-		if (rulebook instanceof RulebookFile)
-			this.configFiles = rulebook.rulebook.Files;
+	refresh(): void {
+		// console.log('Refresh called'); // Debug log
+		const selectedRulebook = this.rulebookFileProvider.getSelectedRulebook();
+		if (selectedRulebook === undefined || selectedRulebook.rulebook.Files.length < 1) {
+			this.configFiles = [];
+			this._onDidChangeTreeData.fire();
+			return;
+		}
+	
+		this.configFiles = selectedRulebook.getConfigFiles().map(filepath =>
+			new ConfigFile(
+				path.basename(filepath),
+				filepath,
+				{
+					command: 'configFiles.openConfigFile',
+					title: 'Open Config File',
+					arguments: [filepath]
+				}
+			)	
+		);
 		this._onDidChangeTreeData.fire();
+		
+		// console.log('Config files after refresh:', this.configFiles.length); // Debug log
 	}
 
 	getTreeItem(element: ConfigFile): vscode.TreeItem {
 		return element;
 	}
 
-	async getChildren(element?: ConfigFile): Promise<ConfigFile[]> {
-		if (element) {
-			return [];
-		} else {
-			return this.getConfigFiles();
-		}
-	}
-
-	getConfigFiles(): Promise<ConfigFile[]> {
-		const promise = new Promise<ConfigFile[]>((resolve, reject) => {
-			resolve(this.configFiles.map(filepath =>
-				new ConfigFile(
-					path.basename(filepath),
-					filepath,
-					{
-						command: 'configFiles.openConfigFile',
-						title: 'Open Config File',
-						arguments: [filepath]
-					}
-				)
-			));
-			reject;
-		});
-		return promise;
+	getChildren(element?: ConfigFile): Promise<ConfigFile[]> {
+		if (element) return Promise.resolve([]);
+		else return Promise.resolve(this.configFiles);
+		
 	}
 
 	addConfigFile = async (uri: vscode.Uri): Promise<void> => {
 		try {
 			await this.addConfigFileFile(uri);
-			// this.refresh(rulebookTreeView);
 		} catch (error) {
 			await vscode.window.showErrorMessage(`Error creating config file: ${error as string}`);
 		}
@@ -79,7 +79,7 @@ export class ConfigFileProvider implements vscode.TreeDataProvider<ConfigFile> {
 			const [filename, ...extension] = filepath;
 			if (extension.join('.') !== 'json') throw new Error('Invalid file extension');
 			else await vscode.workspace.fs.writeFile(uri, new Uint8Array());
-			// this.refresh(rulebookTreeView);
+			this.refresh();
 		} catch (error) {
 			console.error(`Error creating config file: ${error as string}`);
 		}
@@ -98,8 +98,14 @@ export class ConfigFileProvider implements vscode.TreeDataProvider<ConfigFile> {
 
 	deleteConfigFileFile = async (uri: vscode.Uri): Promise<void> => {
 		try {
-			await vscode.workspace.fs.delete(uri, { recursive: true });
-			// this.refresh(rulebookTreeView);
+			// Remove the file from the filesystem.
+			await vscode.workspace.fs.delete(uri, { recursive: false });
+
+			// Remove the configFile reference from the associated rulebook's files.
+			await this.rulebookFileProvider.removeConfigFileFromRulebooks(uri);
+
+			// Refresh the view. If the deletion affects the current selection, you should pass the new selection here.
+			this.refresh(); // Consider passing the appropriate rulebook if necessary.
 		} catch (error) {
 			console.error(`Error deleting config file: ${error as string}`);
 		}

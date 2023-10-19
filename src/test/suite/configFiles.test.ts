@@ -102,7 +102,7 @@ suite('ConfigFile Tests', () => {
 
 	/*---------------------------------------- EDIT ----------------------------------------*/
 
-	test('Should update a config file on save [EDIT]', async () => {
+	test('Should update a config file on save [EDIT / ON CONTENT CHANGE]', async () => {
 		const configUri = vscode.Uri.joinPath(testWorkspace.uri, 'testConfig.json');
 		const originalContent = (await vscode.workspace.fs.readFile(configUri)).toString();
 		const newContent = `{\n    "new": "content"\n}`;
@@ -121,20 +121,21 @@ suite('ConfigFile Tests', () => {
 	});
 	
 
-	// ---ON TITLE CHANGE ---
-	test('Should only accept .json [EDIT]', async () => {
-		const invalidConfigUri = vscode.Uri.joinPath(testWorkspace.uri, 'testConfig.txt'); // Invalid extension
-		const numFilesBefore = (await configFileProvider.getChildren()).length;
-		try {
-			await configFileProvider.addConfigFileFile(invalidConfigUri);
-		}
-		catch (error) { /* should throw error */ }
-		const numFilesAfter = (await configFileProvider.getChildren()).length;
-		assert.strictEqual(numFilesAfter, numFilesBefore, 'Operation created a file with an invalid extension');
+	test.skip('Should only accept .json [EDIT / ON TITLE CHANGE]', async () => { /* TODO */ });
+	test('Should refresh configFiles view [EDIT / ON TITLE CHANGE]', async () => {
+		await rulebookFileProvider.selectRulebook(rulebookUri);
+		const configFilesBefore = (await configFileProvider.getChildren()).length;
+		
+		// edit filename of config file
+		const newConfigUri = vscode.Uri.joinPath(testWorkspace.uri, 'testConfig2.json');
+		await vscode.workspace.fs.rename(configFileUri, newConfigUri);
+		configFileUri = newConfigUri;
+
+		const configFilesAfter = (await configFileProvider.getChildren()).length;
+
+		assert.strictEqual(configFilesAfter === configFilesBefore - 1 || 0, true, 'ConfigFiles were not refreshed successfully');
 	});
-	
-	// test.skip('Should refresh configFiles view [EDIT]', async () => {});
-	// test.skip('Should update all rulebooks containing the previous filename [EDIT]', async () => {});
+	test.skip('Should update all rulebooks containing the previous filename [EDIT]', async () => { /* TODO */ });
 
 	
 	/*---------------------------------------- ADD ----------------------------------------*/
@@ -153,18 +154,57 @@ suite('ConfigFile Tests', () => {
 		assert.strictEqual(fileExists, true, 'Expected config file to be created, but it was not.');
 	});
 
+	test('Should only accept .json [ADD]', async () => {
+		const invalidConfigUri = vscode.Uri.joinPath(testWorkspace.uri, 'testConfig.txt'); // Invalid extension
+		const numFilesBefore = (await configFileProvider.getChildren()).length;
+		try {
+			await configFileProvider.addConfigFileFile(invalidConfigUri);
+		}
+		catch (error) { /* should throw error */ }
+		const numFilesAfter = (await configFileProvider.getChildren()).length;
+		assert.strictEqual(numFilesAfter, numFilesBefore, 'Operation created a file with an invalid extension');
+	});
+
+	test('Should refresh configFiles view [ADD]', async () => {
+		const uri = vscode.Uri.joinPath(vscode.workspace.workspaceFolders![0].uri, 'test2.json');
+		await rulebookFileProvider.selectRulebook(rulebookUri);
+		const configFilesBefore = (await configFileProvider.getChildren()).length;
+		await configFileProvider.addConfigFileFile(uri);
+		const configFilesAfter = (await configFileProvider.getChildren()).length;
+
+		assert.strictEqual(configFilesAfter === configFilesBefore - 1 || 0, true, 'ConfigFiles were not refreshed successfully');
+	});
+
+
 
 	/*---------------------------------------- DELETE ----------------------------------------*/
 
 	test('Should delete a config file [DELETE]', async () => {
-		await configFileProvider.deleteConfigFileFile(configFileUri);
-
 		let errorOccurred = false;
 		try {
+			await rulebookFileProvider.selectRulebook(rulebookUri);
+			await configFileProvider.deleteConfigFileFile(configFileUri);
 			await vscode.workspace.fs.stat(configFileUri);
 		} catch (error) {
 			errorOccurred = true;
 		}
 		assert(errorOccurred, 'Config file was not deleted successfully');
+	});
+
+	test('Should refresh configFiles view [DELETE]', async () => {
+		await rulebookFileProvider.selectRulebook(rulebookUri);
+		const configFilesBefore = (await configFileProvider.getChildren()).length;
+		await configFileProvider.deleteConfigFileFile(configFileUri); 
+		const configFilesAfter = (await configFileProvider.getChildren()).length;
+
+		assert.strictEqual(configFilesAfter === configFilesBefore - 1 || 0, true, 'ConfigFiles were not refreshed successfully');
+	});
+
+	test('Should remove config file from rulebook containing its filepath [DELETE]', async () => { 
+		await configFileProvider.deleteConfigFileFile(configFileUri);
+
+		// check that configFile is no longer in rulebook
+		const rulebook = await rulebookFileProvider.parseRulebook(rulebookUri.fsPath);
+		assert.strictEqual(rulebook.Files.includes(configFileUri.fsPath), false, 'Config file was not removed from rulebook');
 	});
 });
