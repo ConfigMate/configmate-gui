@@ -1,17 +1,19 @@
 'use strict';
 
-import { Uri, window, commands, workspace, ExtensionContext, TreeView, TextDocument } from 'vscode';
+import * as vscode from 'vscode';
 import * as path from 'path';
 
 import { RulebookFileProvider, RulebookFile } from './rulebooks';
 import { ConfigFileProvider, ConfigFile } from './configFiles';
 import { ConfigMateProvider } from './configMate';
 
+const { Uri, window, commands, workspace } = vscode;
+
 export let configFileProvider!: ConfigFileProvider;
 export let rulebookFileProvider!: RulebookFileProvider;
-export let rulebookTreeView!: TreeView<RulebookFile>;
+export let rulebookTreeView!: vscode.TreeView<RulebookFile>;
 
-export function activate(context: ExtensionContext): void {
+export function activate(context: vscode.ExtensionContext): void {
 	const { registerCommand, executeCommand } = commands;
 
 	rulebookFileProvider = new RulebookFileProvider();
@@ -68,7 +70,7 @@ export function activate(context: ExtensionContext): void {
 		}),
 
 
-		workspace.onDidSaveTextDocument(async (doc: TextDocument) => {
+		workspace.onDidSaveTextDocument(async (doc: vscode.TextDocument) => {
 			if (doc.languageId === 'json' && doc.uri.fsPath.endsWith('rulebook.json'))
 				await rulebookFileProvider.saveRulebook(doc.uri, doc.getText());
 		}),
