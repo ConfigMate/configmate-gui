@@ -2,8 +2,8 @@ import * as vscode from 'vscode';
 import * as assert from 'assert';
 import * as myExtension from '../../extension';
 
-import { ConfigFile, ConfigFileProvider } from '../../configFiles';
-import { RulebookFileProvider, RulebookFile, initRulebook } from '../../rulebooks';
+import { ConfigFileProvider } from '../../configFiles';
+import { RulebookFileProvider, RulebookFile } from '../../rulebooks';
 import { Rulebook } from '../../models';
 
 suite('ConfigFile Tests', () => {

@@ -30,9 +30,9 @@ export class RulebookFile extends vscode.TreeItem {
 		super(label, vscode.TreeItemCollapsibleState.None);
 		this.description = rulebook.Name;
 		this.tooltip = rulebook.Description;
-		this.filepath = filepath;
-		this.rulebook = rulebook;
-		this.command = command;
+		// this.filepath = filepath;
+		// this.rulebook = rulebook;
+		// this.command = command;
 		this.contextValue = 'rulebook';
 	}
 
