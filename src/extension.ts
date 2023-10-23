@@ -7,13 +7,12 @@ import { RulebookFileProvider, RulebookFile } from './rulebooks';
 import { ConfigFileProvider, ConfigFile } from './configFiles';
 import { ConfigMateProvider } from './configMate';
 
-const { Uri, window, commands, workspace } = vscode;
-
 export let configFileProvider!: ConfigFileProvider;
 export let rulebookFileProvider!: RulebookFileProvider;
 export let rulebookTreeView!: vscode.TreeView<RulebookFile>;
 
 export function activate(context: vscode.ExtensionContext): void {
+	const { Uri, window, commands, workspace } = vscode;
 	const { registerCommand, executeCommand } = commands;
 
 	rulebookFileProvider = new RulebookFileProvider();
