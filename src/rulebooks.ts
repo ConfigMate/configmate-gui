@@ -195,17 +195,18 @@ export class RulebookFileProvider implements vscode.TreeDataProvider<RulebookFil
 
 	saveRulebook = async (uri: vscode.Uri, text: string): Promise<void> => {
 		try {
-			const rulebook: Rulebook = await this.parseRulebook(uri.fsPath, text);
+			const filepath: string = uri.fsPath;
+			const rulebook: Rulebook = await this.parseRulebook(filepath, text);
 			const rulebookFiles = await this.getChildren();
 			for (const rulebookFile of rulebookFiles) {
-				if (rulebookFile.filepath === uri.fsPath) {
+				if (rulebookFile.filepath === filepath) {
 					rulebookFile.rulebook = rulebook;
 					break;
 				} else {
 					rulebookFile.command = {
 						command: 'rulebooks.openRulebook',
 						title: 'Open Rulebook',
-						arguments: [uri.fsPath, rulebook]
+						arguments: [filepath, rulebook]
 					};
 					break;
 				}
