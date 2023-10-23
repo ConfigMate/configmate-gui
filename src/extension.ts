@@ -6,10 +6,12 @@ import * as path from 'path';
 import { RulebookFileProvider, RulebookFile } from './rulebooks';
 import { ConfigFileProvider, ConfigFile } from './configFiles';
 import { ConfigMateProvider } from './configMate';
+import { DiagnosticsProvider } from './diagnostics';
 
 export let configFileProvider!: ConfigFileProvider;
 export let rulebookFileProvider!: RulebookFileProvider;
 export let rulebookTreeView!: vscode.TreeView<RulebookFile>;
+export let diagnosticsProvider!: DiagnosticsProvider;
 
 export function activate(context: vscode.ExtensionContext): void {
 	const { Uri, window, commands, workspace } = vscode;
@@ -76,6 +78,8 @@ export function activate(context: vscode.ExtensionContext): void {
 		
 		registerCommand('extension.runGoServer', () => configMateProvider.runServer(context))
 	);
+
+	diagnosticsProvider = new DiagnosticsProvider();
 
 	// void executeCommand('extension.runGoServer');
 }

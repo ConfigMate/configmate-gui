@@ -17,6 +17,11 @@
 		"Other"
 	],
 	"main": "./out/extension.js",
+	"configurationDefaults": {
+		"json": {
+			"editor.semanticHighlighting.enabled": true
+		}
+	},
 	"activationEvents": [
 		"onStartupFinished"
 	],
