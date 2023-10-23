@@ -210,6 +210,7 @@ export class RulebookFileProvider implements vscode.TreeDataProvider<RulebookFil
 					title: 'Open Rulebook',
 					arguments: [filepath, rulebook]
 				};
+				console.log(filepath);
 				break;
 			}
 		} catch (error) {
