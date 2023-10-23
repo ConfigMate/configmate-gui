@@ -7,9 +7,9 @@ import { RulebookFileProvider, RulebookFile } from './rulebooks';
 import { ConfigFileProvider, ConfigFile } from './configFiles';
 import { ConfigMateProvider } from './configMate';
 
-export let configFileProvider: ConfigFileProvider;
-export let rulebookFileProvider: RulebookFileProvider;
-export let rulebookTreeView: TreeView<RulebookFile>;
+export let configFileProvider!: ConfigFileProvider;
+export let rulebookFileProvider!: RulebookFileProvider;
+export let rulebookTreeView!: TreeView<RulebookFile>;
 
 export function activate(context: ExtensionContext): void {
 	const { registerCommand, executeCommand } = commands;
