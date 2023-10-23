@@ -1,5 +1,6 @@
 'use strict';
 
+import { Uri, window, commands, workspace } from 'vscode';
 import * as vscode from 'vscode';
 import * as path from 'path';
 
@@ -12,7 +13,6 @@ export let rulebookFileProvider: RulebookFileProvider;
 export let rulebookTreeView: vscode.TreeView<RulebookFile>;
 
 export function activate(context: vscode.ExtensionContext): void {
-	const { Uri, window, commands, workspace } = vscode;
 	const { registerCommand, executeCommand } = commands;
 
 	rulebookFileProvider = new RulebookFileProvider();
