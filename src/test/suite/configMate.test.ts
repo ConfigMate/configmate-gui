@@ -1,8 +1,6 @@
-import * as vscode from 'vscode';
+// import * as vscode from 'vscode';
 import * as assert from 'assert';
-import { ConfigFileProvider } from '../../configFiles';
 import * as axios from 'axios';
-import { RulebookFile } from '../../rulebooks';
 import { cmRequest, cmResponse } from '../../models';
 
 suite('ConfigMate Tests', () => {

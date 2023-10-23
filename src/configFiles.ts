@@ -1,3 +1,5 @@
+'use strict';
+
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { RulebookFileProvider } from './rulebooks';
@@ -7,12 +9,10 @@ export class ConfigFile extends vscode.TreeItem {
 	constructor(
 		public readonly label: string,
 		public readonly filePath: string,
-		public readonly command: vscode.Command,
 		) {
 		super(label, vscode.TreeItemCollapsibleState.None);
 		this.tooltip = label;
 		this.filepath = filePath;
-		this.command = command;
 		this.contextValue = 'configFile';
 	}
 
@@ -39,16 +39,17 @@ export class ConfigFileProvider implements vscode.TreeDataProvider<ConfigFile> {
 			return;
 		}
 	
-		this.configFiles = selectedRulebook.getConfigFiles().map(filepath =>
-			new ConfigFile(
+		this.configFiles = selectedRulebook.getConfigFiles().map(filepath => {
+			const file = new ConfigFile(
 				path.basename(filepath),
-				filepath,
-				{
-					command: 'configFiles.openConfigFile',
-					title: 'Open Config File',
-					arguments: [filepath]
-				}
-			)	
+				filepath);
+			file.command = {
+				command: 'configFiles.openConfigFile',
+				title: 'Open Config File',
+				arguments: [file.filepath]
+			};
+			return file;
+			}
 		);
 		this._onDidChangeTreeData.fire();
 		
@@ -77,7 +78,7 @@ export class ConfigFileProvider implements vscode.TreeDataProvider<ConfigFile> {
 		try {
 			const filepath = (path.basename(uri.fsPath)).split('.');
 			const [filename, ...extension] = filepath;
-			if (extension.join('.') !== 'json') throw new Error('Invalid file extension');
+			if (filename && extension.join('.') !== 'json') throw new Error('Invalid file extension');
 			else await vscode.workspace.fs.writeFile(uri, new Uint8Array());
 			this.refresh();
 		} catch (error) {
@@ -85,7 +86,7 @@ export class ConfigFileProvider implements vscode.TreeDataProvider<ConfigFile> {
 		}
 	};
 
-	deleteConfigFile = async (node: ConfigFile) => {
+	deleteConfigFile = async (node: ConfigFile): Promise<void> => {
 		const confirm = await vscode.window.showWarningMessage(`Are you sure you want to delete config file ${node.label}?`, { modal: true }, 'Delete');
 		if (confirm === 'Delete') {
 			try {
@@ -120,9 +121,10 @@ export class ConfigFileProvider implements vscode.TreeDataProvider<ConfigFile> {
 		}
 	};
 
-	changeFilename = async (uri: vscode.Uri, newUri: vscode.Uri) => {
+	changeFilename = async (uri: vscode.Uri, newUri: vscode.Uri): Promise<void> => {
 		try {
 			await vscode.workspace.fs.rename(uri, newUri);
+
 			this.refresh();
 		} catch (error) {
 			await vscode.window.showErrorMessage(`Error renaming config file: ${error as string}`);

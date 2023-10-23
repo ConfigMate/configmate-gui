@@ -1,4 +1,4 @@
-import * as vscode from 'vscode';
+// import * as vscode from 'vscode';
 import * as assert from 'assert';
 import * as myExtension from '../../extension'; // Adjust path as necessary
 

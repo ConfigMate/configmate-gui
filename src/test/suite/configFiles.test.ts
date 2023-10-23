@@ -2,8 +2,8 @@ import * as vscode from 'vscode';
 import * as assert from 'assert';
 import * as myExtension from '../../extension';
 
-import { ConfigFile, ConfigFileProvider } from '../../configFiles';
-import { RulebookFileProvider, RulebookFile, initRulebook } from '../../rulebooks';
+import { ConfigFileProvider } from '../../configFiles';
+import { RulebookFileProvider, RulebookFile } from '../../rulebooks';
 import { Rulebook } from '../../models';
 
 suite('ConfigFile Tests', () => {
@@ -56,7 +56,7 @@ suite('ConfigFile Tests', () => {
 	test('Should retrieve config files on rulebook selection [BROWSE]', async () => {
 		let errorThrown = false;
 		try {
-			await vscode.commands.executeCommand('rulebooks.openRulebook', rulebookUri);
+			await vscode.commands.executeCommand('rulebooks.openRulebook', rulebookUri.fsPath);
 			assert.strictEqual(rulebookTreeView.selection.length > 0, true, 'Rulebook was not selected successfully');
 
 			const configFiles = await configFileProvider.getChildren();
@@ -72,7 +72,7 @@ suite('ConfigFile Tests', () => {
 	test('Should retrieve the correct config file on rulebook selection [BROWSE]', async () => {
 		try {
 			// select rulebook
-			await vscode.commands.executeCommand('rulebooks.openRulebook', rulebookUri);
+			await vscode.commands.executeCommand('rulebooks.openRulebook', rulebookUri.fsPath);
 			
 			// get config files from rulebook
 			const configFilesFromRulebook = rulebookTreeView.selection[0].getConfigFiles();

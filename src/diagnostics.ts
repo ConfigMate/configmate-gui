@@ -1,3 +1,5 @@
+'use strict'; 
+
 import * as vscode from 'vscode';
 
 export class DiagnosticsProvider {
@@ -6,7 +8,8 @@ export class DiagnosticsProvider {
 	largeNumberDecorationType!: vscode.TextEditorDecorationType;
 	activeEditor: vscode.TextEditor | undefined = undefined;
 
-	constructor(context: vscode.ExtensionContext) {
+	constructor() {
+	// constructor(context: vscode.ExtensionContext) {
 		// this.createDecorators();
 		// this.activeEditor = vscode.window.activeTextEditor;
 		// this.watchForChanges(context);

@@ -1,3 +1,5 @@
+'use strict';
+
 import * as vscode from 'vscode';
 import { cmResponse, cmRequest } from './models';
 import axios from 'axios';
