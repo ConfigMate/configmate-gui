@@ -13,7 +13,6 @@ export let rulebookTreeView: vscode.TreeView<RulebookFile>;
 
 export function activate(context: vscode.ExtensionContext): void {
 	const { Uri, window, commands, workspace } = vscode;
-	const { fs } = workspace;
 	const { registerCommand, executeCommand } = commands;
 
 	rulebookFileProvider = new RulebookFileProvider();
@@ -28,15 +27,8 @@ export function activate(context: vscode.ExtensionContext): void {
 
 	context.subscriptions.push(
 		registerCommand('rulebooks.openRulebook', async (filePath: string) => {
-			try {
-				const uri = Uri.file(filePath);
-				await fs.stat(uri);
-				await rulebookFileProvider.selectRulebook(uri);
-				await executeCommand('vscode.open', uri);
-			}
-			catch (error) {
-				await window.showErrorMessage(`Error: ${error as string}`);
-			}
+			await executeCommand('vscode.open', Uri.file(filePath));
+			await rulebookFileProvider.selectRulebook(Uri.file(filePath));
 		}),
 		registerCommand('rulebooks.refreshRulebooks', () => 
 			rulebookFileProvider.refresh()

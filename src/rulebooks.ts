@@ -27,13 +27,14 @@ export class RulebookFile extends vscode.TreeItem {
 	constructor(
 		public readonly label: string,
 		// public command: vscode.Command,
-		public readonly filepath: string,
+		// eslint-disable-next-line no-unused-vars
+		public filepath: string,
 		public rulebook: Rulebook
 	) {
 		super(label, vscode.TreeItemCollapsibleState.None);
 		this.description = rulebook.Name;
 		this.tooltip = rulebook.Description;
-		this.filepath = filepath;
+		// this.filepath = filepath;
 		// this.rulebook = rulebook;
 		// this.command = command;
 		this.contextValue = 'rulebook';
@@ -202,17 +203,14 @@ export class RulebookFileProvider implements vscode.TreeDataProvider<RulebookFil
 			const rulebook: Rulebook = await this.parseRulebook(filepath, text);
 			const rulebookFiles = await this.getChildren();
 			for (const rulebookFile of rulebookFiles) {
-				if (rulebookFile.filepath === filepath) {
-					rulebookFile.rulebook = rulebook;
-					break;
-				} else {
-					rulebookFile.command = {
-						command: 'rulebooks.openRulebook',
-						title: 'Open Rulebook',
-						arguments: [filepath, rulebook]
-					};
-					break;
-				}
+				rulebookFile.rulebook = rulebook;
+				rulebookFile.filepath = filepath;
+				rulebookFile.command = {
+					command: 'rulebooks.openRulebook',
+					title: 'Open Rulebook',
+					arguments: [filepath, rulebook]
+				};
+				break;
 			}
 		} catch (error) {
 			void vscode.window.showErrorMessage(`Error: ${error as string}`);
