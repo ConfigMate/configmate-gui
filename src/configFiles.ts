@@ -84,7 +84,7 @@ export class ConfigFileProvider implements vscode.TreeDataProvider<ConfigFile> {
 		}
 	};
 
-	deleteConfigFile = async (node: ConfigFile) => {
+	deleteConfigFile = async (node: ConfigFile): Promise<void> => {
 		const confirm = await vscode.window.showWarningMessage(`Are you sure you want to delete config file ${node.label}?`, { modal: true }, 'Delete');
 		if (confirm === 'Delete') {
 			try {
@@ -119,7 +119,7 @@ export class ConfigFileProvider implements vscode.TreeDataProvider<ConfigFile> {
 		}
 	};
 
-	changeFilename = async (uri: vscode.Uri, newUri: vscode.Uri) => {
+	changeFilename = async (uri: vscode.Uri, newUri: vscode.Uri): Promise<void> => {
 		try {
 			await vscode.workspace.fs.rename(uri, newUri);
 

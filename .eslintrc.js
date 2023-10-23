@@ -13,14 +13,5 @@ module.exports = {
 	extends: [
 		'eslint:recommended',
 		'plugin:@typescript-eslint/recommended-requiring-type-checking'
-	],
-	rules: {
-		'semi': [2, "always"],
-		'@typescript-eslint/no-unused-vars': 0,
-		'@typescript-eslint/no-explicit-any': 0,
-		'@typescript-eslint/explicit-module-boundary-types': 0,
-		'@typescript-eslint/no-non-null-assertion': 0,
-		'@typescript-eslint/no-namespace': 0,
-		'no-inner-declarations': 0,
-	}
+	]
 };

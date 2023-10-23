@@ -11,8 +11,10 @@ export let configFileProvider: ConfigFileProvider;
 export let rulebookFileProvider: RulebookFileProvider;
 export let rulebookTreeView: vscode.TreeView<RulebookFile>;
 
-export function activate(context: vscode.ExtensionContext) {
+export function activate(context: vscode.ExtensionContext): void {
 	const { Uri, window, commands, workspace } = vscode;
+	const { fs } = workspace;
+	const { registerCommand, executeCommand } = commands;
 
 	rulebookFileProvider = new RulebookFileProvider();
 	rulebookTreeView = window.createTreeView('rulebooks', { treeDataProvider: rulebookFileProvider });
@@ -25,40 +27,40 @@ export function activate(context: vscode.ExtensionContext) {
 	const configMateProvider = new ConfigMateProvider(mockProgramPath);
 
 	context.subscriptions.push(
-		commands.registerCommand('rulebooks.openRulebook', async (filePath: string) => {
+		registerCommand('rulebooks.openRulebook', async (filePath: string) => {
 			try {
 				const uri = Uri.file(filePath);
-				await workspace.fs.stat(uri);
+				await fs.stat(uri);
 				await rulebookFileProvider.selectRulebook(uri);
-				await commands.executeCommand('vscode.open', uri);
+				await executeCommand('vscode.open', uri);
 			}
 			catch (error) {
 				await window.showErrorMessage(`Error: ${error as string}`);
 			}
 		}),
-		commands.registerCommand('rulebooks.refreshRulebooks', () => 
+		registerCommand('rulebooks.refreshRulebooks', () => 
 			rulebookFileProvider.refresh()
 		),
 
-		commands.registerCommand('configFiles.openConfigFile', async (filePath: string) => {
-			await commands.executeCommand('vscode.open', Uri.file(filePath));
+		registerCommand('configFiles.openConfigFile', async (filePath: string) => {
+			await executeCommand('vscode.open', Uri.file(filePath));
 		}),
-		commands.registerCommand('configFiles.refreshConfigFiles', () => 
+		registerCommand('configFiles.refreshConfigFiles', () => 
 			configFileProvider.refresh()
 		),
 
-		commands.registerCommand('configMate.checkConfigFile', async (node: ConfigFile) => 
+		registerCommand('configMate.checkConfigFile', async (node: ConfigFile) => 
 			await configMateProvider.checkConfigFile(node.filepath)
 		),
 
-		commands.registerCommand('rulebooks.addRulebook', async () => {
+		registerCommand('rulebooks.addRulebook', async () => {
 			const uri = await window.showSaveDialog({ saveLabel: 'Create Rulebook', filters: { 'JSON': ['rulebook.json'] } });
 			if (uri) await rulebookFileProvider.addRulebook(uri);
 		}),
-		commands.registerCommand('rulebooks.deleteRulebook', async (node: RulebookFile) => {
+		registerCommand('rulebooks.deleteRulebook', async (node: RulebookFile) => {
 			await rulebookFileProvider.deleteRulebook(node);
 		}),
-		commands.registerCommand('configFiles.addConfigFile', async () => {
+		registerCommand('configFiles.addConfigFile', async () => {
 			const uri = await window.showSaveDialog({ saveLabel: 'Create Config File', filters: { 'JSON': ['json'] } });
 			if (uri) {
 				const selectedRulebook = rulebookTreeView.selection[0];
@@ -70,7 +72,7 @@ export function activate(context: vscode.ExtensionContext) {
 					await window.showErrorMessage(`Choose a rulebook first!`);
 			}
 		}),
-		commands.registerCommand('configFiles.deleteConfigFile', async (node: ConfigFile) => {
+		registerCommand('configFiles.deleteConfigFile', async (node: ConfigFile) => {
 			await configFileProvider.deleteConfigFile(node);
 		}),
 
@@ -80,8 +82,8 @@ export function activate(context: vscode.ExtensionContext) {
 				await rulebookFileProvider.saveRulebook(doc.uri, doc.getText());
 		}),
 		
-		commands.registerCommand('extension.runGoServer', () => configMateProvider.runServer(context))
+		registerCommand('extension.runGoServer', () => configMateProvider.runServer(context))
 	);
 
-	// void commands.executeCommand('extension.runGoServer');
+	// void executeCommand('extension.runGoServer');
 }
