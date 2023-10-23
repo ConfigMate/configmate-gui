@@ -79,7 +79,7 @@ suite('Rulebook Tests', () => {
 	/*---------------------------------------- READ ----------------------------------------*/
 
 	test('Should open rulebook on click [READ]', async () => {
-		await vscode.commands.executeCommand('rulebooks.openRulebook', rulebookUri);
+		await vscode.commands.executeCommand('rulebooks.openRulebook', rulebookUri.fsPath);
 		assert.strictEqual(rulebookTreeView.selection.length > 0, true, 'Rulebook was not selected successfully');
 	});
 	

@@ -23,14 +23,14 @@ export const initRulebook = (filename: string, files?: string[]): Rulebook => {
 export class RulebookFile extends vscode.TreeItem {
 	constructor(
 		public readonly label: string,
-		public readonly command: vscode.Command,
+		// public command: vscode.Command,
 		public readonly filepath: string,
 		public rulebook: Rulebook
 	) {
 		super(label, vscode.TreeItemCollapsibleState.None);
 		this.description = rulebook.Name;
 		this.tooltip = rulebook.Description;
-		// this.filepath = filepath;
+		this.filepath = filepath;
 		// this.rulebook = rulebook;
 		// this.command = command;
 		this.contextValue = 'rulebook';
@@ -70,14 +70,14 @@ export class RulebookFileProvider implements vscode.TreeDataProvider<RulebookFil
 				const rulebook = await this.parseRulebook(filepath);
 				const rulebookFile = new RulebookFile(
 					path.basename(filepath),
-					{
-						command: 'rulebooks.openRulebook',
-						title: 'Open Rulebook',
-						arguments: [uri, rulebook]
-					},
 					filepath,
 					rulebook
 				);
+				rulebookFile.command = {
+					command: 'rulebooks.openRulebook',
+					title: 'Open Rulebook',
+					arguments: [filepath, rulebook]
+				};
 				rulebookFiles.push(rulebookFile);
 			} catch (err) {
 				// console.error(`Error parsing rulebook file ${filepath}: `, err);
@@ -200,6 +200,13 @@ export class RulebookFileProvider implements vscode.TreeDataProvider<RulebookFil
 			for (const rulebookFile of rulebookFiles) {
 				if (rulebookFile.filepath === uri.fsPath) {
 					rulebookFile.rulebook = rulebook;
+					break;
+				} else {
+					rulebookFile.command = {
+						command: 'rulebooks.openRulebook',
+						title: 'Open Rulebook',
+						arguments: [uri.fsPath, rulebook]
+					};
 					break;
 				}
 			}

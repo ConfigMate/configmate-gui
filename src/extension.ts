@@ -24,8 +24,9 @@ export function activate(context: vscode.ExtensionContext) {
 	const configMateProvider = new ConfigMateProvider(mockProgramPath);
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand('rulebooks.openRulebook', async (uri: vscode.Uri) => {
+		vscode.commands.registerCommand('rulebooks.openRulebook', async (filePath: string) => {
 			try {
+				const uri = vscode.Uri.file(filePath);
 				await vscode.workspace.fs.stat(uri);
 				await rulebookFileProvider.selectRulebook(uri);
 				await vscode.commands.executeCommand('vscode.open', uri);
