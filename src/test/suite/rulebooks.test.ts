@@ -1,27 +1,21 @@
 import * as vscode from 'vscode';
 import * as assert from 'assert';
-import * as myExtension from '../../extension';
+import { rulebookExplorer, rulebookFileProvider, configFileProvider } from '../../extension';
 
-import { ConfigFileProvider } from '../../configFiles';
-import { RulebookFileProvider, RulebookFile, initRulebook } from '../../rulebooks';
+import { RulebookFile, initRulebook } from '../../rulebooks';
 import { Rulebook } from '../../models';
 
 suite('Rulebook Tests', () => {
-	let rulebookFileProvider: RulebookFileProvider;
-	let configFileProvider: ConfigFileProvider;
 	let mock1: vscode.Uri, mock2: vscode.Uri;
 	let testWorkspace: vscode.WorkspaceFolder;
 	let mockRulebookFile: RulebookFile;
 	let rulebookUri: vscode.Uri, configFileUri: vscode.Uri;
-	let rulebookTreeView: vscode.TreeView<RulebookFile>;
 	let mockRulebook: Rulebook;
 
 	suiteSetup(async () => {
 		const workspaceFolders = vscode.workspace.workspaceFolders;
 		assert.ok(workspaceFolders, "No workspace is open.");
 		testWorkspace = workspaceFolders[0];
-
-		({ rulebookTreeView, rulebookFileProvider, configFileProvider } = myExtension);
 
 		// Prepare mock RulebookFile
 		mockRulebookFile = (await rulebookFileProvider.getChildren())[0];
@@ -133,9 +127,12 @@ suite('Rulebook Tests', () => {
 	});
 
 	test('Should remove a config file from rulebooks [EDIT]', async () => {
-		await rulebookFileProvider.removeConfigFileFromRulebooks(configFileUri);
-		const updatedRulebook = await rulebookFileProvider.parseRulebook(rulebookUri.fsPath);
-		assert.ok(!updatedRulebook.Files.includes(configFileUri.fsPath), 'Config file was not removed from rulebook');
+		await rulebookFileProvider.onRulebookSelectionChanged([mockRulebookFile]);
+		await vscode.commands.executeCommand('configFiles.deleteConfigFile', configFileUri);
+		const selection = rulebookExplorer.getSelectedRulebook();
+		assert.notStrictEqual(selection, undefined, 'Rulebook was deselected');
+		const { rulebook } = selection || mockRulebookFile;
+		assert.ok(!rulebook.Files.includes(configFileUri.fsPath), 'Config file was not removed from rulebook');
 	});
 
 

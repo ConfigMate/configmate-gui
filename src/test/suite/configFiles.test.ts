@@ -1,19 +1,15 @@
 import * as vscode from 'vscode';
 import * as assert from 'assert';
-import * as myExtension from '../../extension';
+import { rulebookTreeView, rulebookFileProvider, configFileProvider } from '../../extension';
 
-import { ConfigFileProvider } from '../../configFiles';
-import { RulebookFileProvider, RulebookFile } from '../../rulebooks';
+import { RulebookFile } from '../../rulebooks';
 import { Rulebook } from '../../models';
 
 suite('ConfigFile Tests', () => {
-	let rulebookFileProvider: RulebookFileProvider;
-	let configFileProvider: ConfigFileProvider;
 	let mock1: vscode.Uri, mock2: vscode.Uri;
 	let testWorkspace: vscode.WorkspaceFolder;
 	let mockRulebookFile: RulebookFile;
 	let rulebookUri: vscode.Uri, configFileUri: vscode.Uri;
-	let rulebookTreeView: vscode.TreeView<RulebookFile>;
 	let mockRulebook: Rulebook;
 	const rulebookFiles: RulebookFile[] = [];
 
@@ -21,8 +17,6 @@ suite('ConfigFile Tests', () => {
 		const workspaceFolders = vscode.workspace.workspaceFolders;
 		assert.ok(workspaceFolders, "No workspace is open.");
 		testWorkspace = workspaceFolders[0];
-
-		({ rulebookTreeView, rulebookFileProvider, configFileProvider } = myExtension);
 
 		// Prepare mock RulebookFile
 		mockRulebookFile = (await rulebookFileProvider.getChildren())[0];

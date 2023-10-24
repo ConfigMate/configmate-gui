@@ -83,11 +83,11 @@ export class RulebookFileProvider implements vscode.TreeDataProvider<RulebookFil
 					filepath,
 					rulebook
 				);
-				rulebookFile.command = {
-					command: 'rulebooks.openRulebook',
-					title: 'Open Rulebook',
-					arguments: [rulebookFile]
-				};
+				// rulebookFile.command = {
+				// 	command: 'rulebooks.openRulebook',
+				// 	title: 'Open Rulebook',
+				// 	arguments: [rulebookFile]
+				// };
 				rulebookFiles.push(rulebookFile);
 			} catch (err) {
 				// console.error(`Error parsing rulebook file ${filepath}: `, err);
@@ -203,18 +203,26 @@ export class RulebookFileProvider implements vscode.TreeDataProvider<RulebookFil
 			selectedRulebook.rulebook.Files.push(uri.fsPath);
 			const rulebookUri = Uri.file(selectedRulebook.filepath);
 			await this.writeRulebook(rulebookUri, selectedRulebook.rulebook);
+			this.refresh(selectedRulebook);
 		} catch (error) {
 			void vscode.window.showErrorMessage(`Error: ${error as string}`);
 		}
 	};
 
-	removeConfigFileFromRulebooks = async (uri: Uri): Promise<void> => {
+	removeConfigFileFromRulebooks = async (configFileUri: Uri, selection: RulebookFile[]): Promise<void> => {
 		try {
 			const rulebookFiles = await this.getChildren();
+			const configFilepath = configFileUri.fsPath;
+			const selectionUri = vscode.Uri.file(selection[0].filepath);
 			rulebookFiles.forEach((rulebookFile) => {
-				const index = rulebookFile.rulebook.Files.indexOf(uri.fsPath);
-				if (index > -1) rulebookFile.rulebook.Files.splice(index, 1);		
+				const index = rulebookFile.rulebook.Files.indexOf(configFilepath);
+				if (index > -1) {
+					rulebookFile.rulebook.Files.splice(index, 1);
+					void this.writeRulebook(selectionUri, rulebookFile.rulebook);
+				}
+
 			});
+			await this.onRulebookSelectionChanged(selection);
 		} catch (error) {
 			void vscode.window.showErrorMessage(`Error: ${error as string}`);
 		}
@@ -228,11 +236,11 @@ export class RulebookFileProvider implements vscode.TreeDataProvider<RulebookFil
 			for (const rulebookFile of rulebookFiles) {
 				rulebookFile.rulebook = rulebook;
 				rulebookFile.filepath = filepath;
-				rulebookFile.command = {
-					command: 'rulebooks.openRulebook',
-					title: 'Open Rulebook',
-					arguments: [rulebookFile]
-				};
+				// rulebookFile.command = {
+				// 	command: 'rulebooks.openRulebook',
+				// 	title: 'Open Rulebook',
+				// 	arguments: [rulebookFile]
+				// };
 				console.log(filepath);
 				break;
 			}
@@ -260,12 +268,12 @@ export class RulebookExplorer {
 		this.rulebookFileProvider = rulebookFileProvider;
 
 		// register RulebookView commands here
-		const {registerCommand, executeCommand} = vscode.commands;
+		const {registerCommand } = vscode.commands;
 
 		registerCommand('rulebooks.refreshRulebooks', () => rulebookFileProvider.refresh());
-		registerCommand('rulebooks.openRulebook', async (rulebookFile: RulebookFile) => {
-			await rulebookFileProvider.openRulebook(rulebookFile);
-		});
+		// registerCommand('rulebooks.openRulebook', async (rulebookFile: RulebookFile) => {
+		// 	await rulebookFileProvider.openRulebook(rulebookFile);
+		// });
 		registerCommand('rulebooks.addRulebook', async () => {
 			const uri = await vscode.window.showSaveDialog({
 				saveLabel: 'Create Rulebook', filters: { 'JSON': ['rulebook.json'] } 
