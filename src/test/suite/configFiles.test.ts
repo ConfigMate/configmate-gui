@@ -15,6 +15,7 @@ suite('ConfigFile Tests', () => {
 	let rulebookUri: vscode.Uri, configFileUri: vscode.Uri;
 	let rulebookTreeView: vscode.TreeView<RulebookFile>;
 	let mockRulebook: Rulebook;
+	const rulebookFiles: RulebookFile[] = [];
 
 	suiteSetup(async () => {
 		const workspaceFolders = vscode.workspace.workspaceFolders;
@@ -26,6 +27,7 @@ suite('ConfigFile Tests', () => {
 		// Prepare mock RulebookFile
 		mockRulebookFile = (await rulebookFileProvider.getChildren())[0];
 		mockRulebook = mockRulebookFile.rulebook;
+		rulebookFiles.push(mockRulebookFile);
 		rulebookUri = vscode.Uri.file(mockRulebookFile.filepath);
 		configFileUri = vscode.Uri.file(mockRulebook.Files[0]);
 
@@ -56,9 +58,7 @@ suite('ConfigFile Tests', () => {
 	test('Should retrieve config files on rulebook selection [BROWSE]', async () => {
 		let errorThrown = false;
 		try {
-			await vscode.commands.executeCommand('rulebooks.openRulebook', rulebookUri.fsPath);
-			assert.strictEqual(rulebookTreeView.selection.length > 0, true, 'Rulebook was not selected successfully');
-
+			await rulebookFileProvider.onRulebookSelectionChanged([mockRulebookFile]);
 			const configFiles = await configFileProvider.getChildren();
 			assert.strictEqual(configFiles.length > 0, true, 'Config files were not retrieved successfully');
 
@@ -71,8 +71,7 @@ suite('ConfigFile Tests', () => {
 
 	test('Should retrieve the correct config file on rulebook selection [BROWSE]', async () => {
 		try {
-			// select rulebook
-			await vscode.commands.executeCommand('rulebooks.openRulebook', rulebookUri.fsPath);
+			await rulebookFileProvider.onRulebookSelectionChanged([mockRulebookFile]);
 			
 			// get config files from rulebook
 			const configFilesFromRulebook = rulebookTreeView.selection[0].getConfigFiles();
@@ -116,7 +115,7 @@ suite('ConfigFile Tests', () => {
 	});
 
 	test('Should refresh configFiles view [EDIT / ON FILENAME CHANGE]', async () => {
-		await rulebookFileProvider.selectRulebook(rulebookUri);
+		rulebookFileProvider.onRulebookSelectionChanged(rulebookFiles);
 		const configFilesBefore = (await configFileProvider.getChildren()).length;
 		
 		// edit filename of config file
@@ -130,7 +129,7 @@ suite('ConfigFile Tests', () => {
 
 	test('Should update rulebook containing the previous filename [EDIT / ON FILENAME CHANGE]', async () => { 
 		/* NOTE: DOUBLE-CHECK THIS TEST */
-		await rulebookFileProvider.selectRulebook(rulebookUri);
+		rulebookFileProvider.onRulebookSelectionChanged(rulebookFiles);
 
 		// change filename of config file
 		const newConfigUri = vscode.Uri.joinPath(testWorkspace.uri, 'testConfig2.json');
@@ -189,7 +188,7 @@ suite('ConfigFile Tests', () => {
 
 	test('Should refresh configFiles view [ADD]', async () => {
 		const uri = vscode.Uri.joinPath(vscode.workspace.workspaceFolders![0].uri, 'test2.json');
-		await rulebookFileProvider.selectRulebook(rulebookUri);
+		rulebookFileProvider.onRulebookSelectionChanged(rulebookFiles);
 		const configFilesBefore = (await configFileProvider.getChildren()).length;
 		await configFileProvider.addConfigFileFile(uri);
 		const configFilesAfter = (await configFileProvider.getChildren()).length;
@@ -204,7 +203,7 @@ suite('ConfigFile Tests', () => {
 	test('Should delete a config file [DELETE]', async () => {
 		let errorOccurred = false;
 		try {
-			await rulebookFileProvider.selectRulebook(rulebookUri);
+			rulebookFileProvider.onRulebookSelectionChanged(rulebookFiles);
 			await configFileProvider.deleteConfigFileFile(configFileUri);
 			await vscode.workspace.fs.stat(configFileUri);
 		} catch (error) {
@@ -214,7 +213,7 @@ suite('ConfigFile Tests', () => {
 	});
 
 	test('Should refresh configFiles view [DELETE]', async () => {
-		await rulebookFileProvider.selectRulebook(rulebookUri);
+		rulebookFileProvider.onRulebookSelectionChanged(rulebookFiles);
 		const configFilesBefore = (await configFileProvider.getChildren()).length;
 		await configFileProvider.deleteConfigFileFile(configFileUri); 
 		const configFilesAfter = (await configFileProvider.getChildren()).length;

@@ -2,7 +2,7 @@
 
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { RulebookFileProvider } from './rulebooks';
+import { RulebookFileProvider, RulebookFile } from './rulebooks';
 
 export class ConfigFile extends vscode.TreeItem {
 	public readonly filepath: string;
@@ -23,23 +23,31 @@ export class ConfigFileProvider implements vscode.TreeDataProvider<ConfigFile> {
 	readonly onDidChangeTreeData: vscode.Event<ConfigFile | undefined | null | void> = this._onDidChangeTreeData.event;
 
 	private configFiles: ConfigFile[] = [];
-	private rulebookFileProvider: RulebookFileProvider;
 
-	constructor(rulebookFileProvider: RulebookFileProvider) {
-		this.rulebookFileProvider = rulebookFileProvider;
-		this.rulebookFileProvider.onDidChangeTreeData(() => this.refresh());
+	constructor(private rulebookFileProvider: RulebookFileProvider) {
+		this.rulebookFileProvider.onDidChangeTreeData((e) =>{
+			if (!e || e.rulebook.Files.length < 1) {
+				this.configFiles = [];
+				this.refresh(undefined);
+				return;
+			}
+			this.refresh(e);
+		});
 	}
 
-	refresh(): void {
-		// console.log('Refresh called'); // Debug log
-		const selectedRulebook = this.rulebookFileProvider.getSelectedRulebook();
-		if (selectedRulebook === undefined || selectedRulebook.rulebook.Files.length < 1) {
-			this.configFiles = [];
-			this._onDidChangeTreeData.fire();
-			return;
-		}
-	
-		this.configFiles = selectedRulebook.getConfigFiles().map(filepath => {
+	// Method to refresh the TreeView
+	refresh(rulebookFile: RulebookFile | undefined): void {
+		if (rulebookFile) {
+			const filepaths = rulebookFile.getConfigFiles();
+			this.configFiles = this.parseConfigFiles(filepaths);
+		} else this.configFiles = [];
+
+		// This will refresh the whole TreeView. If you want more control, you could pass specific data through your event and refresh selectively.
+		this._onDidChangeTreeData.fire();
+	}
+
+	parseConfigFiles = (filepaths: string[]): ConfigFile[] => 
+		filepaths.map(filepath => {
 			const file = new ConfigFile(
 				path.basename(filepath),
 				filepath);
@@ -51,10 +59,6 @@ export class ConfigFileProvider implements vscode.TreeDataProvider<ConfigFile> {
 			return file;
 			}
 		);
-		this._onDidChangeTreeData.fire();
-		
-		// console.log('Config files after refresh:', this.configFiles.length); // Debug log
-	}
 
 	getTreeItem(element: ConfigFile): vscode.TreeItem {
 		return element;
@@ -80,7 +84,7 @@ export class ConfigFileProvider implements vscode.TreeDataProvider<ConfigFile> {
 			const [filename, ...extension] = filepath;
 			if (filename && extension.join('.') !== 'json') throw new Error('Invalid file extension');
 			else await vscode.workspace.fs.writeFile(uri, new Uint8Array());
-			this.refresh();
+			// this.refresh();
 		} catch (error) {
 			// console.error(`Error creating config file: ${error as string}`);
 		}
@@ -106,7 +110,7 @@ export class ConfigFileProvider implements vscode.TreeDataProvider<ConfigFile> {
 			await this.rulebookFileProvider.removeConfigFileFromRulebooks(uri);
 
 			// Refresh the view. If the deletion affects the current selection, you should pass the new selection here.
-			this.refresh(); // Consider passing the appropriate rulebook if necessary.
+			// this.refresh(); // Consider passing the appropriate rulebook if necessary.
 		} catch (error) {
 			console.error(`Error deleting config file: ${error as string}`);
 		}
@@ -124,8 +128,8 @@ export class ConfigFileProvider implements vscode.TreeDataProvider<ConfigFile> {
 	changeFilename = async (uri: vscode.Uri, newUri: vscode.Uri): Promise<void> => {
 		try {
 			await vscode.workspace.fs.rename(uri, newUri);
-
-			this.refresh();
+			// await this.rulebookFileProvider.changeConfigFileUri(uri, newUri);
+			// refresh
 		} catch (error) {
 			await vscode.window.showErrorMessage(`Error renaming config file: ${error as string}`);
 		}

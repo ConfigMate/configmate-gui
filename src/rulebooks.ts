@@ -4,7 +4,6 @@ import { Uri } from 'vscode';
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { Rulebook } from './models';
-import { configFileProvider, rulebookTreeView } from './extension';
 
 export const initRulebook = (filename: string, files?: string[]): Rulebook => {
 	const rulebook: Rulebook = {
@@ -26,17 +25,12 @@ export const initRulebook = (filename: string, files?: string[]): Rulebook => {
 export class RulebookFile extends vscode.TreeItem {
 	constructor(
 		public readonly label: string,
-		// public command: vscode.Command,
-		// eslint-disable-next-line no-unused-vars
 		public filepath: string,
 		public rulebook: Rulebook
 	) {
 		super(label, vscode.TreeItemCollapsibleState.None);
 		this.description = rulebook.Name;
 		this.tooltip = rulebook.Description;
-		// this.filepath = filepath;
-		// this.rulebook = rulebook;
-		// this.command = command;
 		this.contextValue = 'rulebook';
 	}
 
@@ -49,10 +43,22 @@ export class RulebookFileProvider implements vscode.TreeDataProvider<RulebookFil
 	private _onDidChangeTreeData: vscode.EventEmitter<RulebookFile | undefined | void> = new vscode.EventEmitter<RulebookFile | undefined | void>();
 	readonly onDidChangeTreeData: vscode.Event<RulebookFile | undefined | void> = this._onDidChangeTreeData.event;
 
-	
+	constructor() {	}
 
-	refresh(): void {
-		this._onDidChangeTreeData.fire();
+	async onRulebookSelectionChanged(rulebooks: readonly RulebookFile[]): Promise<void> {
+		// const configFiles: string[] = [];
+		// for (const rulebook of rulebooks) {
+		// 	const thisConfigFiles = rulebook.getConfigFiles();
+		// 	if (thisConfigFiles.length > 0) configFiles.push(...thisConfigFiles);
+		// }
+
+		// You can now emit this change to any listeners - in your case, the ConfigFile view needs to know.
+		await this.openRulebook(rulebooks[0]);
+		this.refresh(rulebooks[0]);
+	}
+
+	refresh(selection: RulebookFile | undefined | void): void {
+		this._onDidChangeTreeData.fire(selection);
 	}
 
 	getTreeItem(element: RulebookFile): vscode.TreeItem {
@@ -80,7 +86,7 @@ export class RulebookFileProvider implements vscode.TreeDataProvider<RulebookFil
 				rulebookFile.command = {
 					command: 'rulebooks.openRulebook',
 					title: 'Open Rulebook',
-					arguments: [filepath, rulebook]
+					arguments: [rulebookFile]
 				};
 				rulebookFiles.push(rulebookFile);
 			} catch (err) {
@@ -93,6 +99,23 @@ export class RulebookFileProvider implements vscode.TreeDataProvider<RulebookFil
 
 	getParent(): vscode.ProviderResult<RulebookFile> {
 		return null;
+	}
+
+	async openRulebook(rulebookFile: RulebookFile) {
+		const uri = vscode.Uri.file(rulebookFile.filepath);
+		// open text document, show it in the editor, and make it active
+		await vscode.commands.executeCommand('vscode.open', uri);
+		const editor = vscode.window.activeTextEditor;
+		if (editor) {
+			const document = editor.document;
+			if (document.uri.fsPath === uri.fsPath) {
+				// if the document is already open, make sure it's active
+				await vscode.window.showTextDocument(document, editor.viewColumn);
+			}
+		} else {
+			// if the document isn't already open, open it
+			await vscode.window.showTextDocument(uri);
+		}
 	}
 
 	async readFile(filepath: string): Promise<string> {
@@ -208,7 +231,7 @@ export class RulebookFileProvider implements vscode.TreeDataProvider<RulebookFil
 				rulebookFile.command = {
 					command: 'rulebooks.openRulebook',
 					title: 'Open Rulebook',
-					arguments: [filepath, rulebook]
+					arguments: [rulebookFile]
 				};
 				console.log(filepath);
 				break;
@@ -217,28 +240,51 @@ export class RulebookFileProvider implements vscode.TreeDataProvider<RulebookFil
 			void vscode.window.showErrorMessage(`Error: ${error as string}`);
 		}
 	};
+}
 
-	selectRulebook = async (uri: Uri): Promise<RulebookFile | undefined> => {
-		try {
-			await vscode.workspace.fs.stat(uri);
-			const rulebookFiles = await this.getChildren();
-			for (const rulebookFile of rulebookFiles) {
-				if (rulebookFile.filepath === uri.fsPath) {
-					await rulebookTreeView.reveal(rulebookFile);
-					configFileProvider.refresh();
-					return rulebookFile;
-				}
-			}
-		}
-		catch (error) {
-			void vscode.window.showErrorMessage(`Error: ${error as string}`);
-		}
-		return undefined;
-	};
+export class RulebookExplorer {
+	private rulebookTreeView: vscode.TreeView<RulebookFile>;
+	private rulebookFileProvider: RulebookFileProvider;
+
+	constructor(context: vscode.ExtensionContext, rulebookFileProvider: RulebookFileProvider) {
+		context.subscriptions.push(
+			vscode.window.registerTreeDataProvider('rulebooks', rulebookFileProvider)
+		);
+
+		this.rulebookTreeView = vscode.window.createTreeView('rulebooks', {
+			treeDataProvider: rulebookFileProvider
+		});
+		this.rulebookTreeView.onDidChangeSelection(e => 
+			rulebookFileProvider.onRulebookSelectionChanged(e.selection)
+		);
+		this.rulebookFileProvider = rulebookFileProvider;
+
+		// register RulebookView commands here
+		const {registerCommand, executeCommand} = vscode.commands;
+
+		registerCommand('rulebooks.refreshRulebooks', () => rulebookFileProvider.refresh());
+		registerCommand('rulebooks.openRulebook', async (rulebookFile: RulebookFile) => {
+			await rulebookFileProvider.openRulebook(rulebookFile);
+		});
+		registerCommand('rulebooks.addRulebook', async () => {
+			const uri = await vscode.window.showSaveDialog({
+				saveLabel: 'Create Rulebook', filters: { 'JSON': ['rulebook.json'] } 
+			});
+			if (uri) await rulebookFileProvider.addRulebook(uri);
+		});
+		registerCommand('rulebooks.deleteRulebook', async (node: RulebookFile) => {
+			await rulebookFileProvider.deleteRulebook(node);
+		});
+	}
+
+	getTreeView(): vscode.TreeView<RulebookFile> {
+		return this.rulebookTreeView;
+	}
+	getProvider(): RulebookFileProvider {
+		return this.rulebookFileProvider;
+	}
 
 	getSelectedRulebook = (): RulebookFile | undefined => {
-		const selectedRulebook = rulebookTreeView.selection[0];
-		if (selectedRulebook instanceof RulebookFile) return selectedRulebook;
-		return undefined;
+		return this.rulebookTreeView.selection[0] || undefined;
 	};
 }

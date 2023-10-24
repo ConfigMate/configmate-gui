@@ -20,9 +20,9 @@ suite('Rulebook Tests', () => {
 		const workspaceFolders = vscode.workspace.workspaceFolders;
 		assert.ok(workspaceFolders, "No workspace is open.");
 		testWorkspace = workspaceFolders[0];
-	
-		({rulebookTreeView, rulebookFileProvider, configFileProvider} = myExtension);
-	
+
+		({ rulebookTreeView, rulebookFileProvider, configFileProvider } = myExtension);
+
 		// Prepare mock RulebookFile
 		mockRulebookFile = (await rulebookFileProvider.getChildren())[0];
 		mockRulebook = mockRulebookFile.rulebook;
@@ -30,7 +30,7 @@ suite('Rulebook Tests', () => {
 		configFileUri = vscode.Uri.file(mockRulebook.Files[0]);
 
 		testWorkspace = vscode.workspace.workspaceFolders![0];
-		
+
 		mock1 = (await vscode.workspace.findFiles('**/mock/test.rulebook.json', '**/node_modules/**', 1))[0];
 		mock2 = (await vscode.workspace.findFiles('**/mock/testConfig.json', '**/node_modules/**', 1))[0];
 	});
@@ -45,7 +45,7 @@ suite('Rulebook Tests', () => {
 			// delete files but not folders
 			if (file[1] !== vscode.FileType.Directory)
 				await vscode.workspace.fs.delete(uri, { recursive: false });
-		}		
+		}
 		await vscode.workspace.fs.copy(mock1, rulebookUri, { overwrite: true });
 		await vscode.workspace.fs.copy(mock2, configFileUri, { overwrite: true });
 	});
@@ -67,45 +67,47 @@ suite('Rulebook Tests', () => {
 		});
 		assert.strictEqual(invalidFileFound, false, 'Invalid file found in rulebook files');
 	});
-	
+
 	test('Should parse rulebook for display data [BROWSE]', async () => {
 		const rulebookUri = vscode.Uri.joinPath(testWorkspace.uri, 'test.rulebook.json');
 		const rulebookData = await rulebookFileProvider.parseRulebook(rulebookUri.fsPath);
 		assert.ok(rulebookData, 'Rulebook data was not parsed correctly');
 		assert.strictEqual(rulebookData.Name, mockRulebook.Name, 'Rulebook name mismatch');
 	});
-	
+
 
 	/*---------------------------------------- READ ----------------------------------------*/
 
 	test('Should open rulebook on click [READ]', async () => {
-		await vscode.commands.executeCommand('rulebooks.openRulebook', rulebookUri.fsPath);
-		assert.strictEqual(rulebookTreeView.selection.length > 0, true, 'Rulebook was not selected successfully');
+		await rulebookFileProvider.onRulebookSelectionChanged([mockRulebookFile]);
+		// assert that file was opened
+		const activeEditor = vscode.window.activeTextEditor;
+		assert.strictEqual(activeEditor?.document.uri.fsPath, rulebookUri.fsPath, 'Rulebook was not opened successfully');
 	});
-	
+
 
 
 	/*---------------------------------------- EDIT ----------------------------------------*/
 
 	test('Should write to a rulebook [EDIT]', async () => {
-        await rulebookFileProvider.writeRulebook(rulebookUri, mockRulebook);
-        const writtenRulebook = await rulebookFileProvider.parseRulebook(rulebookUri.fsPath);
-        assert.deepStrictEqual(writtenRulebook, mockRulebook, 'Rulebook was not written successfully');
-    });
+		await rulebookFileProvider.writeRulebook(rulebookUri, mockRulebook);
+		const writtenRulebook = await rulebookFileProvider.parseRulebook(rulebookUri.fsPath);
+		assert.deepStrictEqual(writtenRulebook, mockRulebook, 'Rulebook was not written successfully');
+	});
 
 	test('Should verify file extension [EDIT / ON FILENAME CHANGE]', async () => {
 		const invalidRulebookUri = vscode.Uri.joinPath(testWorkspace.uri, 'test.rulebook.txt'); // Invalid extension
-		const numRulebooksBefore = (await rulebookFileProvider.getChildren()).length;	
-			
+		const numRulebooksBefore = (await rulebookFileProvider.getChildren()).length;
+
 		// Try to perform an operation that should only accept .rulebook.json files
 		await rulebookFileProvider.addRulebook(invalidRulebookUri);
 		const numRulebooksAfter = (await rulebookFileProvider.getChildren()).length;
 
 		assert.strictEqual(numRulebooksAfter, numRulebooksBefore, 'Operation accepted an invalid file extension');
 	});
-	
+
 	test('Should verify file contents [EDIT / ON CONTENTS CHANGE]', async () => {
-		
+
 		// verify that the rulebook's contents were changed
 		let errorOccurred = false;
 		try {
