@@ -67,11 +67,6 @@
 				"title": "Run Go Server"
 			},
 			{
-				"command": "rulebooks.openRulebook",
-				"category": "Custom",
-				"title": "Open Rulebook"
-			},
-			{
 				"command": "rulebooks.refreshRulebooks",
 				"title": "Refresh Rulebooks",
 				"icon": "$(refresh)"
