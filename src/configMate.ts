@@ -4,13 +4,16 @@ import * as vscode from 'vscode';
 import { cmResponse, cmRequest } from './models';
 import axios from 'axios';
 import * as cp from 'child_process';
+import { DiagnosticsProvider } from './diagnostics';
 
 export class ConfigMateProvider {
 
 	private cliPath: string;
+	private diagnosticsProvider: DiagnosticsProvider;
 
-	constructor(cliPath: string) {
+	constructor(cliPath: string, diagnosticsProvider: DiagnosticsProvider) {
 		this.cliPath = cliPath;
+		this.diagnosticsProvider = diagnosticsProvider;
 	}
 
 	checkConfigFile = async (filepath: string): Promise<cmResponse> => {

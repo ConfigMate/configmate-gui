@@ -25,7 +25,8 @@ export function activate(context: vscode.ExtensionContext): void {
 
 	// ConfigMate CLI coordination
 	const mockProgramPath = path.join(context.extensionPath, 'bin', 'ConfigMate');
-	const configMateProvider = new ConfigMateProvider(mockProgramPath);
+	diagnosticsProvider = new DiagnosticsProvider();
+	const configMateProvider = new ConfigMateProvider(mockProgramPath, diagnosticsProvider);
 
 	context.subscriptions.push(
 		registerCommand('rulebooks.openRulebook', async (filePath: string) => {
@@ -79,7 +80,6 @@ export function activate(context: vscode.ExtensionContext): void {
 		registerCommand('extension.runGoServer', () => configMateProvider.runServer(context))
 	);
 
-	diagnosticsProvider = new DiagnosticsProvider();
 
 	// void executeCommand('extension.runGoServer');
 }
