@@ -37,10 +37,7 @@ jobs:
       - name: Install dependencies
         run: npm install && npm install -g @vscode/vsce
 
-      - name: Build GUI
-        run: npm run compile
-
-      - name: Build CLI
+      - name: Build
         run: npm run make
 
       - name: Deploy
