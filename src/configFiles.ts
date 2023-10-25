@@ -1,5 +1,3 @@
-'use strict';
-
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { RulebookFileProvider, RulebookFile, RulebookExplorer } from './rulebooks';
@@ -7,7 +5,7 @@ import { RulebookFileProvider, RulebookFile, RulebookExplorer } from './rulebook
 export class ConfigFile extends vscode.TreeItem {
 	constructor(
 		public readonly label: string,
-		public readonly filepath: string,
+		public filepath: string,
 	) {
 		super(label, vscode.TreeItemCollapsibleState.None);
 		this.tooltip = label;
@@ -33,7 +31,7 @@ export class ConfigFileProvider implements vscode.TreeDataProvider<ConfigFile> {
 		});
 	}
 
-	refresh(rulebookFile: RulebookFile | undefined | void): void {
+	refresh(rulebookFile?: RulebookFile): void {
 		if (rulebookFile) {
 			const filepaths = rulebookFile.getConfigFiles();
 			this.configFiles = this.parseConfigFiles(filepaths);
@@ -59,9 +57,10 @@ export class ConfigFileProvider implements vscode.TreeDataProvider<ConfigFile> {
 	getTreeItem = (element: ConfigFile): vscode.TreeItem => element;
 	getChildren = (element?: ConfigFile): Promise<ConfigFile[]> => element ? Promise.resolve([]) : Promise.resolve(this.configFiles);
 
-	addConfigFile = async (uri: vscode.Uri): Promise<void> => {
+	addConfigFile = async (uri: vscode.Uri, selectedRulebook: RulebookFile): Promise<void> => {
 		try {
 			await this.addConfigFileFile(uri);
+			await this.rulebookFileProvider.addConfigFileToRulebook(uri, selectedRulebook);
 		} catch (error) { void vscode.window.showErrorMessage(`Error creating config file: ${error as string}`); }
 	};
 
@@ -74,21 +73,18 @@ export class ConfigFileProvider implements vscode.TreeDataProvider<ConfigFile> {
 		} catch (error) { console.error(`Error creating config file: ${error as string}`); }
 	};
 
-	deleteConfigFile = async (node: ConfigFile, selection: RulebookFile[] | undefined | void): Promise<void> => {
-		const confirm = await vscode.window.showWarningMessage(`Are you sure you want to delete config file ${node.label}?`, { modal: true }, 'Delete');
-		if (confirm !== 'Delete') return;
+	deleteConfigFile = async (uri: vscode.Uri, selection?: RulebookFile[]): Promise<void> => {
 		try {
-			await this.deleteConfigFileFile(vscode.Uri.file(node.filepath));
-			if (selection && selection[0] instanceof RulebookFile) {
-				const uri = vscode.Uri.file(node.filepath);
+			await this.deleteConfigFileFile(uri);
+			if (selection && selection[0] instanceof RulebookFile)
 				await this.rulebookFileProvider.removeConfigFileFromRulebooks(uri, selection);
-			}
 		} catch (error) {
 			await vscode.window.showErrorMessage(`Error deleting config file: ${error as string}`);
 		}
 	};
 
-	deleteConfigFileFile = async (uri: vscode.Uri): Promise<void> => await vscode.workspace.fs.delete(uri, { recursive: false });
+	deleteConfigFileFile = async (uri: vscode.Uri): Promise<void> => 
+		await vscode.workspace.fs.delete(uri, { recursive: false });
 
 	openConfigFile = async (uri: vscode.Uri): Promise<void> => {
 		try {
@@ -131,15 +127,18 @@ export class ConfigFileExplorer {
 			if (uri) {
 				const selectedRulebook = rulebookExplorer.getSelectedRulebook();
 				if (selectedRulebook instanceof RulebookFile) {
-					await this.configFileProvider.addConfigFile(uri);
-					await rulebookFileProvider.addConfigFileToRulebook(uri, selectedRulebook);
+					await this.configFileProvider.addConfigFile(uri, selectedRulebook);
 					// await rulebookFileProvider.openRulebook(selectedRulebook.uri);
 				} else await vscode.window.showErrorMessage(`Choose a rulebook first!`);
 			}
 		});
 		registerCommand('configFiles.deleteConfigFile', async (node: ConfigFile) => {
+			const confirm = await vscode.window.showWarningMessage(
+				`Are you sure you want to delete config file ${node.label}?`, { modal: true }, 'Delete');
+			if (confirm !== 'Delete') return;
 			const selection = rulebookExplorer.getSelectedRulebook();
-			if (selection) await this.configFileProvider.deleteConfigFile(node, [selection]);
+			const uri = vscode.Uri.file(node.filepath);
+			if (selection) await this.configFileProvider.deleteConfigFile(uri, [selection]);
 		});
 	}
 

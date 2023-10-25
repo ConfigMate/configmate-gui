@@ -1,7 +1,4 @@
-'use strict';
-
 import * as vscode from 'vscode';
-import * as path from 'path';
 
 import { RulebookExplorer, RulebookFileProvider } from './rulebooks';
 import { ConfigFile, ConfigFileExplorer } from './configFiles';
@@ -14,9 +11,7 @@ export function activate(context: vscode.ExtensionContext): void {
 	const rulebookFileProvider = new RulebookFileProvider();
 	rulebookExplorer = new RulebookExplorer(context, rulebookFileProvider);
 	configFileExplorer = new ConfigFileExplorer(context, rulebookExplorer);
-
-	const mockProgramPath = path.join(context.extensionPath, 'bin', 'ConfigMate');
-	const configMateProvider = new ConfigMateProvider(mockProgramPath);
+	const configMateProvider = new ConfigMateProvider();
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand('configMate.checkConfigFile', 

@@ -1,5 +1,3 @@
-'use strict';
-
 import * as vscode from 'vscode';
 import { Rulebook } from './models';
 import * as utils from "./utils";
@@ -16,7 +14,7 @@ export class RulebookFile extends vscode.TreeItem {
 		this.contextValue = 'rulebook';
 	}
 
-	getConfigFiles(): string[]{
+	getConfigFiles(): string[] {
 		return this.rulebook.Files;
 	}
 }
@@ -25,12 +23,13 @@ export class RulebookFileProvider implements vscode.TreeDataProvider<RulebookFil
 	private _onDidChangeTreeData: vscode.EventEmitter<RulebookFile | undefined | void> = new vscode.EventEmitter<RulebookFile | undefined | void>();
 	readonly onDidChangeTreeData: vscode.Event<RulebookFile | undefined | void> = this._onDidChangeTreeData.event;
 
-	async onRulebookSelectionChanged(rulebooks: readonly RulebookFile[]): Promise<void> {
+	onRulebookSelectionChanged = async (rulebooks: readonly RulebookFile[]): Promise<void> => {
 		await this.openRulebook(rulebooks[0]);
 		this.refresh(rulebooks[0]);
 	}
 
-	refresh = (selection: RulebookFile | undefined | void): void => this._onDidChangeTreeData.fire(selection);
+	refresh = (selection?: RulebookFile): void =>
+		this._onDidChangeTreeData.fire(selection);
 
 	getTreeItem = (element: RulebookFile): vscode.TreeItem => element;
 
@@ -68,17 +67,15 @@ export class RulebookFileProvider implements vscode.TreeDataProvider<RulebookFil
 	}
 
 	parseRulebook = async (filepath: string, contents?: string): Promise<Rulebook> => {
-		let rulebook: Rulebook;
-		const fileContents: string = contents || await this.readFile(filepath);
-
+		let rulebook = {} as Rulebook;
 		try {
-			if (!fileContents) throw new Error(`Rulebook file is empty or unreadable.`);
+			const fileContents: string = contents || await this.readFile(filepath);
 			rulebook = JSON.parse(fileContents) as Rulebook;
 			const { Name, Description, Files, Rules } = rulebook;
 			if (!Name || !Description || !Files || !Rules)
 				throw new Error(`Rulebook file is missing required fields.`);
 		} catch (error) {
-			throw new Error(`Error parsing rulebook content: ${error as string}`);
+			console.error(`Error parsing rulebook content: ${error as string}`);
 		}
 		return rulebook;
 	}
@@ -93,7 +90,7 @@ export class RulebookFileProvider implements vscode.TreeDataProvider<RulebookFil
 
 	addRulebook = async (uri: vscode.Uri): Promise<void> => {
 		try {
-			const filename = utils.uriToFilename(uri);
+			const filename = utils.getBasename(uri);
 			const extension = utils.uriToExtension(uri);
 			if (extension !== 'rulebook.json') throw new Error('Invalid file extension');
 			const rulebook = initRulebook(filename);
@@ -101,17 +98,16 @@ export class RulebookFileProvider implements vscode.TreeDataProvider<RulebookFil
 			void vscode.window.showInformationMessage(`Added new rulebook ${uri.fsPath}.`);
 		} catch (error) { void vscode.window.showErrorMessage(`Error creating rulebook: ${error as string}`); }
 	};
-	
+
 	deleteRulebook = async (node: RulebookFile): Promise<void> => {
 		const confirm = await vscode.window.showWarningMessage(`Are you sure you want to delete rulebook ${node.label}?`, { modal: true }, 'Delete');
 		if (confirm !== 'Delete') return;
 
 		try {
 			await this.deleteRulebookFile(vscode.Uri.file(node.filepath));
-			this.refresh();
 		} catch (error) { void vscode.window.showErrorMessage(`Error deleting rulebook: ${error as string}`); }
 	};
-	
+
 	deleteRulebookFile = async (uri: vscode.Uri): Promise<void> => {
 		try {
 			await vscode.workspace.fs.delete(uri, { recursive: false });
@@ -151,8 +147,10 @@ export class RulebookFileProvider implements vscode.TreeDataProvider<RulebookFil
 			const rulebook: Rulebook = await this.parseRulebook(filepath, text);
 			const rulebookFiles = await this.getChildren();
 			for (const rulebookFile of rulebookFiles) {
+				if (rulebookFile.filepath !== filepath) continue;
 				rulebookFile.rulebook = rulebook;
 				rulebookFile.filepath = filepath;
+				this.refresh(rulebookFile);
 				console.log(filepath);
 				break;
 			}
@@ -171,10 +169,10 @@ export class RulebookExplorer {
 	constructor(context: vscode.ExtensionContext, private rulebookFileProvider: RulebookFileProvider) {
 		context.subscriptions.push(vscode.window.registerTreeDataProvider('rulebooks', rulebookFileProvider));
 
-		this.rulebookTreeView = vscode.window.createTreeView('rulebooks', {	treeDataProvider: rulebookFileProvider });
-		this.rulebookTreeView.onDidChangeSelection(e => rulebookFileProvider.onRulebookSelectionChanged(e.selection));
+		this.rulebookTreeView = vscode.window.createTreeView('rulebooks', { treeDataProvider: rulebookFileProvider });
+		this.rulebookTreeView.onDidChangeSelection(async e => await rulebookFileProvider.onRulebookSelectionChanged(e.selection));
 
-		const {registerCommand } = vscode.commands;
+		const { registerCommand } = vscode.commands;
 
 		registerCommand('rulebooks.refreshRulebooks', () => rulebookFileProvider.refresh());
 		registerCommand('rulebooks.addRulebook', async () => {

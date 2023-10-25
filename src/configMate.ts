@@ -1,18 +1,9 @@
-'use strict';
-
 import * as vscode from 'vscode';
 import { cmResponse, cmRequest } from './models';
 import axios from 'axios';
 import * as cp from 'child_process';
 
 export class ConfigMateProvider {
-
-	private cliPath: string;
-
-	constructor(cliPath: string) {
-		this.cliPath = cliPath;
-	}
-
 	check = async (filepath: string): Promise<cmResponse> => {
 		const message = `Checking ${filepath} with ConfigMate`;
 		console.log(message);
