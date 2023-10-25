@@ -1,0 +1,44 @@
+name: Clone, Build, Deploy
+
+on:
+  push:
+    branches:
+      - main
+      - cli-integration
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  CloneBuildDeploy:
+    name: Set up CLI
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Clone GUI
+        uses: actions/checkout@v4.0.0
+
+      - name: Clone CLI
+        uses: actions/checkout@master
+        with:
+          repository: ConfigMate/ConfigMate
+          path: bin
+
+      - name: Set up npm
+        uses: actions/setup-node@v2.1.5
+        with:
+          node-version: 18
+
+      - name: Set up Go
+        uses: actions/setup-go@v4.1.0
+        with:
+          go-version: 1.19
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build GUI
+        run: npm run compile
+
+      - name: Build CLI
+        run: npm run make
