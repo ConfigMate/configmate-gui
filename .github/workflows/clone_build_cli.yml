@@ -31,7 +31,8 @@ jobs:
       - name: Set up Java JDK
         uses: actions/setup-java@v3.4.0
         with:
-          java-version: 8
+          java-version: 11
+          distribution: "oracle"
 
       - name: Set up npm
         uses: actions/setup-node@v2.1.5
