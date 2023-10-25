@@ -9,21 +9,16 @@ on:
       - main
 
 jobs:
-  clone:
+  configmate:
     name: Clone
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@master
+      - name: Clone
+        uses: actions/checkout@master
         with:
-          name: ConfigMate/ConfigMate
-          ref: refs/heads/release
+          repository: ConfigMate/ConfigMate
 
-  build:
-    name: Build
-    runs-on: ubuntu-latest
-
-    steps:
       - name: Checkout code
         uses: actions/checkout@v4.0.0
 
