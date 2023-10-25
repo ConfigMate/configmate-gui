@@ -1,11 +1,13 @@
 import * as vscode from 'vscode';
 import * as assert from 'assert';
-import { rulebookExplorer, rulebookFileProvider, configFileProvider } from '../../extension';
+import { rulebookExplorer, configFileExplorer } from '../../extension';
 
 import { RulebookFile, initRulebook } from '../../rulebooks';
 import { Rulebook } from '../../models';
 
 suite('Rulebook Tests', () => {
+	const rulebookFileProvider = rulebookExplorer.getProvider();
+	const configFileProvider = configFileExplorer.getProvider();
 	let mock1: vscode.Uri, mock2: vscode.Uri;
 	let testWorkspace: vscode.WorkspaceFolder;
 	let mockRulebookFile: RulebookFile;
