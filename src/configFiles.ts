@@ -5,14 +5,12 @@ import * as path from 'path';
 import { RulebookFileProvider, RulebookFile, RulebookExplorer } from './rulebooks';
 
 export class ConfigFile extends vscode.TreeItem {
-	public readonly filepath: string;
 	constructor(
 		public readonly label: string,
-		public readonly filePath: string,
+		public readonly filepath: string,
 	) {
 		super(label, vscode.TreeItemCollapsibleState.None);
 		this.tooltip = label;
-		this.filepath = filePath;
 		this.contextValue = 'configFile';
 	}
 
@@ -118,16 +116,18 @@ export class ConfigFileExplorer {
 		this.configFileProvider = new ConfigFileProvider(rulebookFileProvider);
 		context.subscriptions.push(vscode.window.registerTreeDataProvider('configFiles', this.configFileProvider));
 
-		this.configFileTreeView = vscode.window.createTreeView('configFiles', { treeDataProvider: this.configFileProvider });
+		this.configFileTreeView = vscode.window.createTreeView('configFiles', 
+			{ treeDataProvider: this.configFileProvider });
 
 		const { registerCommand, executeCommand } = vscode.commands;
 
-		registerCommand('configFiles.openConfigFile', async (filePath: string) =>
-			await executeCommand('vscode.open', vscode.Uri.file(filePath)));
+		registerCommand('configFiles.openConfigFile', async (filepath: string) =>
+			await executeCommand('vscode.open', vscode.Uri.file(filepath)));
 		registerCommand('configFiles.refreshConfigFiles', () =>
 			this.configFileProvider.refresh(rulebookExplorer.getSelectedRulebook()));
 		registerCommand('configFiles.addConfigFile', async () => {
-			const uri = await vscode.window.showSaveDialog({ saveLabel: 'Create Config File', filters: { 'JSON': ['json'] } });
+			const uri = await vscode.window.showSaveDialog(
+				{ saveLabel: 'Create Config File', filters: { 'JSON': ['json'] } });
 			if (uri) {
 				const selectedRulebook = rulebookExplorer.getSelectedRulebook();
 				if (selectedRulebook instanceof RulebookFile) {

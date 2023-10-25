@@ -58,10 +58,6 @@
 		},
 		"commands": [
 			{
-				"command": "extension.runGoServer",
-				"title": "Run Go Server"
-			},
-			{
 				"command": "rulebooks.refreshRulebooks",
 				"title": "Refresh Rulebooks",
 				"icon": "$(refresh)"

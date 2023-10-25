@@ -13,7 +13,7 @@ export class ConfigMateProvider {
 		this.cliPath = cliPath;
 	}
 
-	checkConfigFile = async (filepath: string): Promise<cmResponse> => {
+	check = async (filepath: string): Promise<cmResponse> => {
 		const message = `Checking ${filepath} with ConfigMate`;
 		console.log(message);
 		void vscode.window.showInformationMessage(message);
@@ -40,25 +40,18 @@ export class ConfigMateProvider {
 	runServer = (context: vscode.ExtensionContext) => {
 		const serverPath = `${context.extensionPath}/bin`;
 
-		const goServer = cp.exec('go run ConfigMate.go', {
-			cwd: serverPath // Set the working directory
-		}, (error, stdout, stderr) => {
+		const goServer = cp.exec('go run ConfigMate.go', { cwd: serverPath }, 
+		(error, stdout, stderr) => {
 			if (error) {
 				void vscode.window.showErrorMessage(`Error running Go server: ${error.message}`);
-				return;
+				return { dispose: () => goServer.kill() };
 			}
 			console.log(`stdout: ${stdout}`);
 			console.error(`stderr: ${stderr}`);
 		});
-
-
-		// On VS Code close, close the Go server
-		context.subscriptions.push({
-			dispose: () => {
-				goServer.kill();
-			}
-		});
-
+		
 		console.log("Go server running!");
+		
+		return { dispose: () => goServer.kill()	};
 	};
 }
