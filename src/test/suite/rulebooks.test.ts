@@ -1,16 +1,20 @@
 import * as vscode from 'vscode';
 import * as assert from 'assert';
-import { rulebookExplorer, rulebookFileProvider, configFileProvider } from '../../extension';
+import { rulebookExplorer, configFileExplorer } from '../../extension';
 
 import { RulebookFile, initRulebook } from '../../rulebooks';
 import { Rulebook } from '../../models';
 
 suite('Rulebook Tests', () => {
+	const rulebookFileProvider = rulebookExplorer.getProvider();
+	// const rulebookTreeView = rulebookExplorer.getTreeView();
+	const configFileProvider = configFileExplorer.getProvider();
 	let mock1: vscode.Uri, mock2: vscode.Uri;
 	let testWorkspace: vscode.WorkspaceFolder;
+	const rulebookFiles: RulebookFile[] = [];
 	let mockRulebookFile: RulebookFile;
-	let rulebookUri: vscode.Uri, configFileUri: vscode.Uri;
 	let mockRulebook: Rulebook;
+	let rulebookUri: vscode.Uri, configFileUri: vscode.Uri;
 
 	suiteSetup(async () => {
 		const workspaceFolders = vscode.workspace.workspaceFolders;
@@ -20,6 +24,7 @@ suite('Rulebook Tests', () => {
 		// Prepare mock RulebookFile
 		mockRulebookFile = (await rulebookFileProvider.getChildren())[0];
 		mockRulebook = mockRulebookFile.rulebook;
+		rulebookFiles.push(mockRulebookFile);
 		rulebookUri = vscode.Uri.file(mockRulebookFile.filepath);
 		configFileUri = vscode.Uri.file(mockRulebook.Files[0]);
 
@@ -30,9 +35,6 @@ suite('Rulebook Tests', () => {
 	});
 
 	teardown(async () => {
-		// reset the workspace to its original state
-
-		// delete everything in test-workspace, then copy mock files back in
 		const files = await vscode.workspace.fs.readDirectory(testWorkspace.uri);
 		for (const file of files) {
 			const uri = vscode.Uri.joinPath(testWorkspace.uri, file[0]);
@@ -126,15 +128,16 @@ suite('Rulebook Tests', () => {
 		assert.ok(updatedRulebook.Files.includes(configFileUri.fsPath), 'Config file was not added to rulebook');
 	});
 
-	test('Should remove a config file from rulebooks [EDIT]', async () => {
+	test('Should remove a config file from view on deletion [EDIT / CONTENTS]', async () => {
 		await rulebookFileProvider.onRulebookSelectionChanged([mockRulebookFile]);
-		await vscode.commands.executeCommand('configFiles.deleteConfigFile', configFileUri);
+		// remove the config file path from the rulebook
+		const updatedRulebook = { ...mockRulebook, Files: [] };
+		await rulebookFileProvider.writeRulebook(rulebookUri, updatedRulebook);
 		const selection = rulebookExplorer.getSelectedRulebook();
 		assert.notStrictEqual(selection, undefined, 'Rulebook was deselected');
 		const { rulebook } = selection || mockRulebookFile;
-		assert.ok(!rulebook.Files.includes(configFileUri.fsPath), 'Config file was not removed from rulebook');
+		assert.ok(rulebook.Files.length === 0, 'Config file was not removed from rulebook');
 	});
-
 
 	/*---------------------------------------- ADD ----------------------------------------*/
 

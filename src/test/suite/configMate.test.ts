@@ -5,7 +5,7 @@ import { cmRequest, cmResponse } from '../../models';
 
 suite('ConfigMate Tests', () => {
 
-	test.skip('Should be able to access configMate at localhost:8080/api', async () => {	
+	test.skip('Should be able to access configMate at localhost:8080/api', async () => {
 		const url: string = 'http://localhost:8080/api/check';
 		await axios.default({
 			method: 'post',
@@ -49,11 +49,11 @@ suite('ConfigMate Tests', () => {
 	});
 
 	// test.skip('Should handle response received in incorrect format', async () => {
-		
+
 	// });
 
 	// test.skip('Should pass filepath of configFile when check button clicked', async () => {
-		
+
 	// });
 
 });
