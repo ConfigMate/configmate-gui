@@ -44,4 +44,4 @@ jobs:
         run: npm run make
 
       - name: Deploy
-        run: vsce publish -p ${{ secrets.AZURE_ACCESS_TOKEN }} patch
+        run: vsce publish -p ${{ secrets.AZURE_ACCESS_TOKEN }} patch --no-git-tag-version
