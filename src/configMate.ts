@@ -12,7 +12,7 @@ export class ConfigMateProvider {
 	};
 
 	async sendRequest(filepath: string): Promise<cmResponse> {
-		const url: string = 'http://localhost:8080/api/check';
+		const url: string = 'http://localhost:10007/api/check';
 		const request: cmRequest = {
 			rulebook: filepath
 		};
