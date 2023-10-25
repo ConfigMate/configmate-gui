@@ -35,7 +35,7 @@ jobs:
           go-version: 1.19
 
       - name: Install dependencies
-        run: npm install
+        run: npm install && npm install -g @vscode/vsce
 
       - name: Build GUI
         run: npm run compile
@@ -44,6 +44,4 @@ jobs:
         run: npm run make
 
       - name: Deploy
-        run: |
-          npm install @vscode/vsce
-          vsce publish -p ${{ secrets.AZURE_ACCESS_TOKEN }}
+        run: vsce publish -p ${{ secrets.AZURE_ACCESS_TOKEN }}
