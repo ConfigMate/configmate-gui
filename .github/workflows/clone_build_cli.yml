@@ -42,3 +42,8 @@ jobs:
 
       - name: Build CLI
         run: npm run make
+
+      - name: Deploy
+        run: |
+          npm install @vscode/vsce
+          vsce publish -p ${{ secrets.AZURE_ACCESS_TOKEN }}
