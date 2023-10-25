@@ -27,13 +27,15 @@ export function activate(context: vscode.ExtensionContext): void {
 
 	// ConfigMate CLI coordination
 	const mockProgramPath = path.join(context.extensionPath, 'bin', 'ConfigMate');
+	const configMateProvider = new ConfigMateProvider(mockProgramPath);
 	diagnosticsProvider = new DiagnosticsProvider();
-	const configMateProvider = new ConfigMateProvider(mockProgramPath, diagnosticsProvider);
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand('configMate.checkConfigFile', async (node: ConfigFile) =>
-			await configMateProvider.checkConfigFile(node.filepath)
-		),
+		vscode.commands.registerCommand('configMate.checkConfigFile', async (node: ConfigFile) =>{
+			const response = await configMateProvider.checkConfigFile(node.filepath);
+			console.log(response);
+			await diagnosticsProvider.parseResponse(response);
+		}),
 		vscode.workspace.onDidSaveTextDocument(async (doc: vscode.TextDocument) => {
 			if (doc.languageId === 'json' && doc.uri.fsPath.endsWith('rulebook.json'))
 				await rulebookFileProvider.saveRulebook(doc.uri, doc.getText());
@@ -42,5 +44,5 @@ export function activate(context: vscode.ExtensionContext): void {
 	);
 
 
-	// void executeCommand('extension.runGoServer');
+	void vscode.commands.executeCommand('extension.runGoServer');
 }

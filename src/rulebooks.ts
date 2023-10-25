@@ -83,11 +83,6 @@ export class RulebookFileProvider implements vscode.TreeDataProvider<RulebookFil
 					filepath,
 					rulebook
 				);
-				// rulebookFile.command = {
-				// 	command: 'rulebooks.openRulebook',
-				// 	title: 'Open Rulebook',
-				// 	arguments: [rulebookFile]
-				// };
 				rulebookFiles.push(rulebookFile);
 			} catch (err) {
 				// console.error(`Error parsing rulebook file ${filepath}: `, err);
@@ -236,11 +231,6 @@ export class RulebookFileProvider implements vscode.TreeDataProvider<RulebookFil
 			for (const rulebookFile of rulebookFiles) {
 				rulebookFile.rulebook = rulebook;
 				rulebookFile.filepath = filepath;
-				// rulebookFile.command = {
-				// 	command: 'rulebooks.openRulebook',
-				// 	title: 'Open Rulebook',
-				// 	arguments: [rulebookFile]
-				// };
 				console.log(filepath);
 				break;
 			}
@@ -271,9 +261,6 @@ export class RulebookExplorer {
 		const {registerCommand } = vscode.commands;
 
 		registerCommand('rulebooks.refreshRulebooks', () => rulebookFileProvider.refresh());
-		// registerCommand('rulebooks.openRulebook', async (rulebookFile: RulebookFile) => {
-		// 	await rulebookFileProvider.openRulebook(rulebookFile);
-		// });
 		registerCommand('rulebooks.addRulebook', async () => {
 			const uri = await vscode.window.showSaveDialog({
 				saveLabel: 'Create Rulebook', filters: { 'JSON': ['rulebook.json'] } 

@@ -4,39 +4,65 @@ import * as vscode from 'vscode';
 import { cmResponse, cmRequest } from './models';
 import axios from 'axios';
 import * as cp from 'child_process';
-import { DiagnosticsProvider } from './diagnostics';
 
 export class ConfigMateProvider {
+	apiUrl: string = 'http://localhost:8080/api/check';
 
-	private cliPath: string;
-	private diagnosticsProvider: DiagnosticsProvider;
-
-	constructor(cliPath: string, diagnosticsProvider: DiagnosticsProvider) {
-		this.cliPath = cliPath;
-		this.diagnosticsProvider = diagnosticsProvider;
-	}
+	constructor(private cliPath: string) {}
 
 	checkConfigFile = async (filepath: string): Promise<cmResponse> => {
 		const message = `Checking ${filepath} with ConfigMate`;
 		console.log(message);
 		void vscode.window.showInformationMessage(message);
-		return await this.sendRequest(filepath);
+		// const response = await this.sendRequest(filepath);
+		const response = await this.mockRequest(filepath);
+		return response;
 	};
 
-	async sendRequest(filepath: string): Promise<cmResponse> {
-		const url: string = 'http://localhost:8080/api/check';
-		const request: cmRequest = {
-			rulebook: filepath
+	mockRequest = async (rulebookFilepath: string, configFilepath?: string): Promise<cmResponse> => {
+		const mockConfigFiles = await vscode.workspace.findFiles('**/testConfig.json', '**/node_modules/**', 1);
+		// const mockRequest: cmRequest = {rulebook: mockRulebook.fsPath};
+		if (mockConfigFiles.length < 1) {
+			console.error("No mock config files found");
+			return {} as cmResponse;
+		}
+		const mockResponse: cmResponse = {
+			passed: false,
+			result_comment: "This is a mock response",
+			token_list: [
+				{
+					file: configFilepath || mockConfigFiles[0].fsPath,
+					row: 0,
+					col: 0,
+					length: 22,
+				},
+				{
+					file: configFilepath || mockConfigFiles[0].fsPath,
+					row: 3,
+					col: 4,
+					length: 8,
+				}
+			]
 		};
+		return mockResponse;
+	};
 
-		await axios({
-			method: 'post',
-			url: url,
-			data: request
-		}).then((response) => {
-			console.log(response.data);
-			return response.data as cmResponse;
-		});
+	sendRequest = async(rulebookFilepath: string): Promise<cmResponse> => {
+		const request: cmRequest = {
+			rulebook: rulebookFilepath
+		};
+		try {
+			await axios({
+				method: 'post',
+				url: this.apiUrl,
+				data: request
+			}).then((response) => {
+				console.log(response.data);
+				return response.data as cmResponse;
+			});
+		} catch(error) {
+			console.error(error);
+		}
 		return {} as cmResponse;
 	}
 
