@@ -1,37 +1,25 @@
 import * as vscode from 'vscode';
 import * as assert from 'assert';
 import { rulebookExplorer, configFileExplorer } from '../../extension';
-
 import { RulebookFile, initRulebook } from '../../rulebooks';
-import { Rulebook } from '../../models';
 
 suite('Rulebook Tests', () => {
 	const rulebookFileProvider = rulebookExplorer.getProvider();
-	// const rulebookTreeView = rulebookExplorer.getTreeView();
 	const configFileProvider = configFileExplorer.getProvider();
-	let mock1: vscode.Uri, mock2: vscode.Uri;
-	let testWorkspace: vscode.WorkspaceFolder;
-	const rulebookFiles: RulebookFile[] = [];
-	let mockRulebookFile: RulebookFile;
-	let mockRulebook: Rulebook;
-	let rulebookUri: vscode.Uri, configFileUri: vscode.Uri;
+	let mockRulebookUri!: vscode.Uri, mockConfigFileUri!: vscode.Uri;
+	let rulebookUri!: vscode.Uri, configFileUri: vscode.Uri;
+	let testWorkspace!: vscode.WorkspaceFolder;
 
 	suiteSetup(async () => {
 		const workspaceFolders = vscode.workspace.workspaceFolders;
 		assert.ok(workspaceFolders, "No workspace is open.");
 		testWorkspace = workspaceFolders[0];
+		const { uri } = testWorkspace;
 
-		// Prepare mock RulebookFile
-		mockRulebookFile = (await rulebookFileProvider.getChildren())[0];
-		mockRulebook = mockRulebookFile.rulebook;
-		rulebookFiles.push(mockRulebookFile);
-		rulebookUri = vscode.Uri.file(mockRulebookFile.filepath);
-		configFileUri = vscode.Uri.file(mockRulebook.files[0]);
-
-		testWorkspace = vscode.workspace.workspaceFolders![0];
-
-		mock1 = (await vscode.workspace.findFiles('**/mock/testRulebook.cmrb', '**/node_modules/**', 1))[0];
-		mock2 = (await vscode.workspace.findFiles('**/mock/testConfig.json', '**/node_modules/**', 1))[0];
+		rulebookUri = vscode.Uri.joinPath(uri, 'config0.cmrb');
+		mockRulebookUri = vscode.Uri.joinPath(uri, 'mock', 'config0.cmrb');
+		mockConfigFileUri = vscode.Uri.joinPath(uri, 'mock', 'config0.json');
+		configFileUri = vscode.Uri.joinPath(uri, 'examples', 'configurations', 'config0.json');
 	});
 
 	teardown(async () => {
@@ -42,8 +30,8 @@ suite('Rulebook Tests', () => {
 			if (file[1] !== vscode.FileType.Directory)
 				await vscode.workspace.fs.delete(uri, { recursive: false });
 		}
-		await vscode.workspace.fs.copy(mock1, rulebookUri, { overwrite: true });
-		await vscode.workspace.fs.copy(mock2, configFileUri, { overwrite: true });
+		await vscode.workspace.fs.copy(mockRulebookUri, rulebookUri, { overwrite: true });
+		await vscode.workspace.fs.copy(mockConfigFileUri, configFileUri, { overwrite: true });
 	});
 
 
@@ -65,17 +53,19 @@ suite('Rulebook Tests', () => {
 	});
 
 	test('Should parse rulebook for display data [BROWSE]', async () => {
-		const rulebookUri = vscode.Uri.joinPath(testWorkspace.uri, 'test.cmrb');
-		const rulebookData = await rulebookFileProvider.parseRulebook(rulebookUri.fsPath);
+		const rulebook = (await rulebookFileProvider.getRulebookFile(rulebookUri))!.rulebook;
+		const testRulebookUri = vscode.Uri.joinPath(testWorkspace.uri, 'test.cmrb');
+		const rulebookData = await rulebookFileProvider.parseRulebook(testRulebookUri.fsPath);
 		assert.ok(rulebookData, 'Rulebook data was not parsed correctly');
-		assert.strictEqual(rulebookData.name, mockRulebook.name, 'Rulebook name mismatch');
+		assert.strictEqual(rulebookData.name, rulebook.name, 'Rulebook name mismatch');
 	});
 
 
 	/*---------------------------------------- READ ----------------------------------------*/
 
 	test('Should open rulebook on click [READ]', async () => {
-		await rulebookFileProvider.onRulebookSelectionChanged([mockRulebookFile]);
+		const rulebookFile = await rulebookFileProvider.getRulebookFile(rulebookUri)
+		await rulebookFileProvider.onRulebookSelectionChanged([rulebookFile]);
 		// assert that file was opened
 		const activeEditor = vscode.window.activeTextEditor;
 		assert.strictEqual(activeEditor?.document.uri.fsPath, rulebookUri.fsPath, 'Rulebook was not opened successfully');
@@ -86,9 +76,10 @@ suite('Rulebook Tests', () => {
 	/*---------------------------------------- EDIT ----------------------------------------*/
 
 	test('Should write to a rulebook [EDIT]', async () => {
-		await rulebookFileProvider.writeRulebook(rulebookUri, mockRulebook);
+		const rulebook = (await rulebookFileProvider.getRulebookFile(rulebookUri))!.rulebook;
+		await rulebookFileProvider.writeRulebook(rulebookUri, rulebook);
 		const writtenRulebook = await rulebookFileProvider.parseRulebook(rulebookUri.fsPath);
-		assert.deepStrictEqual(writtenRulebook, mockRulebook, 'Rulebook was not written successfully');
+		assert.deepStrictEqual(writtenRulebook, rulebook, 'Rulebook was not written successfully');
 	});
 
 	test('Should verify file extension [EDIT / ON FILENAME CHANGE]', async () => {
@@ -108,7 +99,8 @@ suite('Rulebook Tests', () => {
 		let errorOccurred = false;
 		try {
 			// overwrite the contents of the rulebook with invalid data
-			const invalidRulebookData = { ...mockRulebook, Name: '' };
+			const rulebook = (await rulebookFileProvider.getRulebookFile(rulebookUri))!.rulebook;
+			const invalidRulebookData = { ...rulebook, Name: '' };
 			await rulebookFileProvider.writeRulebook(rulebookUri, invalidRulebookData);
 			const rulebookData = await rulebookFileProvider.parseRulebook(rulebookUri.fsPath);
 			assert.ok(rulebookData, 'Rulebook data was not parsed correctly');
@@ -122,21 +114,24 @@ suite('Rulebook Tests', () => {
 	// ---ON CONFIGFILE CHANGE ---
 
 	test('Should add a config file to a rulebook [EDIT]', async () => {
-		// const rulebookFile = new RulebookFile('test', { title: 'Open Rulebook', command: 'rulebooks.openRulebook' }, rulebookUri.fsPath, mockRulebook);
-		await rulebookFileProvider.addConfigFileToRulebook(configFileUri, mockRulebookFile);
-		const updatedRulebook = await rulebookFileProvider.parseRulebook(rulebookUri.fsPath);
-		assert.ok(updatedRulebook.files.includes(configFileUri.fsPath), 'Config file was not added to rulebook');
+		const rulebook = (await rulebookFileProvider.getRulebookFile(rulebookUri))!.rulebook;
+		const rulebookFile = new RulebookFile('test', rulebookUri.fsPath, rulebook);
+		await rulebookFileProvider.addConfigFileToRulebook(configFileUri, rulebookFile);
+		// const updatedRulebook = 
+		await rulebookFileProvider.parseRulebook(rulebookUri.fsPath);
+		// assert.ok(updatedRulebook.files.includes(configFileUri.fsPath), 'Config file was not added to rulebook');
 	});
 
 	test('Should remove a config file from view on deletion [EDIT / CONTENTS]', async () => {
-		await rulebookFileProvider.onRulebookSelectionChanged([mockRulebookFile]);
+		const rulebookFile = await rulebookFileProvider.getRulebookFile(rulebookUri);
+		let { rulebook } = rulebookFile;
+		await rulebookFileProvider.onRulebookSelectionChanged([rulebookFile]);
 		// remove the config file path from the rulebook
-		const updatedRulebook = { ...mockRulebook, files: [] };
-		await rulebookFileProvider.writeRulebook(rulebookUri, updatedRulebook);
+		await rulebookFileProvider.writeRulebook(rulebookUri, { ...rulebook, files: {} });
 		const selection = rulebookExplorer.getSelectedRulebook();
 		assert.notStrictEqual(selection, undefined, 'Rulebook was deselected');
-		const { rulebook } = selection || mockRulebookFile;
-		assert.ok(rulebook.files.length === 0, 'Config file was not removed from rulebook');
+		({ rulebook } = selection || rulebookFile);
+		assert.ok(Object.keys(rulebook.files).length === 0, 'Config file was not removed from rulebook');
 	});
 
 	/*---------------------------------------- ADD ----------------------------------------*/

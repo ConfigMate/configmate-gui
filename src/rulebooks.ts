@@ -16,7 +16,7 @@ export class RulebookFile extends vscode.TreeItem {
 		this.contextValue = 'rulebook';
 	}
 
-	getConfigFilePaths(): string[] {
+	public getConfigFilePaths(): string[] {
 		const configFiles: string[] = [];
 		for (const config of Object.values(this.rulebook.files)) {
 			if (!config.path) continue;
@@ -25,7 +25,7 @@ export class RulebookFile extends vscode.TreeItem {
 		return configFiles;
 	}
 
-	getConfigs(): Configs {
+	public getConfigs(): Configs {
 		return this.rulebook.files;
 	}
 }
@@ -180,10 +180,11 @@ export class RulebookFileProvider implements vscode.TreeDataProvider<RulebookFil
 			}
 		} catch (error) { void vscode.window.showErrorMessage(`Error: ${error as string}`); }
 	};
-	getRulebookFile = async (uri: vscode.Uri): Promise<RulebookFile | undefined> => {
+	getRulebookFile = async (uri: vscode.Uri): Promise<RulebookFile> => {
 		const rulebooks: RulebookFile[] = await this.getChildren();
 		for (const rulebook of rulebooks)
 			if (rulebook.filepath === uri.fsPath) return rulebook;
+		return {} as RulebookFile;
 	}
 }
 

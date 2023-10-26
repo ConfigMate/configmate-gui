@@ -1,4 +1,4 @@
-name: Clone, Build, Deploy
+name: Check buildability
 
 on:
   push:
@@ -10,7 +10,7 @@ on:
       - main
 
 jobs:
-  CloneBuildDeploy:
+  Build:
     name: Clone, Build, Deploy
     runs-on: ubuntu-latest
 
@@ -43,5 +43,8 @@ jobs:
       - name: Build CLI
         run: npm run make
 
-      - name: Deploy
-        run: vsce publish -p ${{ secrets.AZURE_ACCESS_TOKEN }} patch --no-git-tag-version
+      - name: Run server
+        run: npm run server
+
+      # - name: Deploy
+        # run: vsce publish -p ${{ secrets.AZURE_ACCESS_TOKEN }} patch --no-git-tag-version
