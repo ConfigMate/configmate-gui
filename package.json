@@ -2,7 +2,7 @@
 	"name": "configmate-gui",
 	"displayName": "ConfigMate",
 	"description": "",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"publisher": "ConfigMate",
 	"private": true,
 	"license": "MIT",
@@ -58,10 +58,6 @@
 		},
 		"commands": [
 			{
-				"command": "extension.runGoServer",
-				"title": "Run Go Server"
-			},
-			{
 				"command": "rulebooks.refreshRulebooks",
 				"title": "Refresh Rulebooks",
 				"icon": "$(refresh)"
@@ -97,8 +93,8 @@
 				"icon": "$(trash)"
 			},
 			{
-				"command": "configMate.checkConfigFile",
-				"title": "Check Config File",
+				"command": "configMate.check",
+				"title": "Check",
 				"icon": "$(check)"
 			}
 		],
@@ -132,12 +128,12 @@
 					"group": "inline"
 				},
 				{
-					"command": "configFiles.deleteConfigFile",
-					"when": "view == configFiles && viewItem == configFile",
+					"command": "configMate.check",
+					"when": "view == rulebooks && viewItem == rulebook",
 					"group": "inline"
 				},
 				{
-					"command": "configMate.checkConfigFile",
+					"command": "configFiles.deleteConfigFile",
 					"when": "view == configFiles && viewItem == configFile",
 					"group": "inline"
 				},
@@ -150,10 +146,9 @@
 		}
 	},
 	"scripts": {
-		"vscode:prepublish": "npm run configmate && npm run compile",
-		"buildserver": "cd bin && go build ConfigMate.go",
-		"configmate": "npm run buildserver && go run ConfigMate.go",
-		"make": "(cd bin && make configm)",
+		"make": "(cd configmate && make configm)",
+		"server": "(cd configmate && ./bin/configm serve)",
+		"kill-server": "sudo fuser -k 10007/tcp",
 		"compile": "tsc -p ./",
 		"watch": "tsc -watch -p ./",
 		"lint": "eslint --ext .ts --ignore-path .gitignore .",
@@ -172,6 +167,7 @@
 		"eslint": "^8.52.0",
 		"mocha": "^10.2.0",
 		"typescript": "~5.1.3",
+		"toml": "^3.0.0",
 		"url": "^0.11.3"
 	}
 }
