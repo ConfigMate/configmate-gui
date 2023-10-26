@@ -14,7 +14,7 @@ export function activate(context: vscode.ExtensionContext): void {
 	rulebookExplorer = new RulebookExplorer(context, rulebookFileProvider);
 	configFileExplorer = new ConfigFileExplorer(context, rulebookExplorer);
 	const configMateProvider = new ConfigMateProvider();
-	diagnosticsProvider = new DiagnosticsProvider();
+	diagnosticsProvider = new DiagnosticsProvider(context);
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand('configMate.check', 
