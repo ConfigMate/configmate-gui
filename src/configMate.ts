@@ -1,16 +1,10 @@
-'use strict';
-
 import * as vscode from 'vscode';
 import { cmResponse, cmRequest } from './models';
 import axios from 'axios';
 import * as cp from 'child_process';
 
 export class ConfigMateProvider {
-	apiUrl: string = 'http://localhost:8080/api/check';
-
-	constructor(private cliPath: string) {}
-
-	checkConfigFile = async (filepath: string): Promise<cmResponse> => {
+	check = async (filepath: string): Promise<cmResponse> => {
 		const message = `Checking ${filepath} with ConfigMate`;
 		console.log(message);
 		void vscode.window.showInformationMessage(message);
@@ -47,47 +41,44 @@ export class ConfigMateProvider {
 		return mockResponse;
 	};
 
-	sendRequest = async(rulebookFilepath: string): Promise<cmResponse> => {
+	async sendRequest(filepath: string): Promise<cmResponse> {
+		const url: string = 'http://localhost:10007/api/check';
 		const request: cmRequest = {
-			rulebook: rulebookFilepath
+			rulebook_path: filepath
 		};
+		let data = {} as cmResponse;
+
 		try {
-			await axios({
+			const response = await axios({
 				method: 'post',
-				url: this.apiUrl,
+				url: url,
 				data: request
-			}).then((response) => {
-				console.log(response.data);
-				return response.data as cmResponse;
 			});
-		} catch(error) {
+
+			// console.log(response.data);
+			data = response.data as cmResponse;
+		} catch (error) {
 			console.error(error);
-		}
-		return {} as cmResponse;
+		}	
+
+		return data;
 	}
 
 	runServer = (context: vscode.ExtensionContext) => {
-		const serverPath = `${context.extensionPath}/bin`;
+		const serverPath = vscode.Uri.joinPath(context.extensionUri, "configmate");
 
-		const goServer = cp.exec('go run ConfigMate.go', {
-			cwd: serverPath // Set the working directory
-		}, (error, stdout, stderr) => {
-			if (error) {
-				void vscode.window.showErrorMessage(`Error running Go server: ${error.message}`);
-				return;
-			}
-			console.log(`stdout: ${stdout}`);
-			console.error(`stderr: ${stderr}`);
+		const goServer = cp.exec(`./bin/configm serve`, { cwd: serverPath.fsPath},
+		(error, stdout, stderr) => {
+			if (error) void vscode.window.showErrorMessage(`Error running Go server: ${error.message}`);
+			if (stderr) console.error(`stderr: ${stderr}`);
+			console.log(stdout);
 		});
 
-
-		// On VS Code close, close the Go server
-		context.subscriptions.push({
-			dispose: () => {
-				goServer.kill();
-			}
-		});
-
-		console.log("Go server running!");
+				
+		// console.log("Go server running!");
+		
+		return { dispose: () => {
+			goServer.kill();
+	}	};
 	};
 }

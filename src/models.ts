@@ -1,5 +1,5 @@
 export interface cmRequest { 
-	rulebook: string,
+	rulebook_path: string,
 }
 
 export interface cmResponse {
@@ -29,14 +29,22 @@ export interface Node {
 }
 
 export interface Rule {
-	Description: string,
-	CheckName: string,
-	Args: string
+	description: string,
+	checkName: string,
+	args: string
 }
 
 export interface Rulebook {
-	Name: string,
-	Description: string,
-	Files: string[],
-	Rules: Rule[]
+	name: string,
+	description: string,
+	files: Configs,
+	rules: Rule[]
+}
+
+export interface Config {
+	path: string,
+	format: string
+}
+export interface Configs {
+	[key: string]: Config
 }

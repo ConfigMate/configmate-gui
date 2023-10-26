@@ -5,8 +5,8 @@ import { cmRequest, cmResponse } from '../../models';
 
 suite('ConfigMate Tests', () => {
 
-	test.skip('Should be able to access configMate at localhost:8080/api', async () => {	
-		const url: string = 'http://localhost:8080/api/check';
+	test.skip('Should be able to access configMate at localhost:10007/api', async () => {
+		const url: string = 'http://localhost:10007/api/check';
 		await axios.default({
 			method: 'post',
 			url: url,
@@ -19,9 +19,9 @@ suite('ConfigMate Tests', () => {
 		});
 	});
 	test.skip('Should send request in correct format', async () => {
-		const url: string = 'http://localhost:8080/api/check';
+		const url: string = 'http://localhost:10007/api/check';
 		const request: cmRequest = {
-			rulebook: 'test'
+			rulebook_path: 'test'
 		};
 		await axios.default({
 			method: 'post',
@@ -34,9 +34,9 @@ suite('ConfigMate Tests', () => {
 	});
 
 	test.skip('Should receive response in correct format', async () => {
-		const url: string = 'http://localhost:8080/api/check';
+		const url: string = 'http://localhost:10007/api/check';
 		const request: cmRequest = {
-			rulebook: 'test'
+			rulebook_path: 'test'
 		};
 		await axios.default({
 			method: 'post',
@@ -49,11 +49,11 @@ suite('ConfigMate Tests', () => {
 	});
 
 	// test.skip('Should handle response received in incorrect format', async () => {
-		
+
 	// });
 
 	// test.skip('Should pass filepath of configFile when check button clicked', async () => {
-		
+
 	// });
 
 });
