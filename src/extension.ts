@@ -20,7 +20,7 @@ export function activate(context: vscode.ExtensionContext): void {
 		vscode.commands.registerCommand('configMate.check', 
 			async (node: RulebookFile) =>	{
 				const response = await configMateProvider.check(node.filepath);
-				console.log(response);
+				await diagnosticsProvider.parseResponse(response);
 			}),
 		vscode.workspace.onDidSaveTextDocument(async (doc: vscode.TextDocument) => 
 			(doc.languageId === 'cmrb' && doc.uri.fsPath.endsWith('cmrb')) ? 

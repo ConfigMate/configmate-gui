@@ -1,10 +1,10 @@
-import { cmRequest, cmResponse, Token } from "../../models"
+import { cmRequest, cmResponseNode, Token } from "../../models"
 
 export const req: cmRequest = {
-	rulebook: "path/to/rulebook",
+	rulebook_path: "path/to/rulebook",
 }
 
-export const resp: cmResponse = {
+export const resp: cmResponseNode = {
 	passed: false,
 	result_comment: "failed blah blah",
 	token_list: []

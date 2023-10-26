@@ -2,7 +2,7 @@ export interface cmRequest {
 	rulebook_path: string,
 }
 
-export interface cmResponse {
+export interface cmResponseNode {
 	passed: boolean,
 	result_comment: string,
 	token_list: Token[]
@@ -10,21 +10,15 @@ export interface cmResponse {
 
 export interface Token {
 	file: string,
-	row: number,
-	col: number,
-	length: number
-}
-
-export interface Node {
-	NameLocation: {
-		Line: Number,
-		Column: Number,
-		Length: Number
-	},
-	ValueLocation: {
-		Line: Number,
-		Column: Number,
-		Length: Number
+	location: {
+		start: {
+			column: number,
+			line: number
+		},
+		end: {
+			column: number,
+			line: number
+		}
 	}
 }
 

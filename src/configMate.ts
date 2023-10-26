@@ -1,52 +1,53 @@
 import * as vscode from 'vscode';
-import { cmResponse, cmRequest } from './models';
+import { cmResponseNode, cmRequest } from './models';
 import axios from 'axios';
 import * as cp from 'child_process';
 
 export class ConfigMateProvider {
-	check = async (filepath: string): Promise<cmResponse> => {
+	check = async (filepath: string): Promise<cmResponseNode[]> => {
 		const message = `Checking ${filepath} with ConfigMate`;
 		console.log(message);
 		void vscode.window.showInformationMessage(message);
-		// const response = await this.sendRequest(filepath);
-		const response = await this.mockRequest(filepath);
+		const response = await this.sendRequest(filepath);
+		// const response = await this.mockRequest(filepath);
 		return response;
 	};
 
-	mockRequest = async (rulebookFilepath: string, configFilepath?: string): Promise<cmResponse> => {
+	mockRequest = async (rulebookFilepath: string, configFilepath?: string): Promise<cmResponseNode> => {
 		const mockConfigFiles = await vscode.workspace.findFiles('**/testConfig.json', '**/node_modules/**', 1);
 		// const mockRequest: cmRequest = {rulebook: mockRulebook.fsPath};
 		if (mockConfigFiles.length < 1) {
 			console.error("No mock config files found");
-			return {} as cmResponse;
+			return {} as cmResponseNode;
 		}
-		const mockResponse: cmResponse = {
+		const mockResponse: cmResponseNode = {
 			passed: false,
 			result_comment: "This is a mock response",
 			token_list: [
 				{
 					file: configFilepath || mockConfigFiles[0].fsPath,
-					row: 0,
-					col: 0,
-					length: 22,
-				},
-				{
-					file: configFilepath || mockConfigFiles[0].fsPath,
-					row: 3,
-					col: 4,
-					length: 8,
+					location: {
+						start: {
+							column: 0,
+							line: 0,
+						},
+						end: {
+							column: 17,
+							line: 5
+						}
+					}
 				}
 			]
 		};
 		return mockResponse;
 	};
 
-	async sendRequest(filepath: string): Promise<cmResponse> {
+	async sendRequest(filepath: string): Promise<cmResponseNode[]> {
 		const url: string = 'http://localhost:10007/api/check';
 		const request: cmRequest = {
 			rulebook_path: filepath
 		};
-		let data = {} as cmResponse;
+		let data = [{}] as cmResponseNode[];
 
 		try {
 			const response = await axios({
@@ -55,8 +56,8 @@ export class ConfigMateProvider {
 				data: request
 			});
 
-			// console.log(response.data);
-			data = response.data as cmResponse;
+			console.log(response.data);
+			data = response.data as cmResponseNode[];
 		} catch (error) {
 			console.error(error);
 		}	
