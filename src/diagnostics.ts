@@ -4,6 +4,7 @@ import * as vscode from 'vscode';
 import { getSemanticTokensProvider, SemanticTokensProvider } from './semantics';
 import { cmResponseNode, Token } from './models';
 import * as utils from './utils';
+import { RulebookFile } from './rulebooks';
 
 export class DiagnosticsProvider {
 	activeEditor: vscode.TextEditor | undefined = undefined;
@@ -17,23 +18,26 @@ export class DiagnosticsProvider {
 		});
 	}
 
-	parseResponse = async (response: cmResponseNode[]) => {
+	parseResponse = async (response: cmResponseNode[], rulebookFile: RulebookFile) => {
 		try {
-			this.activeEditor = vscode.window.activeTextEditor;
-			this.activeDoc = this.activeEditor?.document;
-
-			for (const node of response) {
-				const {passed, result_comment, token_list} = node;
-				if (passed || !token_list) continue;
+			const ranges: vscode.Range[] = [];
+			const failed = response.filter(node => !node.passed);
+			for (const node of failed) {
+				const {result_comment, token_list} = node;
+				if (!token_list) continue;
 				console.log(node);
 				if (result_comment) console.log(`ConfigMate: ${result_comment}`);
 
-				const ranges = token_list.map(token => this.parseToken(token));
-				if (this.activeEditor) {
-					const doc = this.activeEditor.document;
-					if (doc) await this.semanticTokensProvider.trigger(doc, ranges);
-				}
+				token_list.map(token => ranges.push(this.parseToken(token)));
 			}
+			
+			if (!failed || !ranges) return;
+			// open the first failed file
+			const config = failed[0].token_list[0].file;
+			const filepath = rulebookFile.getConfigFilePath(config);
+			this.activeEditor = await utils.openDoc(vscode.Uri.file(filepath));
+			const doc = this.activeEditor.document;
+			if (doc) await this.semanticTokensProvider.trigger(doc, ranges);
 		} catch(error) {
 			console.error(error);
 			await vscode.window.showWarningMessage(`Couldn't parse a ConfigMate response: ${error as string}`);
@@ -45,8 +49,8 @@ export class DiagnosticsProvider {
 		// console.table(token.location);
 		const { start, end } = token.location;
 		return new vscode.Range(
-			new vscode.Position(start.line, start.column),
-			new vscode.Position(end.line, end.column)
+			new vscode.Position(start.line - 1, start.column),
+			new vscode.Position(end.line - 1, end.column)
 		);
 	}
 } 
