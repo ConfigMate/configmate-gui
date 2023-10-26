@@ -16,30 +16,39 @@ export class ConfigMateProvider {
 		const request: cmRequest = {
 			rulebook_path: filepath
 		};
+		let data = {} as cmResponse;
 
-		await axios({
-			method: 'post',
-			url: url,
-			data: request
-		}).then((response) => {
-			console.log(response.data);
-			return response.data as cmResponse;
-		});
-		return {} as cmResponse;
+		try {
+			const response = await axios({
+				method: 'post',
+				url: url,
+				data: request
+			});
+
+			// console.log(response.data);
+			data = response.data as cmResponse;
+		} catch (error) {
+			console.error(error);
+		}	
+
+		return data;
 	}
 
 	runServer = (context: vscode.ExtensionContext) => {
-		const serverPath = `${context.extensionPath}/configmate`;
+		const serverPath = vscode.Uri.joinPath(context.extensionUri, "configmate");
 
-		const goServer = cp.exec('go run .', { cwd: serverPath }, 
+		const goServer = cp.exec(`./bin/configm serve`, { cwd: serverPath.fsPath},
 		(error, stdout, stderr) => {
 			if (error) void vscode.window.showErrorMessage(`Error running Go server: ${error.message}`);
 			if (stderr) console.error(`stderr: ${stderr}`);
 			console.log(stdout);
 		});
+
+				
+		// console.log("Go server running!");
 		
-		console.log("Go server running!");
-		
-		return { dispose: () => goServer.kill()	};
+		return { dispose: () => {
+			goServer.kill();
+	}	};
 	};
 }

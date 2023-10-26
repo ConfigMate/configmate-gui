@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 
-import { RulebookExplorer, RulebookFileProvider } from './rulebooks';
-import { ConfigFile, ConfigFileExplorer } from './configFiles';
+import { RulebookExplorer, RulebookFileProvider, RulebookFile } from './rulebooks';
+import { ConfigFileExplorer } from './configFiles';
 import { ConfigMateProvider } from './configMate';
 
 export let configFileExplorer!: ConfigFileExplorer;
@@ -14,11 +14,14 @@ export function activate(context: vscode.ExtensionContext): void {
 	const configMateProvider = new ConfigMateProvider();
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand('configMate.checkConfigFile', 
-			async (node: ConfigFile) =>	await configMateProvider.check(node.filepath)),
+		vscode.commands.registerCommand('configMate.check', 
+			async (node: RulebookFile) =>	{
+				const response = await configMateProvider.check(node.filepath);
+				console.log(response);
+			}),
 		vscode.workspace.onDidSaveTextDocument(async (doc: vscode.TextDocument) => 
 			(doc.languageId === 'cmrb' && doc.uri.fsPath.endsWith('cmrb')) ? 
 				await rulebookFileProvider.saveRulebook(doc.uri, doc.getText()): null),
-		configMateProvider.runServer(context)
+		// configMateProvider.runServer(context)
 	);
 }

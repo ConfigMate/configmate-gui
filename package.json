@@ -93,8 +93,8 @@
 				"icon": "$(trash)"
 			},
 			{
-				"command": "configMate.checkConfigFile",
-				"title": "Check Config File",
+				"command": "configMate.check",
+				"title": "Check",
 				"icon": "$(check)"
 			}
 		],
@@ -128,12 +128,12 @@
 					"group": "inline"
 				},
 				{
-					"command": "configFiles.deleteConfigFile",
-					"when": "view == configFiles && viewItem == configFile",
+					"command": "configMate.check",
+					"when": "view == rulebooks && viewItem == rulebook",
 					"group": "inline"
 				},
 				{
-					"command": "configMate.checkConfigFile",
+					"command": "configFiles.deleteConfigFile",
 					"when": "view == configFiles && viewItem == configFile",
 					"group": "inline"
 				},
@@ -147,6 +147,8 @@
 	},
 	"scripts": {
 		"make": "(cd configmate && make configm)",
+		"server": "(cd configmate && ./bin/configm serve)",
+		"kill-server": "sudo fuser -k 10007/tcp",
 		"compile": "tsc -p ./",
 		"watch": "tsc -watch -p ./",
 		"lint": "eslint --ext .ts --ignore-path .gitignore .",

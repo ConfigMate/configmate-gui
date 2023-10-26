@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { RulebookFileProvider, RulebookFile, RulebookExplorer } from './rulebooks';
-import { Config, Configs } from './models';
+import { Configs } from './models';
 
 export class ConfigFile extends vscode.TreeItem {
 	public filepath: string;
