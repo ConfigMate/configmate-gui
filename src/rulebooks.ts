@@ -173,7 +173,7 @@ export class RulebookFileProvider implements vscode.TreeDataProvider<RulebookFil
 			for (const rulebookFile of rulebookFiles) {
 				if (rulebookFile.filepath !== filepath) continue;
 				rulebookFile.rulebook = rulebook;
-				rulebookFile.filepath = filepath;
+				// rulebookFile.filepath = filepath;
 				this.refresh(rulebookFile);
 				console.log(filepath);
 				break;

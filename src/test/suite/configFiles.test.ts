@@ -3,7 +3,7 @@ import * as assert from 'assert';
 import { rulebookExplorer, configFileExplorer } from '../../extension';
 import { RulebookFile } from '../../rulebooks';
 import { Rulebook } from '../../models';
-import { ConfigFile } from '../../configFiles';
+// import { ConfigFile } from '../../configFiles';
 
 suite('ConfigFile Tests', () => {
 	const rulebookFileProvider = rulebookExplorer.getProvider();
