@@ -21,7 +21,7 @@ suite('ConfigMate Tests', () => {
 	test.skip('Should send request in correct format', async () => {
 		const url: string = 'http://localhost:10007/api/check';
 		const request: cmRequest = {
-			rulebook: 'test'
+			rulebook_path: 'test'
 		};
 		await axios.default({
 			method: 'post',
@@ -36,7 +36,7 @@ suite('ConfigMate Tests', () => {
 	test.skip('Should receive response in correct format', async () => {
 		const url: string = 'http://localhost:10007/api/check';
 		const request: cmRequest = {
-			rulebook: 'test'
+			rulebook_path: 'test'
 		};
 		await axios.default({
 			method: 'post',

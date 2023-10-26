@@ -1,6 +1,8 @@
 import * as vscode from 'vscode';
-import { Rulebook } from './models';
+import { Config, Rulebook, Configs } from './models';
 import * as utils from "./utils";
+import * as toml from 'toml';
+import * as path from 'path';
 
 export class RulebookFile extends vscode.TreeItem {
 	constructor(
@@ -9,13 +11,22 @@ export class RulebookFile extends vscode.TreeItem {
 		public rulebook: Rulebook
 	) {
 		super(label, vscode.TreeItemCollapsibleState.None);
-		this.description = rulebook.Name;
-		this.tooltip = rulebook.Description;
+		this.description = rulebook.name;
+		this.tooltip = rulebook.description;
 		this.contextValue = 'rulebook';
 	}
 
-	getConfigFiles(): string[] {
-		return this.rulebook.Files;
+	getConfigFilePaths(): string[] {
+		const configFiles: string[] = [];
+		for (const config of Object.values(this.rulebook.files)) {
+			if (!config.path) continue;
+			configFiles.push(path.resolve(vscode.workspace.workspaceFolders![0].uri.fsPath, config.path));
+		}
+		return configFiles;
+	}
+
+	getConfigs(): Configs {
+		return this.rulebook.files;
 	}
 }
 
@@ -36,7 +47,7 @@ export class RulebookFileProvider implements vscode.TreeDataProvider<RulebookFil
 	getChildren = async (element?: RulebookFile): Promise<RulebookFile[]> => {
 		if (element || !vscode.workspace.workspaceFolders) return [];
 
-		const pattern = '**/*.{rulebook}.{json}';
+		const pattern = '**/*.{cmrb}';
 		const uris = await vscode.workspace.findFiles(pattern, '**/node_modules/**', 1000);
 
 		const rulebookFiles: RulebookFile[] = [];
@@ -70,15 +81,27 @@ export class RulebookFileProvider implements vscode.TreeDataProvider<RulebookFil
 		let rulebook = {} as Rulebook;
 		try {
 			const fileContents: string = contents || await this.readFile(filepath);
-			rulebook = JSON.parse(fileContents) as Rulebook;
-			const { Name, Description, Files, Rules } = rulebook;
-			if (!Name || !Description || !Files || !Rules)
+			rulebook = toml.parse(fileContents) as Rulebook;
+			const { name, description, files, rules } = rulebook;
+			if (!name || !description || !files || !rules)
 				throw new Error(`Rulebook file is missing required fields.`);
+
+			// for (const file of files) {
+			// this.filepath = (path.isAbsolute(filepath)) ? filepath : path.join(vscode.workspace.workspaceFolders![0].uri.fsPath, filepath);
+			
 		} catch (error) {
 			console.error(`Error parsing rulebook content: ${error as string}`);
 		}
 		return rulebook;
 	}
+
+	parseConfig = (uri: vscode.Uri): [string, Config] => {
+		const name = utils.getBasename(uri);
+		const absPath = uri.fsPath;
+		const path = vscode.workspace.asRelativePath(absPath);
+		const format = utils.uriToExtension(uri);
+		return [name, { path, format }];
+	};
 
 	writeRulebook = async (uri: vscode.Uri, rulebook: Rulebook): Promise<void> => {
 		try {
@@ -92,7 +115,7 @@ export class RulebookFileProvider implements vscode.TreeDataProvider<RulebookFil
 		try {
 			const filename = utils.getBasename(uri);
 			const extension = utils.uriToExtension(uri);
-			if (extension !== 'rulebook.json') throw new Error('Invalid file extension');
+			if (extension !== 'cmrb') throw new Error('Invalid file extension');
 			const rulebook = initRulebook(filename);
 			await this.writeRulebook(uri, rulebook);
 			void vscode.window.showInformationMessage(`Added new rulebook ${uri.fsPath}.`);
@@ -119,7 +142,8 @@ export class RulebookFileProvider implements vscode.TreeDataProvider<RulebookFil
 
 	addConfigFileToRulebook = async (uri: vscode.Uri, selectedRulebook: RulebookFile): Promise<void> => {
 		try {
-			selectedRulebook.rulebook.Files.push(uri.fsPath);
+			const [name, config] = this.parseConfig(uri);
+			Object.assign(selectedRulebook.rulebook.files, { [name]: config });
 			const rulebookUri = vscode.Uri.file(selectedRulebook.filepath);
 			await this.writeRulebook(rulebookUri, selectedRulebook.rulebook);
 			this.refresh(selectedRulebook);
@@ -129,14 +153,14 @@ export class RulebookFileProvider implements vscode.TreeDataProvider<RulebookFil
 	removeConfigFileFromRulebooks = async (configFileUri: vscode.Uri, selection: RulebookFile[]): Promise<void> => {
 		try {
 			const rulebookFiles = await this.getChildren();
-			const configFilepath = configFileUri.fsPath;
+			const [key] = this.parseConfig(configFileUri);
 			const selectionUri = vscode.Uri.file(selection[0].filepath);
-			rulebookFiles.forEach((rulebookFile) => {
-				const index = rulebookFile.rulebook.Files.indexOf(configFilepath);
-				if (index < 0) return;
-				rulebookFile.rulebook.Files.splice(index, 1);
-				void this.writeRulebook(selectionUri, rulebookFile.rulebook);
-			});
+			const rulebookFile = rulebookFiles.find(rulebook => Object.hasOwn(rulebook, key));
+			if (!rulebookFile) throw new Error(`Config file ${configFileUri.fsPath} is not in rulebook ${selectionUri.fsPath}.`);
+			const { rulebook } = rulebookFile;
+			delete rulebook.files[key];
+
+			await this.writeRulebook(selectionUri, rulebookFile.rulebook);
 			await this.onRulebookSelectionChanged(selection);
 		} catch (error) { void vscode.window.showErrorMessage(`Error: ${error as string}`); }
 	};
@@ -176,7 +200,7 @@ export class RulebookExplorer {
 
 		registerCommand('rulebooks.refreshRulebooks', () => rulebookFileProvider.refresh());
 		registerCommand('rulebooks.addRulebook', async () => {
-			const uri = await vscode.window.showSaveDialog({ saveLabel: 'Create Rulebook', filters: { 'JSON': ['rulebook.json'] } });
+			const uri = await vscode.window.showSaveDialog({ saveLabel: 'Create Rulebook', filters: { 'CMRB': ['cmrb'] } });
 			if (uri) await rulebookFileProvider.addRulebook(uri);
 		});
 		registerCommand('rulebooks.deleteRulebook', async (node: RulebookFile) => await rulebookFileProvider.deleteRulebook(node));
@@ -188,19 +212,18 @@ export class RulebookExplorer {
 }
 
 
-export const initRulebook = (filename: string, files?: string[]): Rulebook => {
+export const initRulebook = (filename: string): Rulebook => {
 	const rulebook: Rulebook = {
-		Name: filename,
-		Description: "Rulebook description",
-		Files: [],
-		Rules: [
+		name: filename,
+		description: "Rulebook description",
+		files: {},
+		rules: [
 			{
-				"Description": "Rule description",
-				"CheckName": "Name of check to run",
-				"Args": "Arguments to pass to check"
+				"description": "Rule description",
+				"checkName": "Name of check to run",
+				"args": "Arguments to pass to check"
 			}
 		]
 	};
-	if (files) rulebook.Files.push(...files);
 	return rulebook;
 };

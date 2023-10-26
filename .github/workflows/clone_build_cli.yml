@@ -22,7 +22,7 @@ jobs:
         uses: actions/checkout@master
         with:
           repository: ConfigMate/ConfigMate
-          path: bin
+          path: configmate
 
       - name: Set up npm
         uses: actions/setup-node@v2.1.5

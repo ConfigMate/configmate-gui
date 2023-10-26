@@ -9,7 +9,7 @@ suite('ConfigFile Tests', () => {
 	const rulebookFileProvider = rulebookExplorer.getProvider();
 	const rulebookTreeView = rulebookExplorer.getTreeView();
 	const configFileProvider = configFileExplorer.getProvider();
-	let mock1: vscode.Uri, mock2: vscode.Uri;
+	let mockRulebookUri: vscode.Uri, mockConfigFileUri: vscode.Uri;
 	let testWorkspace: vscode.WorkspaceFolder;
 	const rulebookFiles: RulebookFile[] = [];
 	let mockRulebookFile: RulebookFile;
@@ -26,12 +26,12 @@ suite('ConfigFile Tests', () => {
 		mockRulebook = mockRulebookFile.rulebook;
 		rulebookFiles.push(mockRulebookFile);
 		rulebookUri = vscode.Uri.file(mockRulebookFile.filepath);
-		configFileUri = vscode.Uri.file(mockRulebook.Files[0]);
+		configFileUri = vscode.Uri.file(mockRulebook.files[0]);
 
 		testWorkspace = vscode.workspace.workspaceFolders![0];
 
-		mock1 = (await vscode.workspace.findFiles('**/mock/test.rulebook.json', '**/node_modules/**', 1))[0];
-		mock2 = (await vscode.workspace.findFiles('**/mock/testConfig.json', '**/node_modules/**', 1))[0];
+		mockRulebookUri = vscode.Uri.joinPath(testWorkspace.uri, 'config0.cmrb');
+		mockConfigFileUri = vscode.Uri.joinPath(testWorkspace.uri, 'config0.json');
 	});
 
 	teardown(async () => {
@@ -42,8 +42,8 @@ suite('ConfigFile Tests', () => {
 			if (file[1] !== vscode.FileType.Directory)
 				await vscode.workspace.fs.delete(uri, { recursive: false });
 		}
-		await vscode.workspace.fs.copy(mock1, rulebookUri, { overwrite: true });
-		await vscode.workspace.fs.copy(mock2, configFileUri, { overwrite: true });
+		await vscode.workspace.fs.copy(mockRulebookUri, rulebookUri, { overwrite: true });
+		await vscode.workspace.fs.copy(mockConfigFileUri, configFileUri, { overwrite: true });
 	});
 
 
@@ -68,7 +68,7 @@ suite('ConfigFile Tests', () => {
 			await rulebookFileProvider.onRulebookSelectionChanged([mockRulebookFile]);
 
 			// get config files from rulebook
-			const configFilesFromRulebook = rulebookTreeView.selection[0].getConfigFiles();
+			const configFilesFromRulebook = rulebookTreeView.selection[0].getConfigFilePaths();
 			const configFilesFromTreeView = await configFileProvider.getChildren();
 			for (let i = 0; i < configFilesFromRulebook.length; i++) {
 				assert.strictEqual(configFilesFromRulebook[i], configFilesFromTreeView[i], 'Config files were not retrieved successfully');
@@ -131,7 +131,7 @@ suite('ConfigFile Tests', () => {
 
 		// check that configFile is no longer in rulebook
 		const rulebook = await rulebookFileProvider.parseRulebook(rulebookUri.fsPath);
-		assert.strictEqual(rulebook.Files.includes(configFileUri.fsPath), true, 'Config file was not updated in rulebook');
+		assert.strictEqual(rulebook.files.includes(configFileUri.fsPath), true, 'Config file was not updated in rulebook');
 	});
 
 	test('Should update a config file on save [EDIT / ON CONTENT CHANGE]', async () => {
@@ -221,6 +221,6 @@ suite('ConfigFile Tests', () => {
 		const selection = rulebookExplorer.getSelectedRulebook();
 		assert.notStrictEqual(selection, undefined, 'Rulebook was deselected');
 		const { rulebook } = selection || mockRulebookFile;
-		assert.ok(!rulebook.Files.includes(configFileUri.fsPath), 'Config file was not removed from rulebook');
+		assert.ok(!rulebook.files.includes(configFileUri.fsPath), 'Config file was not removed from rulebook');
 	});
 });

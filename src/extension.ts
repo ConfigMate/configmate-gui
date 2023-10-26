@@ -17,7 +17,7 @@ export function activate(context: vscode.ExtensionContext): void {
 		vscode.commands.registerCommand('configMate.checkConfigFile', 
 			async (node: ConfigFile) =>	await configMateProvider.check(node.filepath)),
 		vscode.workspace.onDidSaveTextDocument(async (doc: vscode.TextDocument) => 
-			(doc.languageId === 'json' && doc.uri.fsPath.endsWith('rulebook.json')) ? 
+			(doc.languageId === 'cmrb' && doc.uri.fsPath.endsWith('cmrb')) ? 
 				await rulebookFileProvider.saveRulebook(doc.uri, doc.getText()): null),
 		configMateProvider.runServer(context)
 	);

@@ -1,15 +1,21 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { RulebookFileProvider, RulebookFile, RulebookExplorer } from './rulebooks';
+import { Config, Configs } from './models';
 
 export class ConfigFile extends vscode.TreeItem {
+	public filepath: string;
 	constructor(
 		public readonly label: string,
-		public filepath: string,
+		filepath: string,
 	) {
 		super(label, vscode.TreeItemCollapsibleState.None);
 		this.tooltip = label;
 		this.contextValue = 'configFile';
+
+		this.filepath = path.resolve(vscode.workspace.workspaceFolders![0].uri.fsPath, filepath);
+
+		// this.filepath = path.resolve(vscode.workspace.workspaceFolders![0].uri.fsPath, filepath);
 	}
 
 }
@@ -22,7 +28,7 @@ export class ConfigFileProvider implements vscode.TreeDataProvider<ConfigFile> {
 
 	constructor(private rulebookFileProvider: RulebookFileProvider) {
 		this.rulebookFileProvider.onDidChangeTreeData((e) => {
-			if (!e || e.rulebook.Files.length < 1) {
+			if (!e || e.getConfigFilePaths().length < 1) {
 				this.configFiles = [];
 				this.refresh(undefined);
 				return;
@@ -33,26 +39,30 @@ export class ConfigFileProvider implements vscode.TreeDataProvider<ConfigFile> {
 
 	refresh(rulebookFile?: RulebookFile): void {
 		if (rulebookFile) {
-			const filepaths = rulebookFile.getConfigFiles();
-			this.configFiles = this.parseConfigFiles(filepaths);
+			const configs = rulebookFile.getConfigs();
+			this.configFiles = this.parseConfigs(configs);
 		} else this.configFiles = [];
 
 		this._onDidChangeTreeData.fire();
 	}
 
-	parseConfigFiles = (filepaths: string[]): ConfigFile[] =>
-		filepaths.map(filepath => {
-			const file = new ConfigFile(
-				path.basename(filepath),
-				filepath);
+	parseConfigs = (configs: Configs): ConfigFile[] => {
+		const keys = Object.keys(configs);
+		const configFiles: ConfigFile[] = [];
+		for (const key of keys) {
+			const config = configs[key];
+			const filepath = config.path;
+			if (!filepath) continue;
+			const file = new ConfigFile(key, filepath);
 			file.command = {
 				command: 'configFiles.openConfigFile',
 				title: 'Open Config File',
 				arguments: [file.filepath]
 			};
-			return file;
+			configFiles.push(file);
 		}
-	);
+		return configFiles;
+	};
 
 	getTreeItem = (element: ConfigFile): vscode.TreeItem => element;
 	getChildren = (element?: ConfigFile): Promise<ConfigFile[]> => element ? Promise.resolve([]) : Promise.resolve(this.configFiles);

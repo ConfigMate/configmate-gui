@@ -14,7 +14,7 @@ export class ConfigMateProvider {
 	async sendRequest(filepath: string): Promise<cmResponse> {
 		const url: string = 'http://localhost:10007/api/check';
 		const request: cmRequest = {
-			rulebook: filepath
+			rulebook_path: filepath
 		};
 
 		await axios({
@@ -29,16 +29,13 @@ export class ConfigMateProvider {
 	}
 
 	runServer = (context: vscode.ExtensionContext) => {
-		const serverPath = `${context.extensionPath}/bin`;
+		const serverPath = `${context.extensionPath}/configmate`;
 
-		const goServer = cp.exec('go run ConfigMate.go', { cwd: serverPath }, 
+		const goServer = cp.exec('go run .', { cwd: serverPath }, 
 		(error, stdout, stderr) => {
-			if (error) {
-				void vscode.window.showErrorMessage(`Error running Go server: ${error.message}`);
-				return { dispose: () => goServer.kill() };
-			}
-			console.log(`stdout: ${stdout}`);
-			console.error(`stderr: ${stderr}`);
+			if (error) void vscode.window.showErrorMessage(`Error running Go server: ${error.message}`);
+			if (stderr) console.error(`stderr: ${stderr}`);
+			console.log(stdout);
 		});
 		
 		console.log("Go server running!");
