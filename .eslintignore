@@ -1,4 +1,9 @@
 vscode.proposed.d.ts
 .eslintrc.*
 out
-test
+**/test
+node_modules
+yarn.lock
+**/*.exe
+**/*.txt
+configmate

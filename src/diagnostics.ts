@@ -46,14 +46,7 @@ export class DiagnosticsProvider {
 					this.updateDiagnostics(result_comment, range);
 					ranges.push(range);
 				});
-				// token_list.map(token => ranges.push(this.parseToken(token)));
 			}
-			
-			if (!failed || !ranges) return;
-			// open the first failed file
-			const config = failed[0].token_list[0].file;
-			// const doc = this.activeEditor.document;
-			// if (doc) await this.semanticTokensProvider.trigger(doc, ranges);
 		} catch(error) {
 			console.error(error);
 			await vscode.window.showWarningMessage(`Couldn't parse a ConfigMate response: ${error as string}`);
