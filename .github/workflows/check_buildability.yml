@@ -43,4 +43,4 @@ jobs:
         run: npm run build-server
 
       - name: Deploy
-        run: vsce publish -p ${{ secrets.AZURE_ACCESS_TOKEN }} minor
+        run: vsce publish -p ${{ secrets.AZURE_ACCESS_TOKEN }} minor --no-git-tag-version
