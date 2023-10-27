@@ -1,7 +1,6 @@
 'use strict'; 
 
 import * as vscode from 'vscode';
-import { getSemanticTokensProvider, SemanticTokensProvider } from './semantics';
 import { cmResponseNode, Token } from './models';
 import * as utils from './utils';
 import { RulebookFile } from './rulebooks';
@@ -10,24 +9,22 @@ import { RulebookFile } from './rulebooks';
 export class DiagnosticsProvider {
 	activeEditor: vscode.TextEditor | undefined = undefined;
 	activeDoc: vscode.TextDocument | undefined = undefined;
-	semanticTokensProvider: SemanticTokensProvider;
 	diagnostics: vscode.DiagnosticCollection;
 
 	constructor(context: vscode.ExtensionContext) {
-		this.semanticTokensProvider = getSemanticTokensProvider();
 		this.diagnostics = vscode.languages.createDiagnosticCollection('ConfigMate');
 		if (vscode.window.activeTextEditor) {
 			this.activeEditor = vscode.window.activeTextEditor;
 			this.activeDoc = this.activeEditor.document;
-			// this.updateDiagnostics(this.activeDoc);
 		}
 
 		context.subscriptions.push(
 			vscode.window.onDidChangeActiveTextEditor((editor: vscode.TextEditor | undefined) => {
-				if (!editor) return;
+				if (!editor) return this.clearDiagnostics();
 				this.activeEditor = editor;
 				this.activeDoc = editor.document;
-				// if (editor) this.updateDiagnostics(editor.document);
+				if (!this.activeDoc) return;
+				
 			})
 		);
 	}
@@ -68,25 +65,25 @@ export class DiagnosticsProvider {
 		// console.table(token.location);
 		const { start, end } = token.location;
 		return new vscode.Range(
-			new vscode.Position(start.line - 1, start.column),
+			new vscode.Position(start.line - 1, start.column - 1),
 			new vscode.Position(end.line - 1, end.column)
 		);
 	}
 	
 	public updateDiagnostics(message: string, range: vscode.Range): void {
-		if (this.activeDoc) {
-			this.diagnostics.set(this.activeDoc.uri, [{
-				code: '',
-				message,
-				range,
-				severity: vscode.DiagnosticSeverity.Error,
-				source: 'ConfigMate',
-				relatedInformation: [
-					new vscode.DiagnosticRelatedInformation(new vscode.Location(this.activeDoc.uri, range), message)
-				]
-			}]);
-		} else {
-			this.diagnostics.clear();
-		}
+		if (!this.activeDoc) return;
+		this.diagnostics.set(this.activeDoc.uri, [{
+			code: '',
+			message,
+			range,
+			severity: vscode.DiagnosticSeverity.Error,
+			source: 'ConfigMate',
+			relatedInformation: [
+				new vscode.DiagnosticRelatedInformation(new vscode.Location(this.activeDoc.uri, range), message)
+			]
+		}]);
+	}
+	private clearDiagnostics(): void {
+		this.diagnostics.clear();
 	}
 }
