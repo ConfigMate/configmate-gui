@@ -151,7 +151,7 @@
 		}
 	},
 	"scripts": {
-		"make": "(cd configmate && make configm)",
+		"build-server": "(cd configmate && make configm)",
 		"server": "(cd configmate && ./bin/configm serve)",
 		"kill-server": "sudo fuser -k 10007/tcp",
 		"compile": "tsc -p ./",
