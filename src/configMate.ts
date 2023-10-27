@@ -68,7 +68,7 @@ export class ConfigMateProvider {
 	runServer = (context: vscode.ExtensionContext) => {
 		const serverPath = vscode.Uri.joinPath(context.extensionUri, "configmate");
 
-		const goServer = cp.exec(`./bin/configm serve`, { cwd: serverPath.fsPath},
+		const goServer = cp.exec(`npm run server`, { cwd: serverPath.fsPath},
 		(error, stdout, stderr) => {
 			if (error) void vscode.window.showErrorMessage(`Error running Go server: ${error.message}`);
 			if (stderr) console.error(`stderr: ${stderr}`);

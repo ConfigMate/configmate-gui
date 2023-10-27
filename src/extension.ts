@@ -25,6 +25,6 @@ export function activate(context: vscode.ExtensionContext): void {
 		vscode.workspace.onDidSaveTextDocument(async (doc: vscode.TextDocument) => 
 			(doc.languageId === 'cmrb' && doc.uri.fsPath.endsWith('cmrb')) ? 
 				await rulebookFileProvider.saveRulebook(doc.uri, doc.getText()): null),
-		// configMateProvider.runServer(context)
+		configMateProvider.runServer(context)
 	);
 }
