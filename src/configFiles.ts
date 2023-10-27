@@ -71,7 +71,7 @@ export class ConfigFileProvider implements vscode.TreeDataProvider<ConfigFile> {
 		try {
 			await this.addConfigFileFile(uri);
 			await this.rulebookFileProvider.addConfigFileToRulebook(uri, selectedRulebook);
-		} catch (error) { void vscode.window.showErrorMessage(`Error creating config file: ${error as string}`); }
+		} catch (error) { await vscode.window.showErrorMessage(`Error creating config file: ${error as string}`); }
 	};
 
 	addConfigFileFile = async (uri: vscode.Uri): Promise<void> => {
@@ -100,7 +100,7 @@ export class ConfigFileProvider implements vscode.TreeDataProvider<ConfigFile> {
 		try {
 			const document = await vscode.workspace.openTextDocument(uri);
 			await vscode.window.showTextDocument(document);
-		} catch (error) { void vscode.window.showErrorMessage(`Error opening config file: ${error as string}`); }
+		} catch (error) { await vscode.window.showErrorMessage(`Error opening config file: ${error as string}`); }
 	};
 
 	changeFilename = async (uri: vscode.Uri, newUri: vscode.Uri): Promise<void> => {
@@ -108,7 +108,7 @@ export class ConfigFileProvider implements vscode.TreeDataProvider<ConfigFile> {
 			await vscode.workspace.fs.rename(uri, newUri);
 			// await this.rulebookFileProvider.changeConfigFileUri(uri, newUri);
 			// refresh
-		} catch (error) { void vscode.window.showErrorMessage(`Error renaming config file: ${error as string}`); }
+		} catch (error) { await vscode.window.showErrorMessage(`Error renaming config file: ${error as string}`); }
 	};
 }
 

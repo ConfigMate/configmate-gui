@@ -1,16 +1,22 @@
 import * as vscode from 'vscode';
 import * as assert from 'assert';
 import { rulebookExplorer, configFileExplorer } from '../../extension';
+import { RulebookFile, RulebookFileProvider } from '../../rulebooks';
+import { ConfigFileProvider } from '../../configFiles';
 
 suite('ConfigFile Tests', () => {
-	const rulebookFileProvider = rulebookExplorer.getProvider();
-	const rulebookTreeView = rulebookExplorer.getTreeView();
-	const configFileProvider = configFileExplorer.getProvider();
+	let rulebookFileProvider!: RulebookFileProvider;
+	let rulebookTreeView!: vscode.TreeView<RulebookFile>;
+	let configFileProvider!: ConfigFileProvider;
 	let mockRulebookUri!: vscode.Uri, mockConfigFileUri!: vscode.Uri;
 	let rulebookUri!: vscode.Uri, configFileUri: vscode.Uri;
 	let testWorkspace!: vscode.WorkspaceFolder;
 
 	suiteSetup(async () => {
+		rulebookFileProvider = rulebookExplorer.getProvider();
+		rulebookTreeView = rulebookExplorer.getTreeView();
+		configFileProvider = configFileExplorer.getProvider();
+
 		const workspaceFolders = vscode.workspace.workspaceFolders;
 		assert.ok(workspaceFolders, "No workspace is open.");
 		testWorkspace = workspaceFolders[0];
@@ -85,7 +91,7 @@ suite('ConfigFile Tests', () => {
 
 	/*---------------------------------------- EDIT ----------------------------------------*/
 
-	test('Should only accept .json [EDIT / ON FILENAME CHANGE]', async () => {
+	test('Should only accept .json [EDIT / FILENAME]', async () => {
 		const invalidConfigUri = vscode.Uri.joinPath(testWorkspace.uri, 'testConfig.txt'); // Invalid extension
 		await configFileProvider.changeFilename(configFileUri, invalidConfigUri);
 		let fileExists = false;
@@ -98,7 +104,7 @@ suite('ConfigFile Tests', () => {
 		assert.strictEqual(fileExists, false, 'Operation created a file with an invalid extension');
 	});
 
-	test('Should refresh configFiles view [EDIT / ON FILENAME CHANGE]', async () => {
+	test('Should refresh configFiles view [EDIT / FILENAME]', async () => {
 		const rulebookFile = await rulebookFileProvider.getRulebookFile(rulebookUri)
 		await rulebookFileProvider.onRulebookSelectionChanged([rulebookFile]);
 		const configFilesBefore = (await configFileProvider.getChildren()).length;
@@ -112,7 +118,7 @@ suite('ConfigFile Tests', () => {
 		assert.strictEqual(configFilesAfter === configFilesBefore - 1 || 0, true, 'ConfigFiles were not refreshed successfully');
 	});
 
-	test('Should update rulebook containing the previous filename [EDIT / ON FILENAME CHANGE]', async () => {
+	test('Should update rulebook containing the previous filename [EDIT / FILENAME]', async () => {
 		/* NOTE: DOUBLE-CHECK THIS TEST */
 		const rulebookFile = await rulebookFileProvider.getRulebookFile(rulebookUri)
 		await rulebookFileProvider.onRulebookSelectionChanged([rulebookFile]);
@@ -127,7 +133,7 @@ suite('ConfigFile Tests', () => {
 		// assert.strictEqual(rulebook.files.includes(configFileUri.fsPath), true, 'Config file was not updated in rulebook');
 	});
 
-	test('Should update a config file on save [EDIT / ON CONTENT CHANGE]', async () => {
+	test('Should update a config file on save [EDIT / CONTENTS]', async () => {
 		const configUri = vscode.Uri.joinPath(testWorkspace.uri, 'testConfig.json');
 		const originalContent = (await vscode.workspace.fs.readFile(configUri)).toString();
 		const newContent = `{\n    "new": "content"\n}`;
