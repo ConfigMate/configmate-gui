@@ -17,6 +17,11 @@
 		"Other"
 	],
 	"main": "./out/extension.js",
+	"configurationDefaults": {
+		"json": {
+			"editor.semanticHighlighting.enabled": true
+		}
+	},
 	"activationEvents": [
 		"onStartupFinished"
 	],
@@ -146,12 +151,12 @@
 		}
 	},
 	"scripts": {
-		"make": "(cd configmate && make configm)",
+		"build-server": "(cd configmate && make configm)",
 		"server": "(cd configmate && ./bin/configm serve)",
 		"kill-server": "sudo fuser -k 10007/tcp",
 		"compile": "tsc -p ./",
 		"watch": "tsc -watch -p ./",
-		"lint": "eslint --ext .ts --ignore-path .gitignore .",
+		"lint": "eslint --ext .ts --ignore-path .eslintignore .",
 		"test": "tsc -p ./ && node out/test/runTest.js"
 	},
 	"devDependencies": {

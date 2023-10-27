@@ -1,7 +1,7 @@
 // import * as vscode from 'vscode';
 import * as assert from 'assert';
 import * as axios from 'axios';
-import { cmRequest, cmResponse } from '../../models';
+import { cmRequest, cmResponseNode } from '../../models';
 
 suite('ConfigMate Tests', () => {
 
@@ -44,7 +44,7 @@ suite('ConfigMate Tests', () => {
 			data: request
 		}).then((response) => {
 			console.log(response.data);
-			assert.ok(response.data as cmResponse, 'Request not sent in correct format');
+			assert.ok(response.data as cmResponseNode, 'Request not sent in correct format');
 		});
 	});
 

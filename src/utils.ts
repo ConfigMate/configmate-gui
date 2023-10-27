@@ -1,4 +1,9 @@
-import * as vscode from "vscode";
+import * as vscode from 'vscode';
+
+export const openDoc = async (uri: vscode.Uri): Promise<vscode.TextEditor> => {
+	const doc = await vscode.workspace.openTextDocument(uri);
+	return await vscode.window.showTextDocument(doc);
+};
 
 export const uriToFilename = (uri: vscode.Uri): string => 
 	vscode.Uri.parse(uri.toString()).path.split('/').pop() || '';
