@@ -1,16 +1,35 @@
 import * as vscode from 'vscode';
-import { cmResponseNode, cmRequest } from './models';
+import { cmResponseNode, cmRequest, Rulebook } from './models';
 import axios from 'axios';
 import * as cp from 'child_process';
+import { DiagnosticsProvider } from './diagnostics';
+import { RulebookFile } from './rulebooks';
 
 export class ConfigMateProvider {
+	private goServer!: cp.ChildProcess;
+
+	constructor(context: vscode.ExtensionContext, 
+		diagnosticsProvider: DiagnosticsProvider) {
+
+		context.subscriptions.push(
+			vscode.commands.registerCommand('configMate.check',
+				async (node: RulebookFile) => {
+					const response = await this.check(node.filepath);
+					await diagnosticsProvider.parseResponse(response, node);
+				}),
+			this.runServer(context)
+		);
+	}
+
 	check = async (filepath: string): Promise<cmResponseNode[]> => {
+		if (!this.goServer) {
+			await vscode.window.showErrorMessage("Go server not running");
+			return {} as cmResponseNode[];
+		}
 		const message = `Checking ${filepath} with ConfigMate`;
 		console.log(message);
 		void vscode.window.showInformationMessage(message);
-		const response = await this.sendRequest(filepath);
-		// const response = await this.mockRequest(filepath);
-		return response;
+		return await this.sendRequest(filepath);
 	};
 
 	mockRequest = async (rulebookFilepath: string, configFilepath?: string): Promise<cmResponseNode> => {
@@ -68,18 +87,44 @@ export class ConfigMateProvider {
 	runServer = (context: vscode.ExtensionContext) => {
 		const serverPath = vscode.Uri.joinPath(context.extensionUri, "configmate");
 
-		const goServer = cp.exec(`./bin/configm serve`, { cwd: serverPath.fsPath},
+		this.goServer = cp.exec(`./bin/configm serve`, { cwd: serverPath.fsPath},
 		(error, stdout, stderr) => {
 			if (error) void vscode.window.showErrorMessage(`Error running Go server: ${error.message}`);
-			if (stderr) console.error(`stderr: ${stderr}`);
-			console.log(stdout);
+			console.log(`stdout: ${stdout}`);
+			console.error(`stderr: ${stderr}`);
 		});
 
 				
 		// console.log("Go server running!");
 		
 		return { dispose: () => {
-			goServer.kill();
+			this.goServer.kill();
 	}	};
 	};
+
+	createRulebook = async (uri: vscode.Uri): Promise<void> => {
+		// use configmate api to create rulebook
+	}
+
+	getRulebook = async (uri: vscode.Uri): Promise<Rulebook> => {
+		// use configmate api to get rulebook
+		const mock = {
+			"name": "Rulebook name",
+			"description": "Rulebook description",
+			"files": {
+				"config0": {
+					"path": "./examples/configurations/config0.json",
+					"format": "json"
+				}
+			},
+			"rules": [
+				{
+					"description": "Rule description",
+					"checkName": "Name of check to run",
+					"args": "Arguments to pass to check"
+				}
+			]
+		};
+		return Promise.resolve(mock as Rulebook);
+	}
 }

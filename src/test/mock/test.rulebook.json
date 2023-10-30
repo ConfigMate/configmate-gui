@@ -1,0 +1,17 @@
+{
+	"name": "Rulebook name",
+	"description": "Rulebook description",
+	"files": {
+		"testConfig": {
+			"path": "D:\\KT\\Projects\\Go\\src\\configmate\\configmate-gui\\test-workspace\\testConfig.json",
+			"format": "json"
+		}
+	},
+	"rules": [
+		{
+			"description": "Rule description",
+			"checkName": "Name of check to run",
+			"args": "Arguments to pass to check"
+		}
+	]
+}
