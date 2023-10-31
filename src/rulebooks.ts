@@ -43,7 +43,7 @@ export class RulebookFileProvider implements vscode.TreeDataProvider<RulebookFil
 	constructor(private configMateProvider: ConfigMateProvider) {}
 
 	onRulebookSelectionChanged = async (rulebooks: readonly RulebookFile[]): Promise<void> => {
-		await this.openRulebook(rulebooks[0]);
+		await this.openRulebook(rulebooks[0].filepath);
 		this.refresh(rulebooks[0]);
 	}
 
@@ -65,26 +65,30 @@ export class RulebookFileProvider implements vscode.TreeDataProvider<RulebookFil
 				const label = utils.uriToFilename(uri);
 				const rulebook = await this.configMateProvider.getRulebook(uri);
 				// const rulebook = this.parseRulebook(contents);
-				rulebookFiles.push(new RulebookFile(label, filepath, rulebook));
+				const file = new RulebookFile(label, filepath, rulebook);
+				file.command = {
+					command: 'rulebook.openRulebook',
+					title: 'Open Rulebook',
+					arguments: [filepath]
+				};
+				rulebookFiles.push(file);
 			} catch (error) { console.error(`Error parsing rulebook file ${filepath}: `, error); }
 		}
 		return rulebookFiles;
 	}
 
-	openRulebook = async (rulebookFile: RulebookFile) => {
-		const uri = vscode.Uri.file(rulebookFile.filepath);
-		await vscode.commands.executeCommand('vscode.open', uri);
-		const editor = vscode.window.activeTextEditor;
-		if (editor && editor.document.uri.fsPath === uri.fsPath)
-			await vscode.window.showTextDocument(editor.document, editor.viewColumn);
-		else await vscode.window.showTextDocument(uri);
+	openRulebook = async (filepath: string): Promise<void> => {
+		try {
+			const uri = vscode.Uri.file(filepath);
+			await vscode.workspace.fs.stat(uri);
+			await vscode.commands.executeCommand('vscode.open', uri)
+			const document = await vscode.workspace.openTextDocument(uri);
+			await vscode.window.showTextDocument(document);
+		} catch (error) {
+			await vscode.window.showErrorMessage(`Error opening rulebook file: ${error as string}`);
+		}
 	}
 
-	// readFile = async (filepath: string): Promise<string> => {
-	// 	const uri = vscode.Uri.file(filepath);
-	// 	const buffer = await vscode.workspace.fs.readFile(uri);
-	// 	return Buffer.from(buffer).toString();
-	// }
 
 	parseRulebook = (contents: string): Rulebook => {
 		let rulebook = {} as Rulebook;
@@ -105,48 +109,6 @@ export class RulebookFileProvider implements vscode.TreeDataProvider<RulebookFil
 			await this.configMateProvider.createRulebook(uri);
 		} catch (error) { 
 			await vscode.window.showErrorMessage(`Error creating rulebook: ${error as string}`); 
-		}
-	};
-
-	deleteRulebook = async (node: RulebookFile): Promise<void> => {
-		const confirm = await vscode.window.showWarningMessage(
-			`Are you sure you want to delete rulebook ${node.label}?`, 
-			{ modal: true }, 'Delete');
-		if (confirm !== 'Delete') return;
-
-		try {
-			await this.deleteRulebookFile(vscode.Uri.file(node.filepath));
-		} catch (error) { 
-			await vscode.window.showErrorMessage(`Error deleting rulebook: ${error as string}`); 
-		}
-	};
-
-	deleteRulebookFile = async (uri: vscode.Uri): Promise<void> => {
-		try {
-			await vscode.workspace.fs.delete(uri, { recursive: false });
-			await vscode.window.showInformationMessage(`Deleted rulebook ${uri.fsPath}.`);
-			this.refresh();
-		} catch (error) { 
-			console.error(`Error deleting rulebook ${uri.fsPath}: `, error); 
-		}
-	}
-
-
-	addConfigFileToRulebook = async (uri: vscode.Uri, selectedRulebook: RulebookFile): Promise<void> => {
-		try {
-			// use configmate api to add config file to rulebook
-			this.refresh(selectedRulebook);
-		} catch (error) { 
-			await vscode.window.showErrorMessage(`Error: ${error as string}`); 
-		}
-	};
-
-	removeConfigFileFromRulebooks = async (configFileUri: vscode.Uri, selection: RulebookFile[]): Promise<void> => {
-		try {
-			// use configmate api to delete config file from rulebook
-			await this.onRulebookSelectionChanged(selection);
-		} catch (error) { 
-			await vscode.window.showErrorMessage(`Error: ${error as string}`); 
 		}
 	};
 
@@ -205,9 +167,9 @@ export class RulebookExplorer {
 					{ saveLabel: 'Create Rulebook', filters: { 'CMRB': ['cmrb'] } });
 				if (uri) await this.rulebookFileProvider.addRulebook(uri);
 			}),
-			registerCommand('rulebooks.deleteRulebook', async (node: RulebookFile) => 
-				await this.rulebookFileProvider.deleteRulebook(node)
-			)
+			registerCommand('rulebook.openRulebook', async (filepath: string) =>
+				await this.rulebookFileProvider.openRulebook(filepath)
+			),
 		);
 	}
 

@@ -12,12 +12,13 @@ export class ConfigMateProvider {
 		diagnosticsProvider: DiagnosticsProvider) {
 
 		context.subscriptions.push(
+			this.runServer(context),
 			vscode.commands.registerCommand('configMate.check',
 				async (node: RulebookFile) => {
 					const response = await this.check(node.filepath);
 					await diagnosticsProvider.parseResponse(response, node);
-				}),
-			this.runServer(context)
+				}
+			)
 		);
 	}
 
@@ -104,6 +105,41 @@ export class ConfigMateProvider {
 
 	createRulebook = async (uri: vscode.Uri): Promise<void> => {
 		// use configmate api to create rulebook
+		const mock = `name = "Rulebook for config0"
+description = "This is a rulebook for config0"
+
+[files.config0]
+path = "./examples/configurations/config0.json"
+format = "json"
+
+[[rules]]
+field = "config0.server.host"
+type = "string"
+checks = ["eq('localhost')"]
+default = "localhost"
+notes = """
+This is the host that the server will listen on.
+"""
+
+[[rules]]
+field = "config0.server.port"
+type = "int"
+checks = ["range(25, 100)"]
+default = 80
+notes = """
+This is the port that the server will listen on.
+"""
+
+[[rules]]
+field = "config0.server.ssl_enabled"
+type = "bool"
+checks = ["eq(false)"]
+default = false
+notes = """
+This is whether or not SSL is enabled.
+"""`
+		// write to file at uri
+		await vscode.workspace.fs.writeFile(uri, Buffer.from(mock));
 	}
 
 	getRulebook = async (uri: vscode.Uri): Promise<Rulebook> => {

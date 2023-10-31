@@ -59,35 +59,6 @@ export class ConfigFileProvider implements vscode.TreeDataProvider<ConfigFile> {
 	getTreeItem = (element: ConfigFile): vscode.TreeItem => element;
 	getChildren = (element?: ConfigFile): Promise<ConfigFile[]> => element ? Promise.resolve([]) : Promise.resolve(this.configFiles);
 
-	addConfigFile = async (uri: vscode.Uri, selectedRulebook: RulebookFile): Promise<void> => {
-		try {
-			await this.addConfigFileFile(uri);
-			await this.rulebookFileProvider.addConfigFileToRulebook(uri, selectedRulebook);
-		} catch (error) { void vscode.window.showErrorMessage(`Error creating config file: ${error as string}`); }
-	};
-
-	addConfigFileFile = async (uri: vscode.Uri): Promise<void> => {
-		try {
-			const filepath = (path.basename(uri.fsPath)).split('.');
-			const [filename, ...extension] = filepath;
-			if (filename && extension.join('.') !== 'cmrb') throw new Error('Invalid file extension');
-			else await vscode.workspace.fs.writeFile(uri, new Uint8Array());
-		} catch (error) { console.error(`Error creating config file: ${error as string}`); }
-	};
-
-	deleteConfigFile = async (uri: vscode.Uri, selection?: RulebookFile[]): Promise<void> => {
-		try {
-			await this.deleteConfigFileFile(uri);
-			if (selection && selection[0] instanceof RulebookFile)
-				await this.rulebookFileProvider.removeConfigFileFromRulebooks(uri, selection);
-		} catch (error) {
-			await vscode.window.showErrorMessage(`Error deleting config file: ${error as string}`);
-		}
-	};
-
-	deleteConfigFileFile = async (uri: vscode.Uri): Promise<void> => 
-		await vscode.workspace.fs.delete(uri, { recursive: false });
-
 	openConfigFile = async (filepath: string): Promise<void> => {
 		try {
 			const uri = vscode.Uri.file(filepath);
@@ -95,7 +66,9 @@ export class ConfigFileProvider implements vscode.TreeDataProvider<ConfigFile> {
 			await vscode.commands.executeCommand('vscode.open', uri)
 			const document = await vscode.workspace.openTextDocument(uri);
 			await vscode.window.showTextDocument(document);
-		} catch (error) { void vscode.window.showErrorMessage(`Error opening config file: ${error as string}`); }
+		} catch (error) { 
+			await vscode.window.showErrorMessage(`Error opening config file: ${error as string}`); 
+		}
 	};
 
 	changeFilename = async (uri: vscode.Uri, newUri: vscode.Uri): Promise<void> => {
@@ -103,7 +76,9 @@ export class ConfigFileProvider implements vscode.TreeDataProvider<ConfigFile> {
 			await vscode.workspace.fs.rename(uri, newUri);
 			// await this.rulebookFileProvider.changeConfigFileUri(uri, newUri);
 			// refresh
-		} catch (error) { void vscode.window.showErrorMessage(`Error renaming config file: ${error as string}`); }
+		} catch (error) { 
+			await vscode.window.showErrorMessage(`Error renaming config file: ${error as string}`); 
+		}
 	};
 }
 
@@ -126,26 +101,7 @@ export class ConfigFileExplorer {
 			registerCommand('configFiles.openConfigFile', async (filepath: string) =>
 				await this.configFileProvider.openConfigFile(filepath)),
 			registerCommand('configFiles.refreshConfigFiles', () =>
-				this.configFileProvider.refresh(rulebookExplorer.getSelectedRulebook())),
-			registerCommand('configFiles.addConfigFile', async () => {
-				const uri = await vscode.window.showSaveDialog(
-					{ saveLabel: 'Create Config File', filters: { 'CMRB': ['cmrb'] } });
-				if (uri) {
-					const selectedRulebook = rulebookExplorer.getSelectedRulebook();
-					if (selectedRulebook instanceof RulebookFile) {
-						await this.configFileProvider.addConfigFile(uri, selectedRulebook);
-						// await rulebookFileProvider.openRulebook(selectedRulebook.uri);
-					} else await vscode.window.showErrorMessage(`Choose a rulebook first!`);
-				}
-			}),
-			registerCommand('configFiles.deleteConfigFile', async (node: ConfigFile) => {
-				const confirm = await vscode.window.showWarningMessage(
-					`Are you sure you want to delete config file ${node.label}?`, { modal: true }, 'Delete');
-				if (confirm !== 'Delete') return;
-				const selection = rulebookExplorer.getSelectedRulebook();
-				const uri = vscode.Uri.file(node.filepath);
-				if (selection) await this.configFileProvider.deleteConfigFile(uri, [selection]);
-			})
+				this.configFileProvider.refresh(rulebookExplorer.getSelectedRulebook()))
 		);
 	}
 
