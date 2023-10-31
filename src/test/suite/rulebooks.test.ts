@@ -76,11 +76,17 @@ suite('Rulebook Tests', () => {
 		assert.strictEqual(errorOccurred, false, 'Rulebook was not created successfully');
 	});
 
-	test.skip('Should write Rulebook template to new file', async () => {
+	test('Should write Rulebook template to new file', async () => {
 		const newRulebookUri = vscode.Uri.joinPath(testWorkspace.uri, 'new.cmrb');
-		await rulebookFileProvider.addRulebook(newRulebookUri);
+		let errorOccurred = false;
+		try {
+			await rulebookFileProvider.addRulebook(newRulebookUri);
+			await vscode.workspace.fs.stat(newRulebookUri);
+		} catch (error) {
+			errorOccurred = true;
+		}
 
-		const createdRulebook = await rulebookFileProvider.parseRulebook(newRulebookUri.fsPath);
+		const createdRulebook = rulebookFileProvider.getRulebookFile(newRulebookUri);
 		const expectedInitialData = initRulebook('new');
 
 		assert.deepStrictEqual(createdRulebook, expectedInitialData, 'New rulebook does not contain the expected initial data');
@@ -88,18 +94,19 @@ suite('Rulebook Tests', () => {
 
 
 	test('Should refresh the rulebook and configFiles views', async () => {
-		let errorOccurred = false;
 		let rulebookFilesBefore = 0, rulebookFilesAfter = 0, numConfigFiles = 0;
+		const newRulebookUri = vscode.Uri.joinPath(testWorkspace.uri, 'new.cmrb');
+		let errorOccurred = false;
 		try {
 			rulebookFilesBefore = (await rulebookFileProvider.getChildren()).length;
-			await rulebookFileProvider.addRulebook(rulebookUri);
+			await rulebookFileProvider.addRulebook(newRulebookUri);
+			await vscode.workspace.fs.stat(newRulebookUri);
 			rulebookFilesAfter = (await rulebookFileProvider.getChildren()).length;
-			await vscode.workspace.fs.stat(rulebookUri);
 			numConfigFiles = (await configFileProvider.getChildren()).length;
 		} catch (error) {
 			errorOccurred = true;
 		}
-		assert.strictEqual(errorOccurred, true, 'Rulebook was not added successfully');
+		assert.strictEqual(errorOccurred, false, 'Rulebook was not added successfully');
 		assert.strictEqual(rulebookFilesAfter, rulebookFilesBefore + 1, 'Rulebooks were not refreshed successfully');
 		assert.strictEqual(numConfigFiles > 0, true, 'Config files were not refreshed successfully');
 	});
