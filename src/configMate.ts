@@ -4,6 +4,7 @@ import axios from 'axios';
 import * as cp from 'child_process';
 import { DiagnosticsProvider } from './diagnostics';
 import { RulebookFile } from './rulebooks';
+import * as toml from 'toml';
 
 export class ConfigMateProvider {
 	private goServer!: cp.ChildProcess;
@@ -103,7 +104,7 @@ export class ConfigMateProvider {
 	}	};
 	};
 
-	createRulebook = async (uri: vscode.Uri): Promise<void> => {
+	createRulebook = async (uri: vscode.Uri): Promise<Rulebook> => {
 		// use configmate api to create rulebook
 		const mock = `name = "Rulebook for config0"
 description = "This is a rulebook for config0"
@@ -139,7 +140,14 @@ notes = """
 This is whether or not SSL is enabled.
 """`
 		// write to file at uri
-		await vscode.workspace.fs.writeFile(uri, Buffer.from(mock));
+		try {
+			const rulebook = toml.parse(mock) as Rulebook;
+			await vscode.workspace.fs.writeFile(uri, Buffer.from(mock));
+			return Promise.resolve(rulebook);
+		} catch (error) {
+			console.error(`Error creating rulebook: ${error as string}`);
+			return Promise.reject(error);
+		}
 	}
 
 	getRulebook = async (uri: vscode.Uri): Promise<Rulebook> => {

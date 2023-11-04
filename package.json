@@ -78,6 +78,11 @@
 				"icon": "$(add)"
 			},
 			{
+				"command": "rulebooks.deleteRulebook",
+				"title": "Delete Rulebook",
+				"icon": "$(trash)"
+			},
+			{
 				"command": "configFiles.openConfigFile",
 				"category": "Custom",
 				"title": "Open Config File"
@@ -114,6 +119,11 @@
 			"view/item/context": [
 				{
 					"command": "configMate.check",
+					"when": "view == rulebooks && viewItem == rulebook",
+					"group": "inline"
+				},
+				{
+					"command": "rulebooks.deleteRulebook",
 					"when": "view == rulebooks && viewItem == rulebook",
 					"group": "inline"
 				}
