@@ -161,6 +161,7 @@ This is whether or not SSL is enabled.
 				}
 			]
 		};
+		if (uri) console.log(uri.fsPath);
 		return Promise.resolve(mock as Rulebook);
 	}
 }

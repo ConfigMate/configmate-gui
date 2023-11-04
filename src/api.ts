@@ -1,4 +1,5 @@
 import axios, { AxiosInstance, AxiosResponse } from 'axios';
+import { cmRequest } from './models';
 
 class API {
 	private axiosInstance: AxiosInstance;
@@ -13,12 +14,12 @@ class API {
 		});
 	}
 
-	public async get<T>(url: string, params?: any): Promise<T> {
+	public async get<T>(url: string, params?: string): Promise<T> {
 		const response: AxiosResponse<T> = await this.axiosInstance.get(url, { params });
 		return response.data;
 	}
 
-	public async post<T>(url: string, data: any): Promise<T> {
+	public async post<T>(url: string, data: cmRequest): Promise<T> {
 		const response: AxiosResponse<T> = await this.axiosInstance.post(url, data);
 		return response.data;
 	}
