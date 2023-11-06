@@ -42,8 +42,5 @@ jobs:
       - name: Build CLI
         run: npm run build-server
 
-      - name: Run server      
-        run: npm run server
-
       - name: Deploy
         run: vsce publish -p ${{ secrets.AZURE_ACCESS_TOKEN }} patch --no-git-tag-version
