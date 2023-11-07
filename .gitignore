@@ -3,4 +3,10 @@ node_modules
 yarn.lock
 **/*.exe
 **/*.txt
-configmate
+
+# Ignore everything in the configmate directory
+configmate/*
+
+# But do not ignore these files
+!configmate/configmate.exe
+!configmate/bin/configm

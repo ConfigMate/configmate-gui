@@ -12,4 +12,10 @@ node_modules
 src/
 out/!(main.*)
 tsconfig.json
-configmate/!(configmate.exe|configm)
+
+# Ignore everything in the configmate directory
+configmate/*
+
+# But do not ignore these files
+!configmate/configmate.exe
+!configmate/bin/configm
