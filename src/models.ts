@@ -31,14 +31,11 @@ export interface Rule {
 export interface Rulebook {
 	name: string,
 	description: string,
-	files: Configs,
+	files: {[key: string]: Config},
 	rules: Rule[]
 }
 
 export interface Config {
 	path: string,
 	format: string
-}
-export interface Configs {
-	[key: string]: Config
 }
