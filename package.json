@@ -137,7 +137,7 @@
 		"lint": "eslint --ext .ts --ignore-path .eslintignore .",
 		"test": "tsc -p ./ && node out/test/runTest.js",
 		"publish": "vsce publish patch --no-git-tag-version",
-		"vscode:prepublish": "npm run esbuild-base -- --minify && npm run package-server",
+		"vscode:prepublish": "npm run package-server && npm run esbuild-base -- --minify",
 		"esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=out/main.js --external:vscode --format=cjs --platform=node",
 		"esbuild": "npm run esbuild-base -- --sourcemap",
 		"esbuild-watch": "npm run esbuild-base -- --sourcemap --watch",
