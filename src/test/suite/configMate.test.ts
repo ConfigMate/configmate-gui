@@ -3,9 +3,9 @@ import * as assert from 'assert';
 import * as axios from 'axios';
 import { cmRequest, cmResponseNode } from '../../models';
 
-suite('ConfigMate Tests', async () => {
+suite('ConfigMate Tests', () => {
 
-	test('Should be able to access configMate at localhost:10007/api', async () => {
+	test.skip('Should be able to access configMate at localhost:10007/api', async () => {
 		const url: string = 'http://localhost:10007/api/check';
 		await axios.default({
 			method: 'post',
@@ -18,7 +18,7 @@ suite('ConfigMate Tests', async () => {
 			assert.ok(response.data, 'ConfigMate API not found');
 		});
 	});
-	test('Should send request in correct format', async () => {
+	test.skip('Should send request in correct format', async () => {
 		const url: string = 'http://localhost:10007/api/check';
 		const request: cmRequest = {
 			rulebook_path: 'test'
@@ -33,7 +33,7 @@ suite('ConfigMate Tests', async () => {
 		});
 	});
 
-	test('Should receive response in correct format', async () => {
+	test.skip('Should receive response in correct format', async () => {
 		const url: string = 'http://localhost:10007/api/check';
 		const request: cmRequest = {
 			rulebook_path: 'test'

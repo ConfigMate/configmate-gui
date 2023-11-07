@@ -2,7 +2,7 @@
 	"name": "configmate-gui",
 	"displayName": "ConfigMate",
 	"description": "",
-	"version": "0.2.1",
+	"version": "0.2.11",
 	"publisher": "ConfigMate",
 	"private": true,
 	"license": "MIT",
@@ -16,7 +16,7 @@
 	"categories": [
 		"Other"
 	],
-	"main": "./out/extension.js",
+	"main": "./out/main.js",
 	"configurationDefaults": {
 		"json": {
 			"editor.semanticHighlighting.enabled": true
@@ -137,7 +137,13 @@
 		"compile": "tsc -p ./",
 		"watch": "tsc -watch -p ./",
 		"lint": "eslint --ext .ts --ignore-path .eslintignore .",
-		"test": "tsc -p ./ && node out/test/runTest.js"
+		"test": "tsc -p ./ && node out/test/runTest.js",
+		"publish": "vsce publish patch --no-git-tag-version",
+		"vscode:prepublish": "npm run esbuild-base -- --minify",
+		"esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=out/main.js --external:vscode --format=cjs --platform=node",
+		"esbuild": "npm run esbuild-base -- --sourcemap",
+		"esbuild-watch": "npm run esbuild-base -- --sourcemap --watch",
+		"test-compile": "tsc -p ./"
 	},
 	"devDependencies": {
 		"@types/glob": "^8.1.0",
@@ -147,12 +153,15 @@
 		"@typescript-eslint/eslint-plugin": "^5.62.0",
 		"@typescript-eslint/parser": "^5.62.0",
 		"@vscode/test-electron": "^2.3.4",
-		"axios": "^1.5.1",
 		"child_process": "^1.0.2",
+		"esbuild": "^0.19.5",
 		"eslint": "^8.52.0",
 		"mocha": "^10.2.0",
-		"typescript": "~5.1.3",
 		"toml": "^3.0.0",
+		"typescript": "~5.1.3",
 		"url": "^0.11.3"
+	},
+	"dependencies": {
+		"axios": "^1.6.0"
 	}
 }

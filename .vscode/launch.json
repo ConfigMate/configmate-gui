@@ -9,9 +9,7 @@
             "runtimeExecutable": "${execPath}",
             "args": [
                 "--extensionDevelopmentPath=${workspaceFolder}",
-                "--folder-uri=${workspaceFolder}/test-workspace",
-                "--enable-proposed-api",
-                "vscode-samples.custom-view-samples"
+                "--folder-uri=${workspaceFolder}/test-workspace"
             ],
             "sourceMaps": true,
             "outFiles": [
@@ -42,7 +40,7 @@
             "outFiles": [
                 "${workspaceFolder}/out/test/**/*.js"
             ],
-            "preLaunchTask": "npm: compile"
-        }
+            "preLaunchTask": "npm: test-compile"
+        },
     ]
 }
