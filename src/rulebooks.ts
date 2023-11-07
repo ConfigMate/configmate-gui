@@ -4,6 +4,7 @@ import * as utils from "./utils";
 import * as path from 'path';
 import { Config } from './models';
 import { ConfigMateProvider } from './configMate';
+import * as toml from 'toml';
 
 export class RulebookFile extends vscode.TreeItem {
 	constructor(
@@ -93,7 +94,7 @@ export class RulebookFileProvider implements vscode.TreeDataProvider<RulebookFil
 	parseRulebook = (contents: string): Rulebook => {
 		let rulebook = {} as Rulebook;
 		try {
-			rulebook = JSON.parse(contents) as Rulebook;
+			rulebook = toml.parse(contents) as Rulebook;
 			const { name, description, files, rules } = rulebook;
 			if (!name || !description || !files || !rules)
 				throw new Error(`Rulebook file is missing required fields.`);
@@ -122,7 +123,7 @@ export class RulebookFileProvider implements vscode.TreeDataProvider<RulebookFil
 				rulebookFile.rulebook = rulebook;
 				// rulebookFile.filepath = filepath;
 				this.refresh(rulebookFile);
-				console.log(filepath);
+				// console.log(filepath);
 				break;
 			}
 		} catch (error) { 

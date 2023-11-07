@@ -36,7 +36,7 @@ export class DiagnosticsProvider {
 			for (const node of failed) {
 				const {result_comment, token_list} = node;
 				if (!token_list) continue;
-				console.log(node);
+				// console.log(node);
 				if (result_comment) console.log(`ConfigMate: ${result_comment}`);
 				token_list.map(async token => {
 					const range = this.parseToken(token);

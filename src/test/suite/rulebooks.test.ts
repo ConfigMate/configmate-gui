@@ -86,10 +86,26 @@ suite('Rulebook Tests', () => {
 			errorOccurred = true;
 		}
 
-		const createdRulebook = rulebookFileProvider.getRulebookFile(newRulebookUri);
-		const expectedInitialData = initRulebook('new');
+		const createdRulebook = await rulebookFileProvider.getRulebookFile(newRulebookUri);
+		const expectedInitialData = {
+			"name": "Rulebook name",
+			"description": "Rulebook description",
+			"files": {
+				"config0": {
+					"path": "./examples/configurations/config0.json",
+					"format": "json"
+				}
+			},
+			"rules": [
+				{
+					"description": "Rule description",
+					"checkName": "Name of check to run",
+					"args": "Arguments to pass to check"
+				}
+			]
+		};
 
-		assert.deepStrictEqual(createdRulebook, expectedInitialData, 'New rulebook does not contain the expected initial data');
+		assert.deepStrictEqual(createdRulebook.rulebook, expectedInitialData, 'New rulebook does not contain the expected initial data');
 	});
 
 
