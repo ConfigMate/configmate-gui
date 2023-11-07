@@ -4,6 +4,7 @@ import axios from 'axios';
 import * as cp from 'child_process';
 import { DiagnosticsProvider } from './diagnostics';
 import { RulebookFile } from './rulebooks';
+import * as toml from 'toml';
 
 export class ConfigMateProvider {
 	private goServer!: cp.ChildProcess;
@@ -11,14 +12,15 @@ export class ConfigMateProvider {
 	constructor(context: vscode.ExtensionContext, 
 		diagnosticsProvider: DiagnosticsProvider) {
 
+		const killServer = this.runServer(context);
 		context.subscriptions.push(
-			this.runServer(context),
 			vscode.commands.registerCommand('configMate.check',
 				async (node: RulebookFile) => {
 					const response = await this.check(node.filepath);
 					await diagnosticsProvider.parseResponse(response, node);
 				}
-			)
+			),
+			killServer
 		);
 	}
 
@@ -87,23 +89,25 @@ export class ConfigMateProvider {
 
 	runServer = (context: vscode.ExtensionContext) => {
 		const serverPath = vscode.Uri.joinPath(context.extensionUri, "configmate");
+		const dispose: vscode.Disposable = { dispose: () => this.goServer.kill() };
 
-		this.goServer = cp.exec(`./bin/configm serve`, { cwd: serverPath.fsPath},
+		this.goServer = cp.exec(`npm run server`, { cwd: serverPath.fsPath},
 		(error, stdout, stderr) => {
-			if (error) void vscode.window.showErrorMessage(`Error running Go server: ${error.message}`);
-			console.log(`stdout: ${stdout}`);
-			console.error(`stderr: ${stderr}`);
+			if (error) {
+				void vscode.window.showErrorMessage(`Error running Go server: ${error.message}`);
+				return dispose;
+			}
+			if (stdout) console.log(`stdout: ${stdout}`);
+			if (stderr) console.error(`stderr: ${stderr}`);
 		});
 
 				
 		// console.log("Go server running!");
 		
-		return { dispose: () => {
-			this.goServer.kill();
-	}	};
+		return dispose;
 	};
 
-	createRulebook = async (uri: vscode.Uri): Promise<void> => {
+	createRulebook = async (uri: vscode.Uri): Promise<Rulebook> => {
 		// use configmate api to create rulebook
 		const mock = `name = "Rulebook for config0"
 description = "This is a rulebook for config0"
@@ -139,7 +143,14 @@ notes = """
 This is whether or not SSL is enabled.
 """`
 		// write to file at uri
-		await vscode.workspace.fs.writeFile(uri, Buffer.from(mock));
+		try {
+			const rulebook = toml.parse(mock) as Rulebook;
+			await vscode.workspace.fs.writeFile(uri, Buffer.from(mock));
+			return Promise.resolve(rulebook);
+		} catch (error) {
+			console.error(`Error creating rulebook: ${error as string}`);
+			return Promise.reject(error);
+		}
 	}
 
 	getRulebook = async (uri: vscode.Uri): Promise<Rulebook> => {

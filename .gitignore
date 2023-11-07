@@ -1,6 +1,5 @@
 out
 node_modules
 yarn.lock
-**/*.exe
-**/*.txt
 configmate
+.vscode-test
