@@ -9,7 +9,8 @@
             "runtimeExecutable": "${execPath}",
             "args": [
                 "--extensionDevelopmentPath=${workspaceFolder}",
-                "--folder-uri=${workspaceFolder}/test-workspace"
+                "--folder-uri=${workspaceFolder}/test-workspace",
+                "--disable-extensions"
             ],
             "sourceMaps": true,
             "outFiles": [
@@ -35,7 +36,8 @@
             "args": [
                 "--extensionDevelopmentPath=${workspaceFolder}",
                 "--extensionTestsPath=${workspaceFolder}/out/test/suite/index",
-                "--folder-uri=${workspaceFolder}/test-workspace"
+                "--folder-uri=${workspaceFolder}/test-workspace",
+                "--disable-extensions"
             ],
             "outFiles": [
                 "${workspaceFolder}/out/test/**/*.js"

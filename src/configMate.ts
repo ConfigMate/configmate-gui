@@ -12,14 +12,15 @@ export class ConfigMateProvider {
 	constructor(context: vscode.ExtensionContext, 
 		diagnosticsProvider: DiagnosticsProvider) {
 
+		const killServer = this.runServer(context);
 		context.subscriptions.push(
-			this.runServer(context),
 			vscode.commands.registerCommand('configMate.check',
 				async (node: RulebookFile) => {
 					const response = await this.check(node.filepath);
 					await diagnosticsProvider.parseResponse(response, node);
 				}
-			)
+			),
+			killServer
 		);
 	}
 
@@ -88,20 +89,22 @@ export class ConfigMateProvider {
 
 	runServer = (context: vscode.ExtensionContext) => {
 		const serverPath = vscode.Uri.joinPath(context.extensionUri, "configmate");
+		const dispose: vscode.Disposable = { dispose: () => this.goServer.kill() };
 
 		this.goServer = cp.exec(`./bin/configm serve`, { cwd: serverPath.fsPath},
 		(error, stdout, stderr) => {
-			if (error) void vscode.window.showErrorMessage(`Error running Go server: ${error.message}`);
-			console.log(`stdout: ${stdout}`);
-			console.error(`stderr: ${stderr}`);
+			if (error) {
+				void vscode.window.showErrorMessage(`Error running Go server: ${error.message}`);
+				return dispose;
+			}
+			if (stdout) console.log(`stdout: ${stdout}`);
+			if (stderr) console.error(`stderr: ${stderr}`);
 		});
 
 				
 		// console.log("Go server running!");
 		
-		return { dispose: () => {
-			this.goServer.kill();
-	}	};
+		return dispose;
 	};
 
 	createRulebook = async (uri: vscode.Uri): Promise<Rulebook> => {
