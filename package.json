@@ -128,7 +128,8 @@
 		}
 	},
 	"scripts": {
-		"build-server": "(cd configmate && make configm && mkdir -p ../out/configmate/bin && cp configmate.exe ../out/configmate && cp bin/configm ../out/configmate/bin)",
+		"build-server": "(cd configmate && make configm)",
+		"package-server": "mkdir -p out/configmate/bin && cp ./configmate/configmate.exe out/configmate && cp ./configmate/bin/configm out/configmate/bin",
 		"server": "(cd configmate && ./bin/configm serve)",
 		"kill-server": "sudo fuser -k 10007/tcp",
 		"compile": "tsc -p ./",
@@ -136,7 +137,7 @@
 		"lint": "eslint --ext .ts --ignore-path .eslintignore .",
 		"test": "tsc -p ./ && node out/test/runTest.js",
 		"publish": "vsce publish patch --no-git-tag-version",
-		"vscode:prepublish": "npm run esbuild-base -- --minify",
+		"vscode:prepublish": "npm run esbuild-base -- --minify && npm run package-server",
 		"esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=out/main.js --external:vscode --format=cjs --platform=node",
 		"esbuild": "npm run esbuild-base -- --sourcemap",
 		"esbuild-watch": "npm run esbuild-base -- --sourcemap --watch",
