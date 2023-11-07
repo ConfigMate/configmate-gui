@@ -10,39 +10,34 @@ on:
 
 jobs:
   Build:
-    name: Clone, Build, Deploy
+    name: Build & Package Extension
     runs-on: ubuntu-latest
 
     steps:
-      - name: Clone GUI
-        uses: actions/checkout@v4.0.0
-
       - name: Clone CLI
         uses: actions/checkout@master
         with:
           repository: ConfigMate/ConfigMate
           path: configmate
 
-      - name: Set up npm
-        uses: actions/setup-node@v2.1.5
-        with:
-          node-version: 18
+      - name: Clone extension
+        uses: actions/checkout@v4.0.0
 
       - name: Set up Go
         uses: actions/setup-go@v4.1.0
         with:
           go-version: 1.19
 
-      - name: Install dependencies
-        run: npm install && npm install -g @vscode/vsce
-
-      - name: Build GUI
-        run: npm run compile
+      - name: Set up npm
+        uses: actions/setup-node@v2.1.5
+        with:
+          node-version: 18
 
       - name: Build CLI
         run: npm run build-server
 
-      - name: Deploy
-        run: npm run publish
-        env: 
-          AZURE_ACCESS_TOKEN: ${{ secrets.AZURE_ACCESS_TOKEN }}
+      - name: Install extension dependencies
+        run: npm install && npm install -g @vscode/vsce
+
+      - name: Compile and package extension
+        run: vsce package

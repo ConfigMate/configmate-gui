@@ -10,12 +10,7 @@ diagrams/
 .vscode
 node_modules
 src/
+out/test
 out/!(main.*)
 tsconfig.json
-
-# Ignore everything in the configmate directory
-configmate/*
-
-# But do not ignore these files
-!configmate/configmate.exe
-!configmate/bin/configm
+configmate
