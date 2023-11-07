@@ -14,14 +14,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Clone extension
+        uses: actions/checkout@v4.0.0
+
       - name: Clone CLI
         uses: actions/checkout@master
         with:
           repository: ConfigMate/ConfigMate
           path: configmate
-
-      - name: Clone extension
-        uses: actions/checkout@v4.0.0
 
       - name: Set up Go
         uses: actions/setup-go@v4.1.0
