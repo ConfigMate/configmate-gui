@@ -129,7 +129,7 @@
 	},
 	"scripts": {
 		"build-server": "(cd configmate && make configm)",
-		"package-server": "mkdir -p out/configmate/bin && cp ./configmate/configmate.exe out/configmate && cp ./configmate/bin/configm out/configmate/bin",
+		"package-server": "mkdir -p out/configmate/bin && cp configmate/configmate.exe out/configmate && cp configmate/bin/configm out/configmate/bin",
 		"server": "(cd configmate && ./bin/configm serve)",
 		"kill-server": "sudo fuser -k 10007/tcp",
 		"compile": "tsc -p ./",
