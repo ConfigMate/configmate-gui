@@ -91,14 +91,17 @@ export class ConfigMateProvider {
 		const serverPath = vscode.Uri.joinPath(context.extensionUri, "configmate");
 		const dispose: vscode.Disposable = { dispose: () => this.goServer.kill() };
 
-		this.goServer = cp.exec(`npm run server`, { cwd: serverPath.fsPath},
-		(error, stdout, stderr) => {
-			if (error) {
-				void vscode.window.showErrorMessage(`Error running Go server: ${error.message}`);
-				return dispose;
-			}
-			if (stdout) console.log(`stdout: ${stdout}`);
-			if (stderr) console.error(`stderr: ${stderr}`);
+		this.goServer = cp.spawn(`./bin/configm`, ['serve'], 
+		{ 
+			cwd: serverPath.fsPath,
+			detached: true,
+			shell: true,
+		});
+		this.goServer.stdout?.on('data', (data) => {
+			console.table(data);
+		});
+		this.goServer.stderr?.on('data', (data) => {
+				void vscode.window.showErrorMessage(`Error running Go server: ${data as string}`);
 		});
 
 				

@@ -16,9 +16,9 @@
 	"categories": [
 		"Other"
 	],
-	"main": "./out/main.js",
+	"main": "./out/extension.js",
 	"configurationDefaults": {
-		"json": {
+		"cmrb": {
 			"editor.semanticHighlighting.enabled": true
 		}
 	},
@@ -125,7 +125,20 @@
 					"group": "inline"
 				}
 			]
-		}
+		},
+		"semanticTokenTypes": [
+			{
+				"id": "templateType",
+				"superType": "type",
+				"description": "A template type."
+			}
+		],
+		"semanticTokenModifiers": [
+			{
+				"id": "native",
+				"description": "Annotates a symbol that is implemented natively"
+			}
+		]
 	},
 	"scripts": {
 		"build-server": "(cd configmate && make configm)",
