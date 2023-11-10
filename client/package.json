@@ -1,0 +1,35 @@
+{
+	"name": "lsp-sample-client",
+	"description": "VSCode part of a language server",
+	"author": "Microsoft Corporation",
+	"license": "MIT",
+	"version": "0.0.1",
+	"publisher": "vscode",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/ConfigMate/rulebook-languageserver"
+	},
+	"engines": {
+		"vscode": "^1.75.0"
+	},
+	"dependencies": {
+		"vscode-languageclient": "^8.1.0",
+		"axios": "^1.6.0",
+		"child_process": "^1.0.2",
+		"toml": "^3.0.0"
+	},
+	"devDependencies": {
+		"@types/vscode": "^1.75.1",
+		"@vscode/test-electron": "^2.2.3",
+		"@types/glob": "^8.1.0",
+		"@types/mocha": "^10.0.1",
+		"@types/node": "^16.18.34",
+		"@typescript-eslint/eslint-plugin": "^5.62.0",
+		"@typescript-eslint/parser": "^5.62.0",
+		"esbuild": "^0.19.5",
+		"eslint": "^8.52.0",
+		"mocha": "^10.2.0",
+		"typescript": "~5.1.3",
+		"url": "^0.11.3"
+	}
+}
