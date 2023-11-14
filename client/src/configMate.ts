@@ -1,14 +1,15 @@
 import * as vscode from 'vscode';
 import { cmResponseNode, cmRequest, Rulebook } from './models';
 import axios from 'axios';
-import { DiagnosticsProvider } from './diagnostics';
 import { RulebookFile } from './rulebooks';
 import * as toml from 'toml';
+import { DiagnosticsProvider } from './configDiagnostics';
 
 export class ConfigMateProvider {
-	constructor(context: vscode.ExtensionContext,
-		diagnosticsProvider: DiagnosticsProvider) {
-
+	constructor(
+		context: vscode.ExtensionContext, 
+		private diagnosticsProvider: DiagnosticsProvider
+	) {
 		context.subscriptions.push(
 			vscode.commands.registerCommand('configMate.check',
 				async (node: RulebookFile) => {
@@ -33,35 +34,6 @@ export class ConfigMateProvider {
 		}
 	};
 
-	mockRequest = async (rulebookFilepath: string, configFilepath?: string): Promise<cmResponseNode> => {
-		const mockConfigFiles = await vscode.workspace.findFiles('**/testConfig.json', '**/node_modules/**', 1);
-		// const mockRequest: cmRequest = {rulebook: mockRulebook.fsPath};
-		if (mockConfigFiles.length < 1) {
-			console.error("No mock config files found");
-			return {} as cmResponseNode;
-		}
-		const mockResponse: cmResponseNode = {
-			passed: false,
-			result_comment: "This is a mock response",
-			token_list: [
-				{
-					file: configFilepath || mockConfigFiles[0].fsPath,
-					location: {
-						start: {
-							column: 0,
-							line: 0,
-						},
-						end: {
-							column: 17,
-							line: 5
-						}
-					}
-				}
-			]
-		};
-		return mockResponse;
-	};
-
 	async sendRequest(filepath: string): Promise<cmResponseNode[]> {
 		const url: string = 'http://localhost:10007/api/check';
 		const request: cmRequest = {
@@ -80,7 +52,7 @@ export class ConfigMateProvider {
 			data = response.data as cmResponseNode[];
 		} catch (error) {
 			console.error(error);
-			// console.error(error.response.data);
+
 			const currentLocation = vscode.workspace.workspaceFolders?.[0].uri.fsPath;
 			console.error("Working path: " + currentLocation);
 			console.error("Filepath: " + filepath);
@@ -134,7 +106,7 @@ This is whether or not SSL is enabled.
 		}
 	}
 
-	getRulebook = async (uri: vscode.Uri): Promise<Rulebook> => {
+	getRulebookFromUri = async (uri: vscode.Uri): Promise<Rulebook> => {
 		// use configmate api to get rulebook
 		const mock = {
 			"name": "Rulebook name",
@@ -153,7 +125,7 @@ This is whether or not SSL is enabled.
 				}
 			]
 		};
-		if (uri) console.log(uri.fsPath);
+		// if (uri) console.log(uri.fsPath);
 		return Promise.resolve(mock as Rulebook);
 	}
 }

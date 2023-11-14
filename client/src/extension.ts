@@ -1,10 +1,6 @@
-/* --------------------------------------------------------------------------------------------
- * Copyright (c) Microsoft Corporation. All rights reserved.
- * Licensed under the MIT License. See License.txt in the project root for license information.
- * ------------------------------------------------------------------------------------------ */
-
 import * as path from 'path';
 import { workspace, ExtensionContext } from 'vscode';
+import { DiagnosticsProvider } from './configDiagnostics';
 
 import {
 	LanguageClient,
@@ -16,12 +12,11 @@ import {
 import { RulebookExplorer } from './rulebooks';
 import { ConfigFileExplorer } from './configFiles';
 import { ConfigMateProvider } from './configMate';
-import { DiagnosticsProvider } from './diagnostics';
 
 export let configMateProvider!: ConfigMateProvider;
 export let configFileExplorer!: ConfigFileExplorer;
-export let diagnosticsProvider!: DiagnosticsProvider;
 export let rulebookExplorer!: RulebookExplorer;
+export let diagnosticsProvider!: DiagnosticsProvider;
 
 let client: LanguageClient;
 
