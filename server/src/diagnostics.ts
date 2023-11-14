@@ -1,8 +1,9 @@
-import { 
+import {
 	Connection,
 	Diagnostic,
-	DiagnosticSeverity, 
-	DidChangeConfigurationParams
+	DiagnosticSeverity,
+	DidChangeConfigurationParams,
+	TextDocuments
 } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 
@@ -14,7 +15,7 @@ export interface ConfigMateSettings {
 	};
 }
 
-const defaultSettings: ConfigMateSettings = { 
+const defaultSettings: ConfigMateSettings = {
 	maxNumberOfProblems: 1000,
 	port: 10006,
 	trace: {
@@ -27,13 +28,17 @@ export class DiagnosticManager {
 	private documentSettings: Map<string, Thenable<ConfigMateSettings>> = new Map();
 
 	constructor(
-		private connection: Connection, 
+		private connection: Connection,
+		private documents: TextDocuments<TextDocument>,
 		private hasConfigurationCapability: boolean,
-		private hasWorkspaceFolderCapability: boolean,
 		private hasDiagnosticRelatedInformationCapability: boolean
-	) { }
+	) {
+		documents.onDidClose(e => this.removeDocumentSettings(e.document.uri));
+		documents.onDidChangeContent((change) => this.validate(change.document));
+		documents.listen(connection);
+	}
 
-	public async validateTextDocument(textDocument: TextDocument): Promise<void> {
+	public async validate(textDocument: TextDocument): Promise<void> {
 		let settings: ConfigMateSettings;
 		if (this.hasConfigurationCapability)
 			settings = await this.getDocumentSettings(textDocument.uri);
@@ -96,17 +101,11 @@ export class DiagnosticManager {
 		return result;
 	}
 
-	public clearDocumentSettings(): void {
-		this.documentSettings.clear();
-	}
-
-	public removeDocumentSettings(resource: string): void {
+	public clearDocumentSettings = () => this.documentSettings.clear();
+	public removeDocumentSettings = (resource: string) =>
 		this.documentSettings.delete(resource);
-	}
-
-	public updateGlobalSettings(change: DidChangeConfigurationParams): void {
+	public updateGlobalSettings = (change: DidChangeConfigurationParams) =>
 		this.globalSettings = <ConfigMateSettings>(
 			change.settings.configMateServer || defaultSettings
 		);
-	}
 }

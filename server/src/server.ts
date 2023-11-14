@@ -40,9 +40,9 @@ connection.onInitialize((params: InitializeParams) => {
 	);
 
 	diagnosticManager = new DiagnosticManager(
-		connection, 
-		hasConfigurationCapability, 
-		hasWorkspaceFolderCapability, 
+		connection,
+		documents,
+		hasConfigurationCapability,
 		hasDiagnosticRelatedInformationCapability
 	);
 	configMateManager = new ConfigMateManager(connection);
@@ -56,7 +56,7 @@ connection.onInitialize((params: InitializeParams) => {
 			}
 		}
 	};
-	
+
 	if (hasWorkspaceFolderCapability) {
 		result.capabilities.workspace = {
 			workspaceFolders: {
@@ -86,19 +86,14 @@ connection.onDidChangeConfiguration((change: DidChangeConfigurationParams) => {
 	if (hasConfigurationCapability) diagnosticManager.clearDocumentSettings();
 	else diagnosticManager.updateGlobalSettings(change);
 
-	documents.all().forEach((doc) => void diagnosticManager.validateTextDocument(doc));
+	documents.all().forEach((doc) => void diagnosticManager.validate(doc));
 });
 
 
-documents.onDidClose(e => diagnosticManager.removeDocumentSettings(e.document.uri));
-documents.onDidChangeContent(async (change) => 
-	await diagnosticManager.validateTextDocument(change.document)
-);
-connection.onDidChangeWatchedFiles(_change => 
+connection.onDidChangeWatchedFiles(_change =>
 	connection.console.log(`File change: ${_change.changes[0].uri}`)
 );
 
 connection.onShutdown(() => configMateManager.handleShutdown());
 connection.onExit(() => configMateManager.handleShutdown());
-documents.listen(connection);
 connection.listen();
