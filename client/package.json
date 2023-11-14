@@ -1,13 +1,13 @@
 {
-	"name": "lsp-sample-client",
-	"description": "VSCode part of a language server",
-	"author": "Microsoft Corporation",
-	"license": "MIT",
+	"name": "configmate-language-client",
+	"description": "Graphical editing using ConfigMate",
+	"author": "Kathleen Minckler",
+	"publisher": "ConfigMate",
 	"version": "0.0.1",
-	"publisher": "vscode",
+	"license": "MIT",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/ConfigMate/rulebook-languageserver"
+		"url": "https://github.com/ConfigMate/configmate-gui"
 	},
 	"engines": {
 		"vscode": "^1.75.0"
@@ -15,7 +15,6 @@
 	"dependencies": {
 		"vscode-languageclient": "^8.1.0",
 		"axios": "^1.6.0",
-		"child_process": "^1.0.2",
 		"toml": "^3.0.0"
 	},
 	"devDependencies": {

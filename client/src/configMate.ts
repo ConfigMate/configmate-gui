@@ -23,10 +23,10 @@ export class ConfigMateProvider {
 
 	check = async (filepath: string): Promise<cmResponseNode[] | null> => {
 		try {
-			const message = `Checking ${filepath} with ConfigMate`;
-			console.log(message);
-			//print working directory
-			void vscode.window.showInformationMessage(message);
+			// debug logging:
+			// const message = `Checking ${filepath} with ConfigMate`;
+			// console.log(message);
+			// void vscode.window.showInformationMessage(message);
 			return await this.sendRequest(filepath);
 		} catch (error) {
 			console.error(error);
@@ -48,7 +48,7 @@ export class ConfigMateProvider {
 				data: request
 			});
 
-			console.log(response.data);
+			// console.log(response.data);
 			data = response.data as cmResponseNode[];
 		} catch (error) {
 			console.error(error);

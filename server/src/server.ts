@@ -9,64 +9,21 @@ import {
 	CompletionItemKind,
 	DidChangeConfigurationParams,
 	InitializeResult,
-	DidChangeConfigurationNotification,
-	Connection,
+	DidChangeConfigurationNotification
 } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import path = require('path');
-import { spawn, ChildProcess } from 'child_process';
 import { DiagnosticManager } from './diagnostics';
+import { ConfigMateManager } from './configmate';
 
 const connection = createConnection(ProposedFeatures.all);
 const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
+
 let diagnosticManager: DiagnosticManager;
+let configMateManager: ConfigMateManager;
 
 let hasConfigurationCapability = false;
 let hasWorkspaceFolderCapability = false;
 let hasDiagnosticRelatedInformationCapability = false;
-let antlrProcess: ChildProcess | null = null;
-let isShuttingDown = false;
-const maxRestartAttempts = 3;
-let restartAttempts = 0;
-
-function startAntlrProcess(connection: Connection) {
-	if (isShuttingDown || restartAttempts >= maxRestartAttempts) return;
-
-	const cliPath = path.resolve(__dirname, '../../configmate');
-	antlrProcess = spawn(
-		'./bin/configm', 
-		['serve'], 
-		{ 
-			cwd: cliPath, 
-			detached: true, 
-			shell: true
-		}
-	);
-
-	antlrProcess?.stdout?.on('data', (data) => {
-		// connection.console.log(data as string);
-	});
-
-	antlrProcess?.stderr?.on('data', (data) => {
-		connection.console.error(`ANTLR CLI error: ${data as string}`);
-	});
-
-	antlrProcess.on('close', (code) => {
-		connection.console.log(`ANTLR CLI process exited with code ${code as number}`);
-		restartAttempts++;
-		if (!isShuttingDown && restartAttempts < maxRestartAttempts)
-			startAntlrProcess(connection);
-	});
-}
-
-function cleanUpAntlrProcess() {
-	if (antlrProcess && !antlrProcess.killed && antlrProcess.pid) {
-		process.kill(-antlrProcess.pid, 'SIGKILL');
-		antlrProcess.on('close', () => {
-			antlrProcess = null;
-		});
-	}
-}
 
 connection.onInitialize((params: InitializeParams) => {
 	const capabilities = params.capabilities;
@@ -89,6 +46,8 @@ connection.onInitialize((params: InitializeParams) => {
 		hasWorkspaceFolderCapability, 
 		hasDiagnosticRelatedInformationCapability
 	);
+
+	configMateManager = new ConfigMateManager(connection);
 
 	const result: InitializeResult = {
 		capabilities: {
@@ -122,10 +81,6 @@ connection.onInitialized(() => {
 				${_event.removed.length} removed}`);
 		});
 	}
-
-	isShuttingDown = false;
-	restartAttempts = 0;
-	startAntlrProcess(connection);
 });
 
 connection.onDidChangeConfiguration((change: DidChangeConfigurationParams) => {
@@ -145,7 +100,7 @@ documents.onDidChangeContent(async (change) =>
 );
 connection.onDidChangeWatchedFiles(_change => connection.console.log(`File change: ${_change.changes[0].uri}`));
 
-// This handler provides the initial list of the completion items.
+// This handler provides the initial list of the code completion suggestions.
 connection.onCompletion(
 	(_textDocumentPosition: TextDocumentPositionParams): CompletionItem[] => {
 		connection.console.log(`${_textDocumentPosition.textDocument.uri}}`);
@@ -184,13 +139,11 @@ connection.onCompletionResolve(
 );
 
 connection.onShutdown(() => {
-	isShuttingDown = true;
-	cleanUpAntlrProcess();
+	configMateManager.handleShutdown();
 });
 
 connection.onExit(() => {
-	isShuttingDown = true;
-	cleanUpAntlrProcess();
+	configMateManager.handleShutdown();
 });
 
 documents.listen(connection);

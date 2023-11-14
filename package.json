@@ -19,19 +19,25 @@
 	"activationEvents": [
 		"onLanguage:plaintext"
 	],
-	"main": "./client/out/extension",
+	"main": "./client/out/main",
 	"contributes": {
 		"configuration": {
 			"type": "object",
-			"title": "Example configuration",
+			"title": "ConfigMate configuration",
 			"properties": {
-				"server.maxNumberOfProblems": {
+				"configMateServer.maxNumberOfProblems": {
 					"scope": "resource",
 					"type": "number",
 					"default": 100,
 					"description": "Controls the maximum number of problems produced by the server."
 				},
-				"server.trace.server": {
+				"configMateServer.port": {
+					"scope": "resource",
+					"type": "number",
+					"default": 10005,
+					"description": "Controls the port on which the server runs."
+				},
+				"configMateServer.trace.server": {
 					"scope": "window",
 					"type": "string",
 					"enum": [
@@ -161,47 +167,26 @@
 			}
 		]
 	},
-	"configuration": {
-		"type": "object",
-		"title": "Example configuration",
-		"properties": {
-			"languageServerExample.maxNumberOfProblems": {
-				"scope": "resource",
-				"type": "number",
-				"default": 100,
-				"description": "Controls the maximum number of problems produced by the server."
-			}
-		}
-	},
 	"configurationDefaults": {
 		"cmrb": {
 			"editor.semanticHighlighting.enabled": true
 		}
 	},
 	"scripts": {
-		"build-server": "(cd configmate && make configm)",
-		"package-server": "mkdir -p out/configmate/bin && cp configmate/configmate.exe out/configmate && cp configmate/bin/configm out/configmate/bin",
 		"server": "(cd configmate && ./bin/configm serve)",
+		"build-server": "(cd configmate && make configm)",
 		"kill-server": "sudo fuser -k 10007/tcp",
 		"publish": "vsce publish patch --no-git-tag-version",
+		"package": "vsce package --no-git-tag-version",
 		"vscode:prepublish": "npm run esbuild-base -- --minify",
 		"esbuild-base": "esbuild ./client/src/extension.ts --bundle --outfile=client/out/main.js --external:vscode --format=cjs --platform=node",
 		"esbuild": "npm run esbuild-base -- --sourcemap",
 		"esbuild-watch": "npm run esbuild-base -- --sourcemap --watch",
 		"test-compile": "tsc -p ./",
 		"compile": "tsc -b ",
-		"watch": "tsc -b -w",
+		"watch": "npm run esbuild-watch",
 		"lint": "eslint ./client/src ./server/src --ext .ts,.tsx",
 		"postinstall": "cd client && npm install && cd ../server && npm install && cd ..",
 		"test": "sh ./scripts/e2e.sh"
-	},
-	"devDependencies": {
-		"@types/mocha": "^9.1.0",
-		"@types/node": "^16.18.34",
-		"@typescript-eslint/eslint-plugin": "^5.54.0",
-		"@typescript-eslint/parser": "^5.54.0",
-		"eslint": "^8.35.0",
-		"mocha": "^9.2.1",
-		"typescript": "^5.1.3"
 	}
 }

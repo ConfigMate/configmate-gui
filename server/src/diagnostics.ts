@@ -6,15 +6,19 @@ import {
 } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 
-export interface ExampleSettings {
+export interface ConfigMateSettings {
 	maxNumberOfProblems: number;
+	port: number;
 }
 
-const defaultSettings: ExampleSettings = { maxNumberOfProblems: 1000 };
+const defaultSettings: ConfigMateSettings = { 
+	maxNumberOfProblems: 1000,
+	port: 10006
+};
 
 export class DiagnosticManager {
-	private globalSettings: ExampleSettings = defaultSettings;
-	private documentSettings: Map<string, Thenable<ExampleSettings>> = new Map();
+	private globalSettings: ConfigMateSettings = defaultSettings;
+	private documentSettings: Map<string, Thenable<ConfigMateSettings>> = new Map();
 
 	constructor(
 		private connection: Connection, 
@@ -24,7 +28,7 @@ export class DiagnosticManager {
 	) { }
 
 	public async validateTextDocument(textDocument: TextDocument): Promise<void> {
-		let settings: ExampleSettings;
+		let settings: ConfigMateSettings;
 		if (this.hasConfigurationCapability)
 			settings = await this.getDocumentSettings(textDocument.uri);
 		else
@@ -72,14 +76,14 @@ export class DiagnosticManager {
 		return this.connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
 	}
 
-	private async getDocumentSettings(resource: string): Promise<ExampleSettings> {
+	private async getDocumentSettings(resource: string): Promise<ConfigMateSettings> {
 		if (!this.hasConfigurationCapability) return Promise.resolve(this.globalSettings);
 
 		let result = this.documentSettings.get(resource);
 		if (!result) {
 			result = this.connection.workspace.getConfiguration({
 				scopeUri: resource,
-				section: 'server'
+				section: 'configMateServer'
 			});
 			this.documentSettings.set(resource, result);
 		}
@@ -95,8 +99,8 @@ export class DiagnosticManager {
 	}
 
 	public updateGlobalSettings(change: DidChangeConfigurationParams): void {
-		this.globalSettings = <ExampleSettings>(
-			change.settings.server || defaultSettings
+		this.globalSettings = <ConfigMateSettings>(
+			change.settings.configMateServer || defaultSettings
 		);
 	}
 }
