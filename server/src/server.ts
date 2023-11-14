@@ -4,9 +4,6 @@ import {
 	ProposedFeatures,
 	InitializeParams,
 	TextDocumentSyncKind,
-	TextDocumentPositionParams,
-	CompletionItem,
-	CompletionItemKind,
 	DidChangeConfigurationParams,
 	InitializeResult,
 	DidChangeConfigurationNotification
@@ -14,12 +11,14 @@ import {
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { DiagnosticManager } from './diagnostics';
 import { ConfigMateManager } from './configmate';
+import { CodeCompletionManager } from './completion';
 
 const connection = createConnection(ProposedFeatures.all);
 const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
 
 let diagnosticManager: DiagnosticManager;
 let configMateManager: ConfigMateManager;
+let codeCompletionManager: CodeCompletionManager;
 
 let hasConfigurationCapability = false;
 let hasWorkspaceFolderCapability = false;
@@ -46,8 +45,8 @@ connection.onInitialize((params: InitializeParams) => {
 		hasWorkspaceFolderCapability, 
 		hasDiagnosticRelatedInformationCapability
 	);
-
 	configMateManager = new ConfigMateManager(connection);
+	codeCompletionManager = new CodeCompletionManager(connection);
 
 	const result: InitializeResult = {
 		capabilities: {
@@ -84,11 +83,8 @@ connection.onInitialized(() => {
 });
 
 connection.onDidChangeConfiguration((change: DidChangeConfigurationParams) => {
-	if (hasConfigurationCapability) {
-		diagnosticManager.clearDocumentSettings();
-	} else {
-		diagnosticManager.updateGlobalSettings(change);
-	}
+	if (hasConfigurationCapability) diagnosticManager.clearDocumentSettings();
+	else diagnosticManager.updateGlobalSettings(change);
 
 	documents.all().forEach((doc) => void diagnosticManager.validateTextDocument(doc));
 });
@@ -98,53 +94,11 @@ documents.onDidClose(e => diagnosticManager.removeDocumentSettings(e.document.ur
 documents.onDidChangeContent(async (change) => 
 	await diagnosticManager.validateTextDocument(change.document)
 );
-connection.onDidChangeWatchedFiles(_change => connection.console.log(`File change: ${_change.changes[0].uri}`));
-
-// This handler provides the initial list of the code completion suggestions.
-connection.onCompletion(
-	(_textDocumentPosition: TextDocumentPositionParams): CompletionItem[] => {
-		connection.console.log(`${_textDocumentPosition.textDocument.uri}}`);
-
-		// The pass parameter contains the position of the text document in
-		// which code complete got requested. For the example we ignore this
-		// info and always provide the same completion items.
-		return [
-			{
-				label: 'TypeScript',
-				kind: CompletionItemKind.Text,
-				data: 1
-			},
-			{
-				label: 'JavaScript',
-				kind: CompletionItemKind.Text,
-				data: 2
-			}
-		];
-	}
+connection.onDidChangeWatchedFiles(_change => 
+	connection.console.log(`File change: ${_change.changes[0].uri}`)
 );
 
-// This handler resolves additional information for the item selected in
-// the completion list.
-connection.onCompletionResolve(
-	(item: CompletionItem): CompletionItem => {
-		if (item.data === 1) {
-			item.detail = 'TypeScript details';
-			item.documentation = 'TypeScript documentation';
-		} else if (item.data === 2) {
-			item.detail = 'JavaScript details';
-			item.documentation = 'JavaScript documentation';
-		}
-		return item;
-	}
-);
-
-connection.onShutdown(() => {
-	configMateManager.handleShutdown();
-});
-
-connection.onExit(() => {
-	configMateManager.handleShutdown();
-});
-
+connection.onShutdown(() => configMateManager.handleShutdown());
+connection.onExit(() => configMateManager.handleShutdown());
 documents.listen(connection);
 connection.listen();

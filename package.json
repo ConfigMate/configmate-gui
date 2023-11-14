@@ -181,10 +181,10 @@
 		"vscode:prepublish": "npm run esbuild-base -- --minify",
 		"esbuild-base": "esbuild ./client/src/extension.ts --bundle --outfile=client/out/main.js --external:vscode --format=cjs --platform=node",
 		"esbuild": "npm run esbuild-base -- --sourcemap",
-		"esbuild-watch": "npm run esbuild-base -- --sourcemap --watch",
+		"esbuild-watch": "npm run esbuild-base -- --sourcemap --watch=forever",
 		"test-compile": "tsc -p ./",
 		"compile": "tsc -b ",
-		"watch": "npm run esbuild-watch",
+		"watch": "npm run esbuild-watch & npm run compile -- --watch",
 		"lint": "eslint ./client/src ./server/src --ext .ts,.tsx",
 		"postinstall": "cd client && npm install && cd ../server && npm install && cd ..",
 		"test": "sh ./scripts/e2e.sh"
