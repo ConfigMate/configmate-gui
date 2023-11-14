@@ -161,6 +161,18 @@
 			}
 		]
 	},
+	"configuration": {
+		"type": "object",
+		"title": "Example configuration",
+		"properties": {
+			"languageServerExample.maxNumberOfProblems": {
+				"scope": "resource",
+				"type": "number",
+				"default": 100,
+				"description": "Controls the maximum number of problems produced by the server."
+			}
+		}
+	},
 	"configurationDefaults": {
 		"cmrb": {
 			"editor.semanticHighlighting.enabled": true

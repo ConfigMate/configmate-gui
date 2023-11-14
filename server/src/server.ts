@@ -1,7 +1,3 @@
-/* --------------------------------------------------------------------------------------------
- * Copyright (c) Microsoft Corporation. All rights reserved.
- * Licensed under the MIT License. See License.txt in the project root for license information.
- * ------------------------------------------------------------------------------------------ */
 import {
 	createConnection,
 	TextDocuments,
@@ -61,24 +57,19 @@ function startAntlrProcess() {
 	antlrProcess?.stderr?.on('data', (data) => {
 		console.error(`ANTLR CLI error: ${data as string}`);
 	});
-
-	// antlrProcess.on('close', (code) => {
-	// 	console.log(`ANTLR CLI process exited with code ${code}`);
-	// 	antlrProcess = null;
-	// 	if (!isShuttingDown) {
-	// 		restartAttempts++;
-	// 		console.log('Attempting to restart ANTLR CLI...');
-	// 		startAntlrProcess();
-	// 	}
-	// });
 }
 // Cleanup the ANTLR process when the server is shut down
 function cleanUpAntlrProcess() {
-	if (antlrProcess && antlrProcess.pid) {
-		process.kill(-antlrProcess.pid);
-		antlrProcess = null;
+	if (antlrProcess && !antlrProcess.killed && antlrProcess.pid) {
+		// Send SIGKILL to the process group
+		process.kill(-antlrProcess.pid, 'SIGKILL');
+		antlrProcess.on('close', () => {
+			antlrProcess = null;
+		});
 	}
 }
+
+
 
 connection.onInitialize((params: InitializeParams) => {
 
@@ -183,8 +174,8 @@ documents.onDidClose(e => {
 
 // The content of a text document has changed. This event is emitted
 // when the text document first opened or when its content has changed.
-documents.onDidChangeContent(change => {
-	validateTextDocument(change.document);
+documents.onDidChangeContent(async change => {
+	await validateTextDocument(change.document);
 });
 
 async function validateTextDocument(textDocument: TextDocument): Promise<void> {
@@ -231,7 +222,7 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
 	}
 
 	// Send the computed diagnostics to VSCode.
-	connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
+	return connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
 }
 
 connection.onDidChangeWatchedFiles(_change => {

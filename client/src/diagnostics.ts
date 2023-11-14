@@ -4,7 +4,6 @@ import * as vscode from 'vscode';
 import { cmResponseNode, Token } from './models';
 import * as utils from './utils';
 import { RulebookFile } from './rulebooks';
-// import path = require('path');
 
 export class DiagnosticsProvider {
 	activeEditor: vscode.TextEditor | undefined = undefined;

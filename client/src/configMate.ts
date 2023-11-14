@@ -6,12 +6,9 @@ import { RulebookFile } from './rulebooks';
 import * as toml from 'toml';
 
 export class ConfigMateProvider {
-	// private goServer!: cp.ChildProcess;
-
 	constructor(context: vscode.ExtensionContext,
 		diagnosticsProvider: DiagnosticsProvider) {
 
-		// const killServer = this.runServer(context);
 		context.subscriptions.push(
 			vscode.commands.registerCommand('configMate.check',
 				async (node: RulebookFile) => {
@@ -20,7 +17,6 @@ export class ConfigMateProvider {
 					await diagnosticsProvider.parseResponse(response, node);
 				}
 			)
-			// killServer
 		);
 	}
 
@@ -87,38 +83,10 @@ export class ConfigMateProvider {
 			// console.error(error.response.data);
 			const currentLocation = vscode.workspace.workspaceFolders?.[0].uri.fsPath;
 			console.error("Working path: " + currentLocation);
-			console.error("Filepath: " + filepath)
-			// switch (error.code.status) {
-			// 	case 400:
-			// 		await vscode.window.showErrorMessage("Invalid request");
-			// 		break;
-			// 	case 404:
-			// 		await vscode.window.showErrorMessage("Go server not running");
-			// 		break;
-			// }
+			console.error("Filepath: " + filepath);
 		}
 		return data;
 	}
-
-	// runServer = (context: vscode.ExtensionContext) => {
-	// 	const serverPath = vscode.Uri.joinPath(context.extensionUri, "configmate");
-	// 	const dispose: vscode.Disposable = { dispose: () => this.goServer.kill() };
-
-	// 	this.goServer = cp.exec(`npm run server`, { cwd: serverPath.fsPath},
-	// 	(error, stdout, stderr) => {
-	// 		if (error) {
-	// 			void vscode.window.showErrorMessage(`Error running Go server: ${error.message}`);
-	// 			return dispose;
-	// 		}
-	// 		if (stdout) console.log(`stdout: ${stdout}`);
-	// 		if (stderr) console.error(`stderr: ${stderr}`);
-	// 	});
-
-
-	// 	// console.log("Go server running!");
-
-	// 	return dispose;
-	// };
 
 	createRulebook = async (uri: vscode.Uri): Promise<Rulebook> => {
 		// use configmate api to create rulebook
