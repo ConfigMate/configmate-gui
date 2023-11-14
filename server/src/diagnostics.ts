@@ -9,11 +9,17 @@ import { TextDocument } from 'vscode-languageserver-textdocument';
 export interface ConfigMateSettings {
 	maxNumberOfProblems: number;
 	port: number;
+	trace: {
+		server: 'off' | 'messages' | 'verbose';
+	};
 }
 
 const defaultSettings: ConfigMateSettings = { 
 	maxNumberOfProblems: 1000,
-	port: 10006
+	port: 10006,
+	trace: {
+		server: 'verbose'
+	}
 };
 
 export class DiagnosticManager {
