@@ -91,8 +91,8 @@ export class SemanticTokensManager {
                             tokenModifiers: tokenData.tokenModifiers 
                         });
                         startCharacter += length;
-                        lineText = lineText.slice(startCharacter);
-                        break;
+                        // lineText = lineText.slice(startCharacter);
+                        // break;
                     }
                 }
                 if (!matched)
