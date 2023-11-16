@@ -28,10 +28,11 @@ interface Token {
 export class SemanticTokensManager {  
     tokenSpecs = [
         { regex: /\b(?:file|spec|type|default|description|notes)\b/g, type: 'keyword' },
-        // { regex: /\b[A-Za-z_][A-Za-z0-9_]*\b/g, type: 'label' },
+        { regex: /\b[A-Za-z_][A-Za-z0-9_]*\b/g, type: 'label' },
         { regex: /\b\d+(\.\d+)?\b/g, type: 'number' },
-        // { regex: /["][A-Za-z0-9_,.?!// ]*["]/g, type: 'string' },
+        { regex: /["][A-Za-z0-9_,.?!// ]*["]/g, type: 'string' },
         { regex: /[=+\-;:,.]/g, type: 'operator' },
+        { regex: /\b(?:true|false)\b/g, type: 'enum' },
         // Add more patterns if necessary
     ];
 
