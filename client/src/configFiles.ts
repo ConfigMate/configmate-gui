@@ -54,10 +54,11 @@ export class ConfigFileProvider implements vscode.TreeDataProvider<ConfigFile> {
 			};
 			return file;
 		}
-	);
+		);
 
 	getTreeItem = (element: ConfigFile): vscode.TreeItem => element;
-	getChildren = (element?: ConfigFile): Promise<ConfigFile[]> => element ? Promise.resolve([]) : Promise.resolve(this.configFiles);
+	getChildren = (element?: ConfigFile): Promise<ConfigFile[]> =>
+		element ? Promise.resolve([] as ConfigFile[]) : Promise.resolve(this.configFiles);
 
 	openConfigFile = async (filepath: string): Promise<void> => {
 		try {
@@ -66,8 +67,8 @@ export class ConfigFileProvider implements vscode.TreeDataProvider<ConfigFile> {
 			await vscode.commands.executeCommand('vscode.open', uri)
 			const document = await vscode.workspace.openTextDocument(uri);
 			await vscode.window.showTextDocument(document);
-		} catch (error) { 
-			await vscode.window.showErrorMessage(`Error opening config file: ${error as string}`); 
+		} catch (error) {
+			await vscode.window.showErrorMessage(`Error opening config file: ${error as string}`);
 		}
 	};
 
@@ -76,8 +77,8 @@ export class ConfigFileProvider implements vscode.TreeDataProvider<ConfigFile> {
 			await vscode.workspace.fs.rename(uri, newUri);
 			// await this.rulebookFileProvider.changeConfigFileUri(uri, newUri);
 			// refresh
-		} catch (error) { 
-			await vscode.window.showErrorMessage(`Error renaming config file: ${error as string}`); 
+		} catch (error) {
+			await vscode.window.showErrorMessage(`Error renaming config file: ${error as string}`);
 		}
 	};
 }
@@ -92,7 +93,7 @@ export class ConfigFileExplorer {
 		this.configFileProvider = new ConfigFileProvider(rulebookFileProvider);
 		context.subscriptions.push(vscode.window.registerTreeDataProvider('configFiles', this.configFileProvider));
 
-		this.configFileTreeView = vscode.window.createTreeView('configFiles', 
+		this.configFileTreeView = vscode.window.createTreeView('configFiles',
 			{ treeDataProvider: this.configFileProvider });
 
 		const { registerCommand } = vscode.commands;

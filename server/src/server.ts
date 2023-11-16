@@ -18,7 +18,6 @@ const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
 
 let diagnosticManager: DiagnosticManager;
 let configMateManager: ConfigMateManager;
-let codeCompletionManager: CodeCompletionManager;
 
 let hasConfigurationCapability = false;
 let hasWorkspaceFolderCapability = false;
@@ -46,7 +45,7 @@ connection.onInitialize((params: InitializeParams) => {
 		hasDiagnosticRelatedInformationCapability
 	);
 	configMateManager = new ConfigMateManager(connection);
-	codeCompletionManager = new CodeCompletionManager(connection);
+	new CodeCompletionManager(connection);
 
 	const result: InitializeResult = {
 		capabilities: {

@@ -7,7 +7,7 @@ import { DiagnosticsProvider } from './configDiagnostics';
 
 export class ConfigMateProvider {
 	constructor(
-		context: vscode.ExtensionContext, 
+		context: vscode.ExtensionContext,
 		private diagnosticsProvider: DiagnosticsProvider
 	) {
 		context.subscriptions.push(
@@ -106,7 +106,8 @@ This is whether or not SSL is enabled.
 		}
 	}
 
-	getRulebookFromUri = async (uri: vscode.Uri): Promise<Rulebook> => {
+	getRulebookFromUri = async (): Promise<Rulebook> => {
+		// getRulebookFromUri = async (uri: vscode.Uri): Promise<Rulebook> => {
 		// use configmate api to get rulebook
 		const mock = {
 			"name": "Rulebook name",

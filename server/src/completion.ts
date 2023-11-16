@@ -13,6 +13,7 @@ export class CodeCompletionManager {
 
 	// Provides the initial list of the code completion suggestions.
 	private initCodeComplete = (_textDocumentPosition: TextDocumentPositionParams): CompletionItem[] => {
+		console.log(_textDocumentPosition);
 		// _textDocumentPosition: position in doc in which code complete got requested.
 		// Currently ignores this info and always provides the same completion items.
 		return [
