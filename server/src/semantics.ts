@@ -28,10 +28,10 @@ interface Token {
 export class SemanticTokensManager {  
     tokenSpecs = [
         { regex: /\b(?:file|spec|type|default|description|notes)\b/g, type: 'keyword' },
-        // { regex: /\b[A-Za-z_][A-Za-z0-9_]*\b/g, type: 'identifier' },
-        // { regex: /\d+(\.\d+)?/g, type: 'number' },
+        // { regex: /\b[A-Za-z_][A-Za-z0-9_]*\b/g, type: 'label' },
+        { regex: /\b\d+(\.\d+)?\b/g, type: 'number' },
         // { regex: /["][A-Za-z0-9_,.?!// ]*["]/g, type: 'string' },
-        // { regex: /[=+\-;(){}[],.]/g, type: 'operator' },
+        { regex: /[=+\-;:,.]/g, type: 'operator' },
         // Add more patterns if necessary
     ];
 
@@ -66,35 +66,6 @@ export class SemanticTokensManager {
         return result;
     }
 
-    private _parseText(text: string): Token[] {
-        const tokens: Token[] = [];
-        const lines = text.split(/\r\n|\r|\n/);
-        for (let i = 0; i < lines.length; i++) {
-            const line = lines[i];
-            let currentOffset = 0;
-            do {
-                const openOffset = line.indexOf('[|(|{|<', currentOffset);
-                if (openOffset === -1) {
-                    break;
-                }
-                const closeOffset = line.indexOf('[|(|{|<', openOffset);
-                if (closeOffset === -1) {
-                    break;
-                }
-                const tokenData = this._parseTextToken(line.substring(openOffset + 1, closeOffset));
-                tokens.push({
-                    line: i,
-                    startCharacter: openOffset + 1,
-                    length: closeOffset - openOffset - 1,
-                    tokenType: tokenData.tokenType,
-                    tokenModifiers: tokenData.tokenModifiers
-                });
-                currentOffset = closeOffset;
-            } while (currentOffset < line.length && currentOffset !== -1);
-        }
-        return tokens;
-    }
-
     private tokenizeCMSDocument = (text: string): Token[] => {
 
         const tokens: Token[] = [];
@@ -110,19 +81,22 @@ export class SemanticTokensManager {
                         matched = true;
                         const length = match[0].length;
                         startCharacter = lineText.indexOf(match[0]);
+                        console.log(match[0]);
+                        const tokenData = this._parseTextToken(match[0]);
                         tokens.push({
                             line, 
                             startCharacter, 
                             length, 
                             tokenType: type, 
-                            tokenModifiers: [] });
+                            tokenModifiers: tokenData.tokenModifiers 
+                        });
                         startCharacter += length;
-                        lineText = lineText.slice(startCharacter, startCharacter + length);
+                        lineText = lineText.slice(startCharacter);
                         break;
                     }
                 }
                 if (!matched)
-                    lineText = lineText.slice(startCharacter, ++startCharacter);
+                    lineText = lineText.slice(1);
             }
             line++;
         });
