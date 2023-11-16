@@ -1,0 +1,30 @@
+{
+	"name": "configmate-language-client",
+	"description": "Graphical editing using ConfigMate",
+	"author": "Kathleen Minckler",
+	"publisher": "ConfigMate",
+	"version": "0.0.1",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/ConfigMate/configmate-gui"
+	},
+	"engines": {
+		"vscode": "^1.75.0"
+	},
+	"dependencies": {
+		"vscode-languageclient": "^8.1.0",
+		"axios": "^1.6.0",
+		"toml": "^3.0.0"
+	},
+	"devDependencies": {
+		"@types/vscode": "^1.75.1",
+		"@vscode/test-electron": "^2.2.3",
+		"@types/glob": "^8.1.0",
+		"@types/mocha": "^10.0.1",
+		"@types/node": "^16.18.34",
+		"esbuild": "^0.19.5",
+		"mocha": "^10.2.0",
+		"url": "^0.11.3"
+	}
+}

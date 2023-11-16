@@ -4,7 +4,6 @@ import * as vscode from 'vscode';
 import { cmResponseNode, Token } from './models';
 import * as utils from './utils';
 import { RulebookFile } from './rulebooks';
-// import path = require('path');
 
 export class DiagnosticsProvider {
 	activeEditor: vscode.TextEditor | undefined = undefined;
@@ -36,8 +35,8 @@ export class DiagnosticsProvider {
 			for (const node of failed) {
 				const {result_comment, token_list} = node;
 				if (!token_list) continue;
-				console.log(node);
-				if (result_comment) console.log(`ConfigMate: ${result_comment}`);
+				// console.log(node);
+				// if (result_comment) console.log(`ConfigMate: ${result_comment}`);
 				token_list.map(async token => {
 					const range = this.parseToken(token);
 
@@ -47,7 +46,7 @@ export class DiagnosticsProvider {
 					ranges.push(range);
 				});
 			}
-		} catch(error) {
+		} catch (error) {
 			console.error(error);
 			await vscode.window.showWarningMessage(`Couldn't parse a ConfigMate response: ${error as string}`);
 		}

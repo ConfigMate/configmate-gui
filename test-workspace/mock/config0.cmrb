@@ -29,5 +29,5 @@ type = "bool"
 checks = ["eq(false)"]
 default = false
 notes = """
-This is whether or not SSL is enabled.
+This is whether or not SSL is enabled
 """

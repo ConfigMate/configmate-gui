@@ -14,7 +14,7 @@
             ],
             "sourceMaps": true,
             "outFiles": [
-                "${workspaceRoot}/out/**/*.js"
+                "${workspaceRoot}/client/out/**/*.js"
             ],
             "preLaunchTask": "npm: watch"
         },
@@ -22,11 +22,13 @@
             "type": "node",
             "request": "attach",
             "name": "Attach to Extension Host",
-            "port": 5870,
-            "restart": true,
+            "port": 10006,
+            "restart": false,
+            "sourceMaps": true,
             "outFiles": [
-                "${workspaceRoot}/out"
-            ]
+                "${workspaceRoot}/client/out/**/*.js"
+            ],
+            "preLaunchTask": "npm: watch"
         },
         {
             "type": "extensionHost",

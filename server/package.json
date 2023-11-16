@@ -1,0 +1,20 @@
+{
+	"name": "configmate-language-server",
+	"description": "Language support for ConfigMate",
+	"author": "Kathleen Minckler",
+	"publisher": "ConfigMate",
+	"version": "1.0.0",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/ConfigMate/configmate-gui"
+	},
+	"engines": {
+		"node": "*"
+	},
+	"dependencies": {
+		"vscode-languageserver": "^8.1.0",
+		"vscode-languageserver-textdocument": "^1.0.8",
+		"child_process": "^1.0.2"
+	}
+}

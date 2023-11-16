@@ -19,14 +19,14 @@ export class RulebookFile extends vscode.TreeItem {
 
 	public getConfigFilePath(config: string): string {
 		const configPath = this.rulebook.files[config].path;
-		return path.resolve(vscode.workspace.workspaceFolders![0].uri.fsPath, configPath);
+		return path.resolve(vscode.workspace.workspaceFolders[0].uri.fsPath, configPath);
 	}
 
 	public getConfigFilePaths(): string[] {
 		const configFiles: string[] = [];
 		for (const config of Object.values(this.rulebook.files)) {
 			if (!config.path) continue;
-			configFiles.push(path.resolve(vscode.workspace.workspaceFolders![0].uri.fsPath, config.path));
+			configFiles.push(path.resolve(vscode.workspace.workspaceFolders[0].uri.fsPath, config.path));
 		}
 		return configFiles;
 	}
@@ -64,14 +64,8 @@ export class RulebookFileProvider implements vscode.TreeDataProvider<RulebookFil
 			const filepath: string = uri.fsPath;
 			try {
 				const label = utils.uriToFilename(uri);
-				const rulebook = await this.configMateProvider.getRulebook(uri);
-				// const rulebook = this.parseRulebook(contents);
+				const rulebook = await this.configMateProvider.getRulebookFromUri(uri);
 				const file = new RulebookFile(label, filepath, rulebook);
-				// file.command = {
-				// 	command: 'rulebooks.openRulebook',
-				// 	title: 'Open Rulebook',
-				// 	arguments: [filepath]
-				// };
 				rulebookFiles.push(file);
 			} catch (error) { console.error(`Error parsing rulebook file ${filepath}: `, error); }
 		}
@@ -89,21 +83,6 @@ export class RulebookFileProvider implements vscode.TreeDataProvider<RulebookFil
 			await vscode.window.showErrorMessage(`Error opening rulebook file: ${error as string}`);
 		}
 	};
-
-
-	parseRulebook = (contents: string): Rulebook => {
-		let rulebook = {} as Rulebook;
-		try {
-			rulebook = JSON.parse(contents) as Rulebook;
-			const { name, description, files, rules } = rulebook;
-			if (!name || !description || !files || !rules)
-				throw new Error(`Rulebook file is missing required fields.`);
-		} catch (error) {
-			console.error(`Error parsing rulebook content: ${error as string}`);
-		}
-		return rulebook;
-	};
-
 
 	addRulebook = async (uri: vscode.Uri): Promise<RulebookFile> => {
 		try {
@@ -133,24 +112,6 @@ export class RulebookFileProvider implements vscode.TreeDataProvider<RulebookFil
 		} catch (error) { console.error(`Error deleting rulebook ${uri.fsPath}: `, error); }
 	}
 
-	saveRulebook = async (uri: vscode.Uri, text: string): Promise<void> => {
-		try {
-			const filepath: string = uri.fsPath;
-			const rulebook: Rulebook = this.parseRulebook(text);
-			const rulebookFiles = await this.getChildren();
-			for (const rulebookFile of rulebookFiles) {
-				if (rulebookFile.filepath !== filepath) continue;
-				rulebookFile.rulebook = rulebook;
-				// rulebookFile.filepath = filepath;
-				this.refresh(rulebookFile);
-				console.log(filepath);
-				break;
-			}
-		} catch (error) { 
-			await vscode.window.showErrorMessage(`Error: ${error as string}`); 
-		}
-	};
-
 	getRulebookFile = async (uri: vscode.Uri): Promise<RulebookFile> => {
 		const rulebooks: RulebookFile[] = await this.getChildren();
 		for (const rulebook of rulebooks)
@@ -177,10 +138,6 @@ export class RulebookExplorer {
 
 		const { registerCommand } = vscode.commands;
 		context.subscriptions.push(
-			vscode.workspace.onDidSaveTextDocument(async (doc: vscode.TextDocument) =>
-				(doc.uri.fsPath.endsWith('cmrb')) ?
-				await this.rulebookFileProvider.saveRulebook(doc.uri, doc.getText()) : 
-				null),
 			registerCommand('rulebooks.refreshRulebooks', () => 
 				this.rulebookFileProvider.refresh()
 			),
@@ -191,9 +148,6 @@ export class RulebookExplorer {
 					await this.rulebookTreeView.reveal(file, { select: true, focus: true });
 				}
 			}),
-			// registerCommand('rulebooks.openRulebook', async (filepath: string) =>
-			// 	await this.rulebookFileProvider.openRulebook(filepath)
-			// ),
 			registerCommand('rulebooks.deleteRulebook', async (rulebook: RulebookFile) =>
 				await this.rulebookFileProvider.deleteRulebook(rulebook)
 			),

@@ -1,75 +1,45 @@
 import * as vscode from 'vscode';
 import { cmResponseNode, cmRequest, Rulebook } from './models';
 import axios from 'axios';
-import * as cp from 'child_process';
-import { DiagnosticsProvider } from './diagnostics';
 import { RulebookFile } from './rulebooks';
 import * as toml from 'toml';
+import { DiagnosticsProvider } from './configDiagnostics';
 
 export class ConfigMateProvider {
-	private goServer!: cp.ChildProcess;
-
-	constructor(context: vscode.ExtensionContext, 
-		diagnosticsProvider: DiagnosticsProvider) {
-
-		const killServer = this.runServer(context);
+	constructor(
+		context: vscode.ExtensionContext,
+		private diagnosticsProvider: DiagnosticsProvider
+	) {
 		context.subscriptions.push(
 			vscode.commands.registerCommand('configMate.check',
 				async (node: RulebookFile) => {
 					const response = await this.check(node.filepath);
+					if (!response) return;
 					await diagnosticsProvider.parseResponse(response, node);
 				}
-			),
-			killServer
+			)
 		);
 	}
 
-	check = async (filepath: string): Promise<cmResponseNode[]> => {
-		if (!this.goServer) {
-			await vscode.window.showErrorMessage("Go server not running");
-			return {} as cmResponseNode[];
+	check = async (filepath: string): Promise<cmResponseNode[] | null> => {
+		try {
+			// debug logging:
+			// const message = `Checking ${filepath} with ConfigMate`;
+			// console.log(message);
+			// void vscode.window.showInformationMessage(message);
+			return await this.sendRequest(filepath);
+		} catch (error) {
+			console.error(error);
+			return null;
 		}
-		const message = `Checking ${filepath} with ConfigMate`;
-		console.log(message);
-		void vscode.window.showInformationMessage(message);
-		return await this.sendRequest(filepath);
-	};
-
-	mockRequest = async (rulebookFilepath: string, configFilepath?: string): Promise<cmResponseNode> => {
-		const mockConfigFiles = await vscode.workspace.findFiles('**/testConfig.json', '**/node_modules/**', 1);
-		// const mockRequest: cmRequest = {rulebook: mockRulebook.fsPath};
-		if (mockConfigFiles.length < 1) {
-			console.error("No mock config files found");
-			return {} as cmResponseNode;
-		}
-		const mockResponse: cmResponseNode = {
-			passed: false,
-			result_comment: "This is a mock response",
-			token_list: [
-				{
-					file: configFilepath || mockConfigFiles[0].fsPath,
-					location: {
-						start: {
-							column: 0,
-							line: 0,
-						},
-						end: {
-							column: 17,
-							line: 5
-						}
-					}
-				}
-			]
-		};
-		return mockResponse;
 	};
 
 	async sendRequest(filepath: string): Promise<cmResponseNode[]> {
 		const url: string = 'http://localhost:10007/api/check';
 		const request: cmRequest = {
-			rulebook_path: filepath
+			rulebook_path: filepath,
 		};
-		let data = [{}] as cmResponseNode[];
+		let data: cmResponseNode[] | null = null;
 
 		try {
 			const response = await axios({
@@ -78,34 +48,17 @@ export class ConfigMateProvider {
 				data: request
 			});
 
-			console.log(response.data);
+			// console.log(response.data);
 			data = response.data as cmResponseNode[];
 		} catch (error) {
 			console.error(error);
-		}	
 
+			const currentLocation = vscode.workspace.workspaceFolders?.[0].uri.fsPath;
+			console.error("Working path: " + currentLocation);
+			console.error("Filepath: " + filepath);
+		}
 		return data;
 	}
-
-	runServer = (context: vscode.ExtensionContext) => {
-		const serverPath = vscode.Uri.joinPath(context.extensionUri, "configmate");
-		const dispose: vscode.Disposable = { dispose: () => this.goServer.kill() };
-
-		this.goServer = cp.exec(`npm run server`, { cwd: serverPath.fsPath},
-		(error, stdout, stderr) => {
-			if (error) {
-				void vscode.window.showErrorMessage(`Error running Go server: ${error.message}`);
-				return dispose;
-			}
-			if (stdout) console.log(`stdout: ${stdout}`);
-			if (stderr) console.error(`stderr: ${stderr}`);
-		});
-
-				
-		// console.log("Go server running!");
-		
-		return dispose;
-	};
 
 	createRulebook = async (uri: vscode.Uri): Promise<Rulebook> => {
 		// use configmate api to create rulebook
@@ -153,7 +106,8 @@ This is whether or not SSL is enabled.
 		}
 	}
 
-	getRulebook = async (uri: vscode.Uri): Promise<Rulebook> => {
+	getRulebookFromUri = async (): Promise<Rulebook> => {
+		// getRulebookFromUri = async (uri: vscode.Uri): Promise<Rulebook> => {
 		// use configmate api to get rulebook
 		const mock = {
 			"name": "Rulebook name",
@@ -172,7 +126,7 @@ This is whether or not SSL is enabled.
 				}
 			]
 		};
-		if (uri) console.log(uri.fsPath);
+		// if (uri) console.log(uri.fsPath);
 		return Promise.resolve(mock as Rulebook);
 	}
 }
