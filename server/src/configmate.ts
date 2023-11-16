@@ -3,6 +3,9 @@ import path = require('path');
 import { spawn, ChildProcess } from 'child_process';
 
 export class ConfigMateManager {
+	handleResolve(params: any): any {
+		throw new Error('Method not implemented.');
+	}
 	private isShuttingDown = false;
 	private maxRestartAttempts = 3;
 	private restartAttempts = 0;

@@ -1,0 +1,29 @@
+file: ./examples/configurations/config0.json:json
+
+spec {
+    server <type: object> {
+        host <
+            type: string,
+            default: "localhost",
+            notes: "This is the host that the server will listen on."
+        > ( eq("localhost"); )
+
+        port <
+            type: int,
+            default: 80,
+            notes: "This is the port that the server will listen on."
+        > ( range(25, 100); )
+
+        ssl_enabled <
+            type: bool,
+            default: false,
+            notes: "This is whether or not SSL is enabled."
+        > ( eq(false); )
+
+        dns_servers <
+            type: list:string,
+            optional: true,
+            notes: "This is a list of DNS servers."
+        > ( len().gte(3); )
+    }
+}

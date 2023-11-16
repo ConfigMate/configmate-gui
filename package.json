@@ -16,9 +16,6 @@
 	"engines": {
 		"vscode": "^1.75.0"
 	},
-	"activationEvents": [
-		"onLanguage:plaintext"
-	],
 	"main": "./client/out/main",
 	"contributes": {
 		"configuration": {
@@ -50,6 +47,18 @@
 				}
 			}
 		},
+		"languages": [
+			{
+				"id": "cms",
+				"extensions": [
+					".cms"
+				],
+				"aliases": [
+					"CMS"
+				],
+				"configuration": "./server/src/language-configuration.json"
+			}
+		],
 		"views": {
 			"configmate": [
 				{
@@ -152,23 +161,10 @@
 					"group": "inline"
 				}
 			]
-		},
-		"semanticTokenTypes": [
-			{
-				"id": "templateType",
-				"superType": "type",
-				"description": "A template type."
-			}
-		],
-		"semanticTokenModifiers": [
-			{
-				"id": "native",
-				"description": "Annotates a symbol that is implemented natively"
-			}
-		]
+		}
 	},
 	"configurationDefaults": {
-		"cmrb": {
+		"cms": {
 			"editor.semanticHighlighting.enabled": true
 		}
 	},

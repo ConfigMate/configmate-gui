@@ -6,22 +6,39 @@ import {
 	TextDocumentSyncKind,
 	DidChangeConfigurationParams,
 	InitializeResult,
-	DidChangeConfigurationNotification
+	DidChangeConfigurationNotification,
+	ServerCapabilities,
+	SemanticTokensRequest,
+	SemanticTokensParams,
+	SemanticTokens
 } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { DiagnosticManager } from './diagnostics';
 import { ConfigMateManager } from './configmate';
 import { CodeCompletionManager } from './completion';
+import { SemanticTokensManager, legend } from './semantics';
 
 const connection = createConnection(ProposedFeatures.all);
 const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
 
 let diagnosticManager: DiagnosticManager;
 let configMateManager: ConfigMateManager;
+let semanticTokensManager: SemanticTokensManager;
 
 let hasConfigurationCapability = false;
 let hasWorkspaceFolderCapability = false;
 let hasDiagnosticRelatedInformationCapability = false;
+
+const defaultCapabilities: ServerCapabilities = {
+	textDocumentSync: TextDocumentSyncKind.Incremental,
+	completionProvider: {
+		resolveProvider: true
+	},
+	semanticTokensProvider: {
+		legend: legend,
+		full: true
+	}
+};
 
 connection.onInitialize((params: InitializeParams) => {
 	const capabilities = params.capabilities;
@@ -44,34 +61,23 @@ connection.onInitialize((params: InitializeParams) => {
 		hasConfigurationCapability,
 		hasDiagnosticRelatedInformationCapability
 	);
+
+	semanticTokensManager = new SemanticTokensManager();
 	configMateManager = new ConfigMateManager(connection);
 	new CodeCompletionManager(connection);
 
-	const result: InitializeResult = {
-		capabilities: {
-			textDocumentSync: TextDocumentSyncKind.Incremental,
-			completionProvider: {
-				resolveProvider: true
-			}
-		}
-	};
+	const result: InitializeResult = { capabilities: defaultCapabilities };
 
-	if (hasWorkspaceFolderCapability) {
-		result.capabilities.workspace = {
-			workspaceFolders: {
-				supported: true
-			}
-		}
-	}
+	if (hasWorkspaceFolderCapability)
+		result.capabilities.workspace = { workspaceFolders: { supported: true } };
 
 	return result;
 });
 
 connection.onInitialized(() => {
-	if (hasConfigurationCapability) {
-		// Register for all configuration changes.
+	if (hasConfigurationCapability)
 		void connection.client.register(DidChangeConfigurationNotification.type, undefined);
-	}
+
 	if (hasWorkspaceFolderCapability) {
 		connection.workspace.onDidChangeWorkspaceFolders(_event => {
 			connection.console.log(`Workspace folder change: 
@@ -96,3 +102,15 @@ connection.onDidChangeWatchedFiles(_change =>
 connection.onShutdown(() => configMateManager.handleShutdown());
 connection.onExit(() => configMateManager.handleShutdown());
 connection.listen();
+
+// connection.onRequest('configmate/resolve', (params) => 
+// 	configMateManager.handleResolve(params)
+// );
+connection.onRequest(SemanticTokensRequest.type, 
+	(params: SemanticTokensParams): SemanticTokens | null => {
+	const document = documents.get(params.textDocument.uri);
+	if (!document) return null;
+	return semanticTokensManager.provideDocumentSemanticTokens(document);
+});
+
+

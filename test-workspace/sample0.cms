@@ -1,0 +1,44 @@
+file: ./examples/configurations/sample_config.json:json
+
+spec {
+    console <type: object> {
+        isActive <
+            type: bool,
+            default: false,
+            notes: "This is a note for the rule. It can be used to provide additional information about the field, the rule, or the checks being applied."
+        > ( is(true); )
+    }
+
+    proxy <type: object> {
+        bindPort <
+            type: port,
+            default: 1009,
+            description: "Determines the port the proxy is bound to"
+        > ( range(1009, 3280); )
+
+        bindAddress <
+            type: host,
+            default: "some.host.com",
+            description: "Determines the address the proxy is bound to"
+        > ( is("some.host.com"); reachable(); join(bindPort).listening(); )
+
+        certification <type: object, optional: true> {
+            cert <
+                type: file,
+                default: "/path/to/cert.pem",
+                description: "The certification file"
+            > ( exists(); )
+
+            key <
+                type: file,
+                default: "/path/to/key.pem",
+                description: "The key file"
+            > ( exists(); )
+        }
+    }
+
+    dns_servers <
+        type: list:host,
+        description: "List of DNS servers"
+    > ( at(0).reachable(); )
+}

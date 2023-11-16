@@ -40,7 +40,7 @@ export class RulebookFileProvider implements vscode.TreeDataProvider<RulebookFil
 	private _onDidChangeTreeData: vscode.EventEmitter<RulebookFile | undefined | void> = new vscode.EventEmitter<RulebookFile | undefined | void>();
 	readonly onDidChangeTreeData: vscode.Event<RulebookFile | undefined | void> = this._onDidChangeTreeData.event;
 
-	constructor(private configMateProvider: ConfigMateProvider) {}
+	constructor(private configMateProvider: ConfigMateProvider) { }
 
 	onRulebookSelectionChanged = async (rulebooks: readonly RulebookFile[]): Promise<void> => {
 		await this.openRulebook(rulebooks[0].filepath);
@@ -56,7 +56,7 @@ export class RulebookFileProvider implements vscode.TreeDataProvider<RulebookFil
 	getChildren = async (element?: RulebookFile): Promise<RulebookFile[]> => {
 		if (element || !vscode.workspace.workspaceFolders) return [];
 
-		const pattern = '**/*.{cmrb}';
+		const pattern = '**/*.{cms}';
 		const uris = await vscode.workspace.findFiles(pattern, '**/node_modules/**', 1000);
 
 		const rulebookFiles: RulebookFile[] = [];
@@ -64,7 +64,7 @@ export class RulebookFileProvider implements vscode.TreeDataProvider<RulebookFil
 			const filepath: string = uri.fsPath;
 			try {
 				const label = utils.uriToFilename(uri);
-				const rulebook = await this.configMateProvider.getRulebookFromUri(uri);
+				const rulebook = await this.configMateProvider.getRulebookFromUri();
 				const file = new RulebookFile(label, filepath, rulebook);
 				rulebookFiles.push(file);
 			} catch (error) { console.error(`Error parsing rulebook file ${filepath}: `, error); }
@@ -91,8 +91,8 @@ export class RulebookFileProvider implements vscode.TreeDataProvider<RulebookFil
 			const file = await this.getRulebookFile(uri);
 			await this.onRulebookSelectionChanged([file]);
 			return Promise.resolve(file);
-		} catch (error) { 
-			await vscode.window.showErrorMessage(`Error creating rulebook: ${error as string}`); 
+		} catch (error) {
+			await vscode.window.showErrorMessage(`Error creating rulebook: ${error as string}`);
 			return Promise.reject(error);
 		}
 	};
@@ -124,25 +124,25 @@ export class RulebookExplorer {
 	private rulebookTreeView: vscode.TreeView<RulebookFile>;
 	private rulebookFileProvider: RulebookFileProvider;
 
-	constructor(context: vscode.ExtensionContext, 
+	constructor(context: vscode.ExtensionContext,
 		configMateProvider: ConfigMateProvider) {
 		this.rulebookFileProvider = new RulebookFileProvider(configMateProvider);
 		context.subscriptions.push(
 			vscode.window.registerTreeDataProvider('rulebooks', this.rulebookFileProvider
-		));
-		this.rulebookTreeView = vscode.window.createTreeView('rulebooks', 
+			));
+		this.rulebookTreeView = vscode.window.createTreeView('rulebooks',
 			{ treeDataProvider: this.rulebookFileProvider });
-		this.rulebookTreeView.onDidChangeSelection(async e => 
+		this.rulebookTreeView.onDidChangeSelection(async e =>
 			await this.rulebookFileProvider.onRulebookSelectionChanged(e.selection)
 		);
 
 		const { registerCommand } = vscode.commands;
 		context.subscriptions.push(
-			registerCommand('rulebooks.refreshRulebooks', () => 
+			registerCommand('rulebooks.refreshRulebooks', () =>
 				this.rulebookFileProvider.refresh()
 			),
 			registerCommand('rulebooks.addRulebook', async () => {
-				const uri = await vscode.window.showSaveDialog({ saveLabel: 'Create Rulebook', filters: { 'CMRB': ['cmrb'] } });
+				const uri = await vscode.window.showSaveDialog({ saveLabel: 'Create Rulebook', filters: { 'cms': ['cms'] } });
 				if (uri) {
 					const file = await this.rulebookFileProvider.addRulebook(uri);
 					await this.rulebookTreeView.reveal(file, { select: true, focus: true });
@@ -156,7 +156,7 @@ export class RulebookExplorer {
 
 	getTreeView = (): vscode.TreeView<RulebookFile> => this.rulebookTreeView;
 	getProvider = (): RulebookFileProvider => this.rulebookFileProvider;
-	getSelectedRulebook = (): RulebookFile | undefined => 
+	getSelectedRulebook = (): RulebookFile | undefined =>
 		this.rulebookTreeView.selection[0] || undefined;
 }
 
@@ -174,6 +174,6 @@ export const initRulebook = (filename: string): Rulebook => {
 			}
 		]
 	};
-	
+
 	return rulebook;
 };
