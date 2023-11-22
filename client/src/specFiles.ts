@@ -12,7 +12,7 @@ export class SpecFile extends vscode.TreeItem {
 		public specFile: Spec
 	) {
 		super(label, vscode.TreeItemCollapsibleState.None);
-		this.description = specFile.name;
+		this.description = filepath;
 		this.tooltip = specFile.description;
 		this.contextValue = 'specFile';
 	}
@@ -36,7 +36,8 @@ export class SpecFileProvider implements vscode.TreeDataProvider<SpecFile> {
 	private _onDidChangeTreeData: vscode.EventEmitter<SpecFile | undefined | void> = new vscode.EventEmitter<SpecFile | undefined | void>();
 	readonly onDidChangeTreeData: vscode.Event<SpecFile | undefined | void> = this._onDidChangeTreeData.event;
 
-	constructor(private configMateProvider: ConfigMateProvider) { }
+	// eslint-disable-next-line no-unused-vars
+	constructor(private readonly configMateProvider: ConfigMateProvider) { }
 
 	onSpecFileSelectionChanged = async (specFiles: readonly SpecFile[]): Promise<void> => {
 		await this.openSpecFile(specFiles[0].filepath);

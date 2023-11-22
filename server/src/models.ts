@@ -31,7 +31,7 @@ export interface checkResponseNode {
 	token_list: Token[]
 }
 
-export interface tokenResponse {
+export interface TokenResponse {
 	semantic_tokens: ParsedToken[]
 	error: string
 }

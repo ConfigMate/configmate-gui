@@ -5,8 +5,9 @@ import {
 	DidChangeConfigurationParams,
 	TextDocuments
 } from 'vscode-languageserver/node';
-import { Range, TextDocument } from 'vscode-languageserver-textdocument';
-import { Token } from './models';
+import { TextDocument } from 'vscode-languageserver-textdocument';
+// import { analyzeSpec } from './api';
+import { TokenResponse } from './models';
 
 interface ServerSettings {
 	settings: {
@@ -33,12 +34,13 @@ const defaultSettings: ConfigMateSettings = {
 export class DiagnosticManager {
 	private globalSettings: ConfigMateSettings = defaultSettings;
 	private documentSettings: Map<string, Thenable<ConfigMateSettings>> = new Map();
+	private settings: ConfigMateSettings = defaultSettings;
 
 	constructor(
 		private connection: Connection,
-		private documents: TextDocuments<TextDocument>,
-		private hasConfigurationCapability: boolean,
-		private hasDiagnosticRelatedInformationCapability: boolean
+		private readonly documents: TextDocuments<TextDocument>,
+		private readonly hasConfigurationCapability: boolean,
+		private readonly hasDiagnosticRelatedInformationCapability: boolean
 	) {
 		documents.onDidClose(e => this.removeDocumentSettings(e.document.uri));
 		documents.onDidChangeContent((change) => this.validate(change.document));
@@ -46,98 +48,44 @@ export class DiagnosticManager {
 	}
 
 	public async validate(textDocument: TextDocument): Promise<void> {
-		let settings: ConfigMateSettings;
-		if (this.hasConfigurationCapability)
-			settings = await this.getDocumentSettings(textDocument.uri);
-		else
-			settings = this.globalSettings;
-		
-		// Find problems using validation logic...
-		const text = textDocument.getText();
-		const pattern = /\b[A-Z]{2,}\b/g;
-		let m: RegExpExecArray | null;
-		let problems = 0;
-		const diagnostics: Diagnostic[] = [];
+		// if (this.hasConfigurationCapability)
+		// 	this.settings = await this.getDocumentSettings(textDocument.uri);
 
-		// iterate until the entire document is parsed or max problems reached
-		while ((m = pattern.exec(text)) && problems < settings.maxNumberOfProblems) {
-			problems++;
+		// const text = textDocument.getText();
+		// let problems = 0;
+		// const diagnostics: Diagnostic[] = [];
+		// const tokenResponse: TokenResponse = await analyzeSpec(text);
+		// if (!tokenResponse) return;
+		// console.log(tokenResponse);
 
-			// create a diagnostic object for each problem found
-			const diagnostic: Diagnostic = {
-				code: '', // for code actions
-				severity: DiagnosticSeverity.Warning,
-				range: {
-					start: textDocument.positionAt(m.index),
-					end: textDocument.positionAt(m.index + m[0].length)
-				},
-				message: `${m[0]} is all uppercase.`,
-				source: 'ConfigMate'
-			};
-			if (this.hasDiagnosticRelatedInformationCapability) {
-				/* diagnostic.relatedInformation.push({
-						location: {
-							uri: textDocument.uri,
-							range: Object.assign({}, diagnostic.range)
-						},
-						message: 'Spelling matters'
-				}) */
-			}
-			diagnostics.push(diagnostic);
-		}
+		// for (const token of tokenResponse.semantic_tokens) {
+		// 	if (problems >= this.settings.maxNumberOfProblems) break;
+		// 	problems++;
+		// 	const diagnostic: Diagnostic = {
+		// 		code: '',
+		// 		severity: DiagnosticSeverity.Information,
+		// 		range: {
+		// 			start: {line: token.line, character: token.column},
+		// 			end: { line: token.line, character: token.column + token.length }
+		// 		},
+		// 		message: 'token.text',
+		// 		source: 'ConfigMate'
+		// 	};
+		// 	if (this.hasDiagnosticRelatedInformationCapability) {
+		// 		/* diagnostic.relatedInformation.push({
+		// 				location: {
+		// 					uri: textDocument.uri,
+		// 					range: Object.assign({}, diagnostic.range)
+		// 				},
+		// 				message: 'Spelling matters'
+		// 		}) */
+		// 	}
+		// 	diagnostics.push(diagnostic);
+		// }
 
-		return this.connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
+		// return this.connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
 	}
 
-	private parseToken(token: Token): Range {
-		const { start: _start, end: _end } = token.location;
-		return {
-			start: {
-				line: _start.line - 1,
-				character: _start.column - 1
-			},
-			end: {
-				line: _end.line - 1,
-				character: _end.column
-			}
-		};
-	}
-
-	// private parseResponse = (response: cmResponseNode[]): Diagnostic[] => {
-	// 	try {
-	// 		const diagnostics: Diagnostic[] = [];
-	// 		const failed = response.filter(node => !node.passed);
-	// 		for (const node of failed) {
-	// 			const { result_comment, token_list } = node;
-	// 			if (!token_list) continue;
-	// 			token_list.map(token => {
-	// 				const range = this.parseToken(token);
-	// 				const diagnostic = Diagnostic.create(
-	// 					range,
-	// 					result_comment,
-	// 					DiagnosticSeverity.Error,
-	// 					'ConfigMate'
-	// 				);
-	// 				diagnostics.push(diagnostic);
-	// 			});
-	// 		}
-	// 		return diagnostics;
-	// 	} catch (error) {
-	// 		this.connection.console.error(`Couldn't parse a ConfigMate response: ${error as string}`);
-	// 		return [];
-	// 	}
-	// }
-// 	const minLength = Math.min(error_msgs.length, token_list.length);
-// 	for(let i = 0; i <minLength; i++) {
-// 	const error_msg = error_msgs[i];
-// 	const token = token_list[i];
-// 	const range = this.parseToken(token);
-
-// 	const filepath = specFile.getConfigFilePath(token.file);
-// 	this.activeEditor = await utils.openDoc(vscode.Uri.file(filepath));
-// 	this.updateDiagnostics(result_comment, check_num, range);
-// 	ranges.push(range);
-// }
 	// -------------- SETTINGS ----------------- //
 
 	private async getDocumentSettings(resource: string): Promise<ConfigMateSettings> {

@@ -10,8 +10,8 @@ export class ConfigFile extends vscode.TreeItem {
 		super(label, vscode.TreeItemCollapsibleState.None);
 		this.tooltip = label;
 		this.contextValue = 'configFile';
+		this.description = filepath;
 	}
-
 }
 
 export class ConfigFileProvider implements vscode.TreeDataProvider<ConfigFile> {
@@ -20,8 +20,8 @@ export class ConfigFileProvider implements vscode.TreeDataProvider<ConfigFile> {
 
 	private configFiles: ConfigFile[] = [];
 
-	constructor(private specFileProvider: SpecFileProvider) {
-		this.specFileProvider.onDidChangeTreeData((e) => {
+	constructor(specFileProvider: SpecFileProvider) {
+		specFileProvider.onDidChangeTreeData((e) => {
 			if (!e || Object.values(e.specFile.files).length < 1) {
 				this.configFiles = [];
 				this.refresh(undefined);

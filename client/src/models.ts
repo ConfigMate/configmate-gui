@@ -1,5 +1,6 @@
 export interface cmRequest { 
 	spec_file_path: string,
+	spec_file_content: number[]
 }
 
 export interface cmResponse {

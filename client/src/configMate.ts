@@ -68,8 +68,11 @@ spec {
 
 	async sendRequest(filepath: string): Promise<cmResponse> {
 		const url: string = 'http://localhost:10007/api/analyze_spec';
+		const uri = vscode.Uri.file(filepath);
+		const content = await this.readFile(uri);
 		const request: cmRequest = {
 			spec_file_path: filepath,
+			spec_file_content: content
 		};
 		let data: cmResponse | null = null;
 
@@ -90,6 +93,12 @@ spec {
 			console.error("Filepath: " + filepath);
 		}
 		return data;
+	}
+
+	readFile = async (uri: vscode.Uri): Promise<number[]> => {
+		const file = await vscode.workspace.fs.readFile(uri);
+		const buffer = Buffer.from(file);
+		return Array.from(buffer);
 	}
 
 	createSpecFile = async (uri: vscode.Uri): Promise<Spec> => {
@@ -120,17 +129,17 @@ spec {
 		if (!contents) throw new Error('No contents');
 
 		// get contents between "file: " and "spec {"
-		let start = contents.indexOf('file: ');
-		if (start != 0) throw new Error('Invalid specFile');
-		start += 6;
-		const end = contents.indexOf('\n\nspec {');
-		const fileLines = contents.substring(start, end);
+		// let start = contents.indexOf('file: ');
+		// if (start != 0) throw new Error('Invalid specFile');
+		// start += 6;
+		// const end = contents.indexOf('\n\nspec {');
+		// const fileLines = contents.substring(start, end);
 		
-		const configs = fileLines.split('\n');
-		configs.map(config => {
+		// const configs = fileLines.split('\n');
+		// configs.map(config => {
 			
-		});
-		console.log(configs);
+		// });
+		// console.log(configs);
 
 		const mock = {
 			"name": "specFile name",

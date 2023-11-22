@@ -1,7 +1,7 @@
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { SemanticTokens, SemanticTokensBuilder, SemanticTokensLegend } from "vscode-languageserver/node";
 import { getSemanticTokens } from "./api";
-import { tokenResponse, SemanticToken } from "./models";
+import { TokenResponse, SemanticToken } from "./models";
 
 const tokenTypes = new Map<string, number>();
 const tokenModifiers = new Map<string, number>();
@@ -73,7 +73,7 @@ export class SemanticTokensManager {
     }
 
     private tokenizeCMSDocument = async (fileContents: string): Promise<SemanticToken[]> => {
-        const response: tokenResponse = await getSemanticTokens(fileContents);
+        const response: TokenResponse = await getSemanticTokens(fileContents);
         if (!response) return;
         if (response.error) console.error(response.error);
         if (!response.semantic_tokens) return [];
