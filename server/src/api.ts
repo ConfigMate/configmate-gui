@@ -1,13 +1,11 @@
-import { cmRequest, tokenResponse } from "./models";
+import { tokenResponse } from "./models";
 import axios from 'axios';
 
 async function sendRequest(url: string, fileContents: string): Promise<tokenResponse> {
 	// convert content to byte[]
 	const contentBuffer = Buffer.from(fileContents, 'utf-8');
-	const contentBytes = {
-		content: Array.from(contentBuffer)
-	}
-	console.log(contentBytes);
+	const contentBytes = { content: Array.from(contentBuffer) };
+	// console.log(contentBytes);
 	let data: tokenResponse | null = null;
 	// const request = { content: contentBytes.data };
 	try {
