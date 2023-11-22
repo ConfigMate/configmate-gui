@@ -62,8 +62,8 @@
 		"views": {
 			"configmate": [
 				{
-					"id": "rulebooks",
-					"name": "Rulebooks",
+					"id": "specFiles",
+					"name": "specFiles",
 					"icon": "$(book)",
 					"contextualTitle": "ConfigMate"
 				},
@@ -77,12 +77,12 @@
 		},
 		"viewsWelcome": [
 			{
-				"view": "rulebooks",
-				"contents": "No rulebooks found.\n[Add Rulebook](command:rulebooks.addRulebook)"
+				"view": "specFiles",
+				"contents": "No specFiles found.\n[Add specFile](command:specFiles.addSpecFile)"
 			},
 			{
 				"view": "configFiles",
-				"contents": "Select a rulebook above to view its configuration files"
+				"contents": "Select a specFile above to view its configuration files"
 			}
 		],
 		"viewsContainers": {
@@ -96,23 +96,23 @@
 		},
 		"commands": [
 			{
-				"command": "rulebooks.openRulebook",
+				"command": "specFiles.openSpecFile",
 				"category": "Custom",
-				"title": "Open Rulebook"
+				"title": "Open specFile"
 			},
 			{
-				"command": "rulebooks.refreshRulebooks",
-				"title": "Refresh Rulebooks",
+				"command": "specFiles.refreshSpecFiles",
+				"title": "Refresh specFiles",
 				"icon": "$(refresh)"
 			},
 			{
-				"command": "rulebooks.addRulebook",
-				"title": "Add Rulebook",
+				"command": "specFiles.addSpecFile",
+				"title": "Add specFile",
 				"icon": "$(add)"
 			},
 			{
-				"command": "rulebooks.deleteRulebook",
-				"title": "Delete Rulebook",
+				"command": "specFiles.deleteSpecFile",
+				"title": "Delete specFile",
 				"icon": "$(trash)"
 			},
 			{
@@ -134,13 +134,13 @@
 		"menus": {
 			"view/title": [
 				{
-					"command": "rulebooks.refreshRulebooks",
-					"when": "view == rulebooks",
+					"command": "specFiles.refreshSpecFiles",
+					"when": "view == specFiles",
 					"group": "navigation"
 				},
 				{
-					"command": "rulebooks.addRulebook",
-					"when": "view == rulebooks",
+					"command": "specFiles.addSpecFile",
+					"when": "view == specFiles",
 					"group": "navigation"
 				},
 				{
@@ -152,12 +152,12 @@
 			"view/item/context": [
 				{
 					"command": "configMate.check",
-					"when": "view == rulebooks && viewItem == rulebook",
+					"when": "view == specFiles && viewItem == specFile",
 					"group": "inline"
 				},
 				{
-					"command": "rulebooks.deleteRulebook",
-					"when": "view == rulebooks && viewItem == rulebook",
+					"command": "specFiles.deleteSpecFile",
+					"when": "view == specFiles && viewItem == specFile",
 					"group": "inline"
 				}
 			]

@@ -72,7 +72,7 @@ export interface Rule {
 	args: string
 }
 
-export interface Rulebook {
+export interface Spec {
 	name: string,
 	description: string,
 	files: Config[],

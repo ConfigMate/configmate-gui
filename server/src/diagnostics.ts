@@ -133,7 +133,7 @@ export class DiagnosticManager {
 // 	const token = token_list[i];
 // 	const range = this.parseToken(token);
 
-// 	const filepath = rulebookFile.getConfigFilePath(token.file);
+// 	const filepath = specFile.getConfigFilePath(token.file);
 // 	this.activeEditor = await utils.openDoc(vscode.Uri.file(filepath));
 // 	this.updateDiagnostics(result_comment, check_num, range);
 // 	ranges.push(range);

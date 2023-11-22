@@ -7,9 +7,9 @@
 ## Features
 
 - 🔍 **Access to the ConfigMate CLI**: Run configuration checks directly within VS Code.
-- 📖 **Rulebook Management**: Define custom rules and manage predefined rulesets for tailored configuration checks.
+- 📖 **specFile Management**: Define custom rules and manage predefined rulesets for tailored configuration checks.
 - 📁 **Config File Management**: Handle config files within your project and select rules to narrow down your checks.
-- ✅ **In-Editor Validation**: Benefit from real-time error highlighting and descriptions when crafting rulebooks and config files.
+- ✅ **In-Editor Validation**: Benefit from real-time error highlighting and descriptions when crafting specFiles and config files.
 
 ## Getting Started
 

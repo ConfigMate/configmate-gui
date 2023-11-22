@@ -7,8 +7,8 @@ LAYOUT_LANDSCAPE()
 
 System_Boundary(extension, "ConfigMate VS Code Extension") {
 	System_Boundary(gui, "GUI [Activity Bar]") {
-		Container(rulebooks, "Rulebooks View", "TypeScript, VS Code API", "Graphical file manager\nfor .rulebook files\n(.json, .toml, .hocon)")
-		Container(configFiles, "Config Files View", "TypeScript, VS Code API", "Graphical file manager\nfor config files specified\nin selected rulebook(s)")
+		Container(specFiles, "specFiles View", "TypeScript, VS Code API", "Graphical file manager\nfor .specFile files\n(.json, .toml, .hocon)")
+		Container(configFiles, "Config Files View", "TypeScript, VS Code API", "Graphical file manager\nfor config files specified\nin selected specFile(s)")
 	}
 	Container(configmateProvider, "ConfigMate Provider", "TypeScript", "Runs the ConfigMate server, then routes API requests & responses appropriately")
 	Container(diagnosticsProvider, "Diagnostics Provider", "TypeScript, VS Code API", "Uses error data in response to add in-editor highlighting & diagnostic information")
@@ -18,9 +18,9 @@ Rel_U(configmateProvider, configmate, "\nRequest", "HTTPS/\nJSON")
 Rel_D(configmate, configmateProvider, "\nResponse", "HTTPS/\nJSON")
 Rel_U(configmateProvider, diagnosticsProvider, "Response", "JSON")
 
-Rel_R(rulebooks, configmateProvider, "Request", "VS Code\nCommand")
+Rel_R(specFiles, configmateProvider, "Request", "VS Code\nCommand")
 Rel_R(configFiles, configmateProvider, "Request", "VS Code\nCommand")
-Rel_L(diagnosticsProvider, rulebooks, "Response", "JSON")
+Rel_L(diagnosticsProvider, specFiles, "Response", "JSON")
 Rel_L(diagnosticsProvider, configFiles, "Response", "JSON")
 
 ' SHOW_FLOATING_LEGEND()

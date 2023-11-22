@@ -1,12 +1,12 @@
 import * as vscode from 'vscode';
-import { cmResponse, cmRequest, Rulebook } from './models';
+import { cmResponse, cmRequest, Spec } from './models';
 import axios from 'axios';
-import { RulebookFile } from './rulebooks';
+import { SpecFile } from './specFiles';
 import * as toml from 'toml';
 import { DiagnosticsProvider } from './configDiagnostics';
 
 export class ConfigMateProvider {
-	mockRulebook: string = `file: "./examples/configurations/config0.json" json
+	mockSpecFile: string = `file: "./examples/configurations/config0.json" json
 
 spec {
     server <type: object> {
@@ -27,7 +27,6 @@ spec {
             default: false,
             notes: "This is whether or not SSL is enabled."
         > ( eq(false); )
-
     }
     
     dns_servers <
@@ -43,7 +42,7 @@ spec {
 	) {
 		context.subscriptions.push(
 			vscode.commands.registerCommand('configMate.check',
-				async (node: RulebookFile) => {
+				async (node: SpecFile) => {
 					const response = await this.check(node.filepath);
 					if (!response) return;
 					// console.log(response);
@@ -94,26 +93,35 @@ spec {
 		return data;
 	}
 
-	createRulebook = async (uri: vscode.Uri): Promise<Rulebook> => {
-		// use configmate api to create rulebook
-		const mock = this.mockRulebook;
+	createSpecFile = async (uri: vscode.Uri): Promise<Spec> => {
+		// use configmate api to create specFile
+		const mock = this.mockSpecFile;
 		// write to file at uri
 		try {
-			const rulebook = toml.parse(mock) as Rulebook;
+			const specFile = await this.parseSpecFile();
 			await vscode.workspace.fs.writeFile(uri, Buffer.from(mock));
-			return Promise.resolve(rulebook);
+			return Promise.resolve(specFile);
 		} catch (error) {
-			console.error(`Error creating rulebook: ${error as string}`);
+			console.error(`Error creating specFile: ${error as string}`);
 			return Promise.reject(error);
 		}
 	}
 
-	getRulebookFromUri = async (): Promise<Rulebook> => {
-		// getRulebookFromUri = async (uri: vscode.Uri): Promise<Rulebook> => {
-		// use configmate api to get rulebook
+	parseSpecFile = async (uri?: vscode.Uri): Promise<Spec> => {
+		let fileContents: string = '';
+		if (!uri) fileContents = this.mockSpecFile;
+		else {
+			const file = await vscode.workspace.fs.readFile(uri);
+			fileContents = file.toString();
+		}
+		return this.getSpecFromContents(fileContents);
+	}
+
+	getSpecFromContents = async (contents: string): Promise<Spec> => {
+		if (!contents) throw new Error('No contents');
 		const mock = {
-			"name": "Rulebook name",
-			"description": "Rulebook description",
+			"name": "specFile name",
+			"description": "specFile description",
 			"files": [
 				{
 					"path": "./examples/configurations/config0.json",
@@ -129,6 +137,28 @@ spec {
 			]
 		};
 		// if (uri) console.log(uri.fsPath);
-		return Promise.resolve(mock as Rulebook);
+		return Promise.resolve(mock as Spec);
+	}
+
+	getSpecFromUri = async (): Promise<Spec> => {
+		const mock = {
+			"name": "specFile name",
+			"description": "specFile description",
+			"files": [
+				{
+					"path": "./examples/configurations/config0.json",
+					"format": "json"
+				}
+			],
+			"rules": [
+				{
+					"description": "Rule description",
+					"checkName": "Name of check to run",
+					"args": "Arguments to pass to check"
+				}
+			]
+		}; 
+		// if (uri) console.log(uri.fsPath);
+		return Promise.resolve(mock as Spec);
 	}
 }

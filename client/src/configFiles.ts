@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { RulebookFileProvider, RulebookFile, RulebookExplorer } from './rulebooks';
+import { SpecFileProvider, SpecFile, SpecFileExplorer } from './specFiles';
 
 export class ConfigFile extends vscode.TreeItem {
 	constructor(
@@ -20,9 +20,9 @@ export class ConfigFileProvider implements vscode.TreeDataProvider<ConfigFile> {
 
 	private configFiles: ConfigFile[] = [];
 
-	constructor(private rulebookFileProvider: RulebookFileProvider) {
-		this.rulebookFileProvider.onDidChangeTreeData((e) => {
-			if (!e || Object.values(e.rulebook.files).length < 1) {
+	constructor(private specFileProvider: SpecFileProvider) {
+		this.specFileProvider.onDidChangeTreeData((e) => {
+			if (!e || Object.values(e.specFile.files).length < 1) {
 				this.configFiles = [];
 				this.refresh(undefined);
 				return;
@@ -31,9 +31,9 @@ export class ConfigFileProvider implements vscode.TreeDataProvider<ConfigFile> {
 		});
 	}
 
-	refresh(rulebookFile?: RulebookFile): void {
-		if (rulebookFile) {
-			const filepaths = rulebookFile.getConfigFilePaths();
+	refresh(specFile?: SpecFile): void {
+		if (specFile) {
+			const filepaths = specFile.getConfigFilePaths();
 			this.configFiles = this.parseConfigFiles(filepaths);
 		} else this.configFiles = [];
 
@@ -75,7 +75,7 @@ export class ConfigFileProvider implements vscode.TreeDataProvider<ConfigFile> {
 	changeFilename = async (uri: vscode.Uri, newUri: vscode.Uri): Promise<void> => {
 		try {
 			await vscode.workspace.fs.rename(uri, newUri);
-			// await this.rulebookFileProvider.changeConfigFileUri(uri, newUri);
+			// await this.specFileProvider.changeConfigFileUri(uri, newUri);
 			// refresh
 		} catch (error) {
 			await vscode.window.showErrorMessage(`Error renaming config file: ${error as string}`);
@@ -88,9 +88,9 @@ export class ConfigFileExplorer {
 	private configFileTreeView: vscode.TreeView<ConfigFile>;
 	private configFileProvider: ConfigFileProvider;
 
-	constructor(context: vscode.ExtensionContext, rulebookExplorer: RulebookExplorer) {
-		const rulebookFileProvider = rulebookExplorer.getProvider();
-		this.configFileProvider = new ConfigFileProvider(rulebookFileProvider);
+	constructor(context: vscode.ExtensionContext, specFileExplorer: SpecFileExplorer) {
+		const specFileProvider = specFileExplorer.getProvider();
+		this.configFileProvider = new ConfigFileProvider(specFileProvider);
 		context.subscriptions.push(vscode.window.registerTreeDataProvider('configFiles', this.configFileProvider));
 
 		this.configFileTreeView = vscode.window.createTreeView('configFiles',
@@ -102,7 +102,7 @@ export class ConfigFileExplorer {
 			registerCommand('configFiles.openConfigFile', async (filepath: string) =>
 				await this.configFileProvider.openConfigFile(filepath)),
 			registerCommand('configFiles.refreshConfigFiles', () =>
-				this.configFileProvider.refresh(rulebookExplorer.getSelectedRulebook()))
+				this.configFileProvider.refresh(specFileExplorer.getSelectedSpecFile()))
 		);
 	}
 

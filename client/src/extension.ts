@@ -9,13 +9,13 @@ import {
 	TransportKind
 } from 'vscode-languageclient/node';
 
-import { RulebookExplorer } from './rulebooks';
+import { SpecFileExplorer } from './specFiles';
 import { ConfigFileExplorer } from './configFiles';
 import { ConfigMateProvider } from './configMate';
 
 export let configMateProvider!: ConfigMateProvider;
 export let configFileExplorer!: ConfigFileExplorer;
-export let rulebookExplorer!: RulebookExplorer;
+export let specFileExplorer!: SpecFileExplorer;
 export let diagnosticsProvider!: DiagnosticsProvider;
 
 let client: LanguageClient;
@@ -23,8 +23,8 @@ let client: LanguageClient;
 export function activate(context: ExtensionContext) {
 	diagnosticsProvider = new DiagnosticsProvider(context);
 	configMateProvider = new ConfigMateProvider(context, diagnosticsProvider);
-	rulebookExplorer = new RulebookExplorer(context, configMateProvider);
-	configFileExplorer = new ConfigFileExplorer(context, rulebookExplorer);
+	specFileExplorer = new SpecFileExplorer(context, configMateProvider);
+	configFileExplorer = new ConfigFileExplorer(context, specFileExplorer);
 
 	// The server is implemented in node
 	const serverModule = context.asAbsolutePath(
