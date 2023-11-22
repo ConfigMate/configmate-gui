@@ -51,7 +51,7 @@ export class DiagnosticManager {
 			settings = await this.getDocumentSettings(textDocument.uri);
 		else
 			settings = this.globalSettings;
-
+		
 		// Find problems using validation logic...
 		const text = textDocument.getText();
 		const pattern = /\b[A-Z]{2,}\b/g;
@@ -143,13 +143,14 @@ export class DiagnosticManager {
 	private async getDocumentSettings(resource: string): Promise<ConfigMateSettings> {
 		if (!this.hasConfigurationCapability) return Promise.resolve(this.globalSettings);
 
-		let result = this.documentSettings.get(resource);
+		let result = await this.documentSettings.get(resource);
 		if (!result) {
-			result = this.connection.workspace.getConfiguration({
+			const config = this.connection.workspace.getConfiguration({
 				scopeUri: resource,
 				section: 'configMateServer'
 			});
-			this.documentSettings.set(resource, result);
+			this.documentSettings.set(resource, config);
+			result = await this.documentSettings.get(resource);
 		}
 		return result;
 	}

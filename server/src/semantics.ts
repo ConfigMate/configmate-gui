@@ -1,5 +1,7 @@
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { SemanticTokens, SemanticTokensBuilder, SemanticTokensLegend } from "vscode-languageserver/node";
+import { getSemanticTokens } from "./api";
+import { tokenResponse, SemanticToken } from "./models";
 
 const tokenTypes = new Map<string, number>();
 const tokenModifiers = new Map<string, number>();
@@ -17,14 +19,6 @@ export const legend = (function () {
     });
 })();
 
-interface Token {
-    line: number;
-    startCharacter: number;
-    length: number;
-    tokenType: string;
-    tokenModifiers: string[];
-}
-
 export class SemanticTokensManager {  
     tokenSpecs = [
         { regex: /\b(?:file|spec|type|default|description|notes)\b/g, type: 'keyword' },
@@ -36,10 +30,10 @@ export class SemanticTokensManager {
         // Add more patterns if necessary
     ];
 
-    provideDocumentSemanticTokens(document: TextDocument): SemanticTokens {
-        const allTokens = this.tokenizeCMSDocument(document.getText());
+    async provideDocumentSemanticTokens(document: TextDocument): Promise<SemanticTokens> {
+        const allTokens = await this.tokenizeCMSDocument(document.uri);
         const builder = new SemanticTokensBuilder();
-        allTokens.forEach((token) => {
+        allTokens.forEach((token: SemanticToken) => {
             builder.push(token.line, token.startCharacter, token.length, this._encodeTokenType(token.tokenType), this._encodeTokenModifiers(token.tokenModifiers));
         });
         return builder.build();
@@ -67,39 +61,22 @@ export class SemanticTokensManager {
         return result;
     }
 
-    private tokenizeCMSDocument = (text: string): Token[] => {
-
-        const tokens: Token[] = [];
-        let line = 0;
-        let match;
-        text.split(/\r?\n/).forEach(lineText => {
-            let startCharacter = 0;
-            while (lineText.length > 0) {
-                let matched = false;
-                for (const { regex, type } of this.tokenSpecs) {
-                    match = regex.exec(lineText);
-                    if (match) {
-                        matched = true;
-                        const length = match[0].length;
-                        startCharacter = lineText.indexOf(match[0]);
-                        // console.log(match[0]);
-                        const tokenData = this._parseTextToken(match[0]);
-                        tokens.push({
-                            line, 
-                            startCharacter, 
-                            length, 
-                            tokenType: type, 
-                            tokenModifiers: tokenData.tokenModifiers 
-                        });
-                        startCharacter += length;
-                        // lineText = lineText.slice(startCharacter);
-                        // break;
-                    }
-                }
-                if (!matched)
-                    lineText = lineText.slice(1);
-            }
-            line++;
+    private tokenizeCMSDocument = async (uri: string): Promise<SemanticToken[]> => {
+        const response: tokenResponse = await getSemanticTokens(uri);
+        if (!response) return;
+        else console.log(response);
+        
+        const tokens: SemanticToken[] = [];
+        const { semantic_tokens } = response;
+        if (!semantic_tokens) return [];
+        semantic_tokens.forEach(token => {
+            tokens.push({
+                line: token.line,
+                startCharacter: token.column,
+                length: token.length,
+                tokenType: token.tokenType,
+                tokenModifiers: []
+            });
         });
         return tokens;
     }

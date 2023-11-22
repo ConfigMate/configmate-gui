@@ -107,10 +107,10 @@ connection.listen();
 // 	configMateManager.handleResolve(params)
 // );
 connection.onRequest(SemanticTokensRequest.type, 
-	(params: SemanticTokensParams): SemanticTokens | null => {
+	async (params: SemanticTokensParams): Promise<SemanticTokens | null> => {
 	const document = documents.get(params.textDocument.uri);
 	if (!document) return null;
-	return semanticTokensManager.provideDocumentSemanticTokens(document);
+	return await semanticTokensManager.provideDocumentSemanticTokens(document);
 });
 
 
