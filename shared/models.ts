@@ -75,8 +75,7 @@ export interface Rule {
 export interface specFile {
 	name: string,
 	description: string,
-	files: Config[],
-	rules: Rule[]
+	files: Config[]
 }
 
 export interface Config {

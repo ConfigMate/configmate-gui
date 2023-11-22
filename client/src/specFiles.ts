@@ -59,10 +59,12 @@ export class SpecFileProvider implements vscode.TreeDataProvider<SpecFile> {
 			const filepath: string = uri.fsPath;
 			try {
 				const label = utils.uriToFilename(uri);
-				const specFile = await this.configMateProvider.getSpecFromUri();
+				const specFile = await this.configMateProvider.getSpecFromUri(uri);
 				const file = new SpecFile(label, filepath, specFile);
 				specFiles.push(file);
-			} catch (error) { console.error(`Error parsing specFile file ${filepath}: `, error); }
+			} catch (error) { 
+				console.error(`Error parsing specFile file ${filepath}: `, error); 
+			}
 		}
 		return specFiles;
 	};
@@ -97,14 +99,18 @@ export class SpecFileProvider implements vscode.TreeDataProvider<SpecFile> {
 		if (confirm !== 'Delete') return;
 		try {
 			await this.deleteSpecFileFile(vscode.Uri.file(node.filepath));
-		} catch (error) { void vscode.window.showErrorMessage(`Error deleting specFile: ${error as string}`); }
+		} catch (error) { 
+			await vscode.window.showErrorMessage(`Error deleting specFile: ${error as string}`);
+		}
 	};
 
 	deleteSpecFileFile = async (uri: vscode.Uri): Promise<void> => {
 		try {
 			await vscode.workspace.fs.delete(uri, { recursive: false });
 			this.refresh();
-		} catch (error) { console.error(`Error deleting specFile ${uri.fsPath}: `, error); }
+		} catch (error) { 
+			console.error(`Error deleting specFile ${uri.fsPath}: `, error); 
+		}
 	}
 
 	getSpecFile = async (uri: vscode.Uri): Promise<SpecFile> => {
@@ -123,10 +129,11 @@ export class SpecFileExplorer {
 		configMateProvider: ConfigMateProvider) {
 		this.specFileProvider = new SpecFileProvider(configMateProvider);
 		context.subscriptions.push(
-			vscode.window.registerTreeDataProvider('specFiles', this.specFileProvider
-			));
+			vscode.window.registerTreeDataProvider('specFiles', this.specFileProvider)
+		);
 		this.specFileTreeView = vscode.window.createTreeView('specFiles',
-			{ treeDataProvider: this.specFileProvider });
+			{ treeDataProvider: this.specFileProvider }
+		);
 		this.specFileTreeView.onDidChangeSelection(async e =>
 			await this.specFileProvider.onSpecFileSelectionChanged(e.selection)
 		);
@@ -137,11 +144,12 @@ export class SpecFileExplorer {
 				this.specFileProvider.refresh()
 			),
 			registerCommand('specFiles.addSpecFile', async () => {
-				const uri = await vscode.window.showSaveDialog({ saveLabel: 'Create specFile', filters: { 'cms': ['cms'] } });
-				if (uri) {
-					const file = await this.specFileProvider.addSpecFile(uri);
-					await this.specFileTreeView.reveal(file, { select: true, focus: true });
-				}
+				const uri = await vscode.window.showSaveDialog(
+					{ saveLabel: 'Create specFile', filters: { 'cms': ['cms'] } }
+				);
+				if (!uri) return;
+				const file = await this.specFileProvider.addSpecFile(uri);
+				await this.specFileTreeView.reveal(file, { select: true, focus: true });
 			}),
 			registerCommand('specFiles.deleteSpecFile', async (specFile: SpecFile) =>
 				await this.specFileProvider.deleteSpecFile(specFile)
@@ -160,14 +168,7 @@ export const initSpecFile = (filename: string): Spec => {
 	const specFile: Spec = {
 		name: filename,
 		description: "specFile description",
-		files: [],
-		rules: [
-			{
-				"description": "Rule description",
-				"checkName": "Name of check to run",
-				"args": "Arguments to pass to check"
-			}
-		]
+		files: []
 	};
 
 	return specFile;

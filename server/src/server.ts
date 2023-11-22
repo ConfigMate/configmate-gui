@@ -106,6 +106,7 @@ connection.listen();
 // connection.onRequest('configmate/resolve', (params) => 
 // 	configMateManager.handleResolve(params)
 // );
+
 connection.onRequest(SemanticTokensRequest.type, 
 	async (params: SemanticTokensParams): Promise<SemanticTokens | null> => {
 	const document = documents.get(params.textDocument.uri);

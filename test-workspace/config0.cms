@@ -17,7 +17,7 @@ spec {
         ssl_enabled <
             type: bool,
             default: false,
-            notes: "This is whether or not SSL is enabled."
+            description: "This is whether or not SSL is enabled."
         > ( eq(false); )
     }
     

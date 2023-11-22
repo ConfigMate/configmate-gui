@@ -2,7 +2,6 @@ import * as vscode from 'vscode';
 import { cmResponse, cmRequest, Spec } from './models';
 import axios from 'axios';
 import { SpecFile } from './specFiles';
-import * as toml from 'toml';
 import { DiagnosticsProvider } from './configDiagnostics';
 
 export class ConfigMateProvider {
@@ -119,6 +118,20 @@ spec {
 
 	getSpecFromContents = async (contents: string): Promise<Spec> => {
 		if (!contents) throw new Error('No contents');
+
+		// get contents between "file: " and "spec {"
+		let start = contents.indexOf('file: ');
+		if (start != 0) throw new Error('Invalid specFile');
+		start += 6;
+		const end = contents.indexOf('\n\nspec {');
+		const fileLines = contents.substring(start, end);
+		
+		const configs = fileLines.split('\n');
+		configs.map(config => {
+			
+		});
+		console.log(configs);
+
 		const mock = {
 			"name": "specFile name",
 			"description": "specFile description",
@@ -126,13 +139,6 @@ spec {
 				{
 					"path": "./examples/configurations/config0.json",
 					"format": "json"
-				}
-			],
-			"rules": [
-				{
-					"description": "Rule description",
-					"checkName": "Name of check to run",
-					"args": "Arguments to pass to check"
 				}
 			]
 		};
@@ -140,7 +146,7 @@ spec {
 		return Promise.resolve(mock as Spec);
 	}
 
-	getSpecFromUri = async (): Promise<Spec> => {
+	getSpecFromUri = async (uri?: vscode.Uri): Promise<Spec> => {
 		const mock = {
 			"name": "specFile name",
 			"description": "specFile description",
@@ -149,16 +155,9 @@ spec {
 					"path": "./examples/configurations/config0.json",
 					"format": "json"
 				}
-			],
-			"rules": [
-				{
-					"description": "Rule description",
-					"checkName": "Name of check to run",
-					"args": "Arguments to pass to check"
-				}
 			]
 		}; 
-		// if (uri) console.log(uri.fsPath);
-		return Promise.resolve(mock as Spec);
+		if (!uri) return Promise.resolve(mock as Spec);
+		return this.parseSpecFile(uri);
 	}
 }

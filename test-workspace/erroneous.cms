@@ -13,32 +13,32 @@ spec {
         bindPort <
             type: port,
             default: 1009,
-            notes: "Determines the port the proxy is bound to"
+            description: "Determines the port the proxy is bound to"
         > ( range(1009, 3280); )
 
         bindAddress <
             type: host,
             default: "some.host.com",
-            notes: "Determines the address the proxy is bound to"
+            description: "Determines the address the proxy is bound to"
         > ( is("some.host.com"); reachable(); join(bindPort).listening(); )
 
         certification <type: object, optional: true> {
             cert <
                 type: file,
                 default: "/path/to/cert.pem",
-                notes: "The certification file"
+                description: "The certification file"
             > ( exists(); )
 
             key <
                 type: file,
                 default: "/path/to/key.pem",
-                notes: "The key file"
+                description: "The key file"
             > ( exists(); )
         }
     }
 
     dns_servers <
-        type: list<host>,
-        notes: "List of DNS servers"
+        type: list:host,
+        description: "List of DNS servers"
     > ( at(0).reachable(); )
 }

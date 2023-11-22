@@ -7,7 +7,17 @@ const tokenTypes = new Map<string, number>();
 const tokenModifiers = new Map<string, number>();
 
 export const legend = (function () {
-    const tokenTypesLegend = ['keyword', 'type', 'variable', 'operator', 'number', 'string'];
+    const tokenTypesLegend = [
+        'keyword', 
+        'variable', 
+        'property',
+        'type', 
+        'decorator',
+        'method',
+        'string',
+        'number', 
+        'operator'
+    ];
     tokenTypesLegend.forEach((tokenType, index) => tokenTypes.set(tokenType, index));
 
     const tokenModifiersLegend = ['declaration', 'documentation'];
@@ -31,7 +41,8 @@ export class SemanticTokensManager {
     ];
 
     async provideDocumentSemanticTokens(document: TextDocument): Promise<SemanticTokens> {
-        const allTokens = await this.tokenizeCMSDocument(document.uri);
+        const fileContents = document.getText();
+        const allTokens = await this.tokenizeCMSDocument(fileContents);
         const builder = new SemanticTokensBuilder();
         allTokens.forEach((token: SemanticToken) => {
             builder.push(token.line, token.startCharacter, token.length, this._encodeTokenType(token.tokenType), this._encodeTokenModifiers(token.tokenModifiers));
@@ -61,14 +72,16 @@ export class SemanticTokensManager {
         return result;
     }
 
-    private tokenizeCMSDocument = async (uri: string): Promise<SemanticToken[]> => {
-        const response: tokenResponse = await getSemanticTokens(uri);
+    private tokenizeCMSDocument = async (fileContents: string): Promise<SemanticToken[]> => {
+        const response: tokenResponse = await getSemanticTokens(fileContents);
         if (!response) return;
-        else console.log(response);
+        if (response.error) console.error(response.error);
+        if (!response.semantic_tokens) return [];
+        
+        // console.log(response);
         
         const tokens: SemanticToken[] = [];
         const { semantic_tokens } = response;
-        if (!semantic_tokens) return [];
         semantic_tokens.forEach(token => {
             tokens.push({
                 line: token.line,
@@ -80,13 +93,4 @@ export class SemanticTokensManager {
         });
         return tokens;
     }
-
-    private _parseTextToken(text: string): { tokenType: string; tokenModifiers: string[]; } {
-        const parts = text.split('.');
-        return {
-            tokenType: parts[0],
-            tokenModifiers: parts.slice(1)
-        };
-    }
-
 }

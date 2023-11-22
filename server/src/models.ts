@@ -1,5 +1,5 @@
 export interface cmRequest {
-	specFilePath: string,
+	content: [],
 }
 
 export interface cmResponse {
