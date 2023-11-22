@@ -6,7 +6,7 @@ import {
 	TextDocuments
 } from 'vscode-languageserver/node';
 import { Range, TextDocument } from 'vscode-languageserver-textdocument';
-import { Token, cmResponseNode } from './models';
+import { Token } from './models';
 
 interface ServerSettings {
 	settings: {
@@ -103,31 +103,41 @@ export class DiagnosticManager {
 		};
 	}
 
-	private parseResponse = (response: cmResponseNode[]): Diagnostic[] => {
-		try {
-			const diagnostics: Diagnostic[] = [];
-			const failed = response.filter(node => !node.passed);
-			for (const node of failed) {
-				const { result_comment, token_list } = node;
-				if (!token_list) continue;
-				token_list.map(token => {
-					const range = this.parseToken(token);
-					const diagnostic = Diagnostic.create(
-						range,
-						result_comment,
-						DiagnosticSeverity.Error,
-						'ConfigMate'
-					);
-					diagnostics.push(diagnostic);
-				});
-			}
-			return diagnostics;
-		} catch (error) {
-			this.connection.console.error(`Couldn't parse a ConfigMate response: ${error as string}`);
-			return [];
-		}
-	}
+	// private parseResponse = (response: cmResponseNode[]): Diagnostic[] => {
+	// 	try {
+	// 		const diagnostics: Diagnostic[] = [];
+	// 		const failed = response.filter(node => !node.passed);
+	// 		for (const node of failed) {
+	// 			const { result_comment, token_list } = node;
+	// 			if (!token_list) continue;
+	// 			token_list.map(token => {
+	// 				const range = this.parseToken(token);
+	// 				const diagnostic = Diagnostic.create(
+	// 					range,
+	// 					result_comment,
+	// 					DiagnosticSeverity.Error,
+	// 					'ConfigMate'
+	// 				);
+	// 				diagnostics.push(diagnostic);
+	// 			});
+	// 		}
+	// 		return diagnostics;
+	// 	} catch (error) {
+	// 		this.connection.console.error(`Couldn't parse a ConfigMate response: ${error as string}`);
+	// 		return [];
+	// 	}
+	// }
+// 	const minLength = Math.min(error_msgs.length, token_list.length);
+// 	for(let i = 0; i <minLength; i++) {
+// 	const error_msg = error_msgs[i];
+// 	const token = token_list[i];
+// 	const range = this.parseToken(token);
 
+// 	const filepath = rulebookFile.getConfigFilePath(token.file);
+// 	this.activeEditor = await utils.openDoc(vscode.Uri.file(filepath));
+// 	this.updateDiagnostics(result_comment, check_num, range);
+// 	ranges.push(range);
+// }
 	// -------------- SETTINGS ----------------- //
 
 	private async getDocumentSettings(resource: string): Promise<ConfigMateSettings> {

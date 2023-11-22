@@ -17,10 +17,6 @@ export class RulebookFile extends vscode.TreeItem {
 		this.contextValue = 'rulebook';
 	}
 
-	public getConfigFilePath(config: string): string {
-		const configPath = this.rulebook.files[config].path;
-		return path.resolve(vscode.workspace.workspaceFolders[0].uri.fsPath, configPath);
-	}
 
 	public getConfigFilePaths(): string[] {
 		const configFiles: string[] = [];
@@ -31,7 +27,7 @@ export class RulebookFile extends vscode.TreeItem {
 		return configFiles;
 	}
 
-	public getConfigs(): { [key: string]: Config } {
+	public getConfigs(): Config[] {
 		return this.rulebook.files;
 	}
 }
@@ -165,7 +161,7 @@ export const initRulebook = (filename: string): Rulebook => {
 	const rulebook: Rulebook = {
 		name: filename,
 		description: "Rulebook description",
-		files: {},
+		files: [],
 		rules: [
 			{
 				"description": "Rule description",

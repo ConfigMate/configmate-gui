@@ -1,4 +1,4 @@
-file: ./examples/configurations/config0.json:json
+file: "./examples/configurations/config0.json" json
 
 spec {
     server <type: object> {
@@ -19,11 +19,11 @@ spec {
             default: false,
             notes: "This is whether or not SSL is enabled."
         > ( eq(false); )
-
-        dns_servers <
-            type: list:string,
-            optional: true,
-            notes: "This is a list of DNS servers."
-        > ( len().gte(3); )
     }
+    
+    dns_servers <
+        type: list<string>,
+        optional: false,
+        notes: "This is a list of DNS servers."
+    > ( len().gte(3); )
 }

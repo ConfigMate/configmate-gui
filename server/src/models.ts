@@ -1,5 +1,5 @@
 export interface cmRequest { 
-	rulebook_path: string,
+	spec_file_path: string,
 }
 
 export interface cmResponseNode {

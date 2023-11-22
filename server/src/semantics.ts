@@ -82,7 +82,7 @@ export class SemanticTokensManager {
                         matched = true;
                         const length = match[0].length;
                         startCharacter = lineText.indexOf(match[0]);
-                        console.log(match[0]);
+                        // console.log(match[0]);
                         const tokenData = this._parseTextToken(match[0]);
                         tokens.push({
                             line, 

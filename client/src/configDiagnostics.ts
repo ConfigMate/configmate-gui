@@ -1,50 +1,47 @@
 'use strict'; 
 
 import * as vscode from 'vscode';
-import { cmResponseNode, Token } from './models';
+import { Check, checkResponseNode, TokenLocation } from './models';
 import * as utils from './utils';
-import { RulebookFile } from './rulebooks';
 
 export class DiagnosticsProvider {
-	activeEditor: vscode.TextEditor | undefined = undefined;
-	activeDoc: vscode.TextDocument | undefined = undefined;
 	diagnostics: vscode.DiagnosticCollection;
 
 	constructor(context: vscode.ExtensionContext) {
 		this.diagnostics = vscode.languages.createDiagnosticCollection('ConfigMate');
-		if (vscode.window.activeTextEditor) {
-			this.activeEditor = vscode.window.activeTextEditor;
-			this.activeDoc = this.activeEditor.document;
-		}
-
 		context.subscriptions.push(
-			vscode.window.onDidChangeActiveTextEditor((editor: vscode.TextEditor | undefined) => {
-				if (!editor) return this.clearDiagnostics();
-				this.activeEditor = editor;
-				this.activeDoc = editor.document;
-				if (!this.activeDoc) return;
-				
-			})
+
 		);
 	}
 
-	parseResponse = async (response: cmResponseNode[], rulebookFile: RulebookFile) => {
+	parseResponse = async (response: checkResponseNode[]) => {
 		try {
-			const ranges: vscode.Range[] = [];
-			const failed = response.filter(node => !node.passed);
-			for (const node of failed) {
-				const {result_comment, token_list} = node;
-				if (!token_list) continue;
+			const workspace = vscode.workspace.workspaceFolders?.[0].uri;
+			const diags: {[path: string]: vscode.Diagnostic[]} = {};
+
+			for (const node of response) {
+				const {status, result_comment, field, check_num, token_list} = node;
+				if (!status || !token_list) continue;
+				const check: Check = field.checks[check_num];
+
+				for (const token of token_list) {
+					const uri = vscode.Uri.joinPath(workspace, token.file);
+					const filepath = uri.toString();
+					const location: TokenLocation = token.location;
+					const range = this.parseToken(location);
+					await utils.openDoc(uri);
+					const diagnostic: vscode.Diagnostic = this.getDiagnostic(uri, range, [result_comment, check.check]);
+					if (!diags[filepath]) diags[filepath] = [diagnostic];
+					else diags[filepath].push(diagnostic);
+				}
 				// console.log(node);
 				// if (result_comment) console.log(`ConfigMate: ${result_comment}`);
-				token_list.map(async token => {
-					const range = this.parseToken(token);
-
-					const filepath = rulebookFile.getConfigFilePath(token.file);
-					this.activeEditor = await utils.openDoc(vscode.Uri.file(filepath));
-					this.updateDiagnostics(result_comment, range);
-					ranges.push(range);
-				});
+				// let last_filepath: vscode.Uri;
+			}
+			for (const filepath of Object.keys(diags)) {
+				const uri = vscode.Uri.parse(filepath);
+				if (!uri) continue;
+				this.setDiagnostics(uri, diags[filepath]);
 			}
 		} catch (error) {
 			console.error(error);
@@ -53,28 +50,35 @@ export class DiagnosticsProvider {
 	}
 
 
-	private parseToken(token: Token): vscode.Range {
+	private parseToken(token: TokenLocation): vscode.Range {
 		// console.table(token.location);
-		const { start, end } = token.location;
+		const { start, end } = token;
 		return new vscode.Range(
-			new vscode.Position(start.line - 1, start.column - 1),
+			new vscode.Position(start.line - 1, start.column),
 			new vscode.Position(end.line - 1, end.column)
 		);
 	}
 	
-	public updateDiagnostics(message: string, range: vscode.Range): void {
-		if (!this.activeDoc) return;
-		this.diagnostics.set(this.activeDoc.uri, [{
+	private getDiagnostic(uri: vscode.Uri, range: vscode.Range, messages: string[]): vscode.Diagnostic {
+		return {
 			code: '',
-			message,
+			message: messages[0] || 'ConfigMate error',
 			range,
 			severity: vscode.DiagnosticSeverity.Error,
 			source: 'ConfigMate',
 			relatedInformation: [
-				new vscode.DiagnosticRelatedInformation(new vscode.Location(this.activeDoc.uri, range), message)
+				new vscode.DiagnosticRelatedInformation(
+					new vscode.Location(uri, range), 
+					messages[1] || 'ConfigMate error'
+				)
 			]
-		}]);
+		};
 	}
+
+	private setDiagnostics(uri: vscode.Uri, diagnostics: vscode.Diagnostic[]): void {
+		this.diagnostics.set(uri, diagnostics);
+	}
+
 	private clearDiagnostics(): void {
 		this.diagnostics.clear();
 	}

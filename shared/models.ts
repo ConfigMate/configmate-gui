@@ -1,4 +1,4 @@
-export interface cmRequest { 
+export interface cmRequest {
 	spec_file_path: string,
 }
 
@@ -14,27 +14,12 @@ export interface cmResponse {
 		imports_location: TokenLocation
 	},
 	spec_error: cmResponseNode[],
-	check_results: checkResponseNode[]
+	check_results: cmResponseNode[]
 }
-
 export interface cmResponseNode {
 	analyzer_msg: string,
 	error_msgs: string[],
 	token_list: TokenLocation[]
-}
-
-export interface checkResponseNode {
-	status: number,
-	result_comment: string,
-	field: Field,
-	check_num: number,
-	token_list: Token[]
-}
-
-
-export interface Token {
-	file: string,
-	location: TokenLocation
 }
 
 export interface TokenLocation {
@@ -48,13 +33,18 @@ export interface TokenLocation {
 	}
 }
 
-export interface Field {
+interface Field {
 	field: string,
 	type: string,
 	optional: boolean,
 	default: string,
 	notes: string,
-	checks: Check[],
+	checks: [
+		{
+			check: string,
+			location: TokenLocation
+		}
+	],
 	field_location: TokenLocation,
 	type_location: TokenLocation,
 	optional_location: TokenLocation,
@@ -62,10 +52,6 @@ export interface Field {
 	notes_location: TokenLocation,
 }
 
-export interface Check {
-	check: string,
-	location: TokenLocation
-}
 export interface Rule {
 	description: string,
 	checkName: string,
@@ -75,7 +61,7 @@ export interface Rule {
 export interface Rulebook {
 	name: string,
 	description: string,
-	files: Config[],
+	files: { [key: string]: Config },
 	rules: Rule[]
 }
 

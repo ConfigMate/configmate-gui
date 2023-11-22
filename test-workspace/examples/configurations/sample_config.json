@@ -1,0 +1,14 @@
+{
+    "name": "sample",
+    "version": 1.3,
+    "active": true,
+    "settings": {
+        "theme": "dark",
+        "notifications": null,
+        "retryCount": 3
+    },
+    "features": [
+        "auth",
+        "logs"
+    ]
+}

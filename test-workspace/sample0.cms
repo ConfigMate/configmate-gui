@@ -1,4 +1,4 @@
-file: ./examples/configurations/sample_config.json:json
+file: "./examples/configurations/sample_config.json" json
 
 spec {
     console <type: object> {

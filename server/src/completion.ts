@@ -3,7 +3,7 @@ import {
 	TextDocumentPositionParams,
 	CompletionItem,
 	CompletionItemKind
-} from 'vscode-languageserver';
+} from 'vscode-languageserver/node';
 
 export class CodeCompletionManager {
 	constructor(connection: Connection) {
