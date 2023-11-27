@@ -105,31 +105,38 @@ export class DiagnosticManager {
 	}
 
 	private getDiagnostic(uri: string, range: Range, messages: string[]): Diagnostic {
-		return {
+		const { start, end } = range;
+		const diagnostic: Diagnostic = {
 			code: '',
 			message: messages[0] || 'ConfigMate error',
-			range,
+			range: { start, end	},
 			severity: DiagnosticSeverity.Error,
 			source: 'ConfigMate',
-			// relatedInformation: [
-			// 	new DiagnosticRelatedInformation(
-			// 		new Location(uri, range),
-			// 		messages[1] || 'ConfigMate error'
-			// 	)
-			// ]
-		} || null;
-		// if (this.hasDiagnosticRelatedInformationCapability) {
-		// 	for (const msg of error_msgs)
-		// 		diagnostic.relatedInformation.push({
-		// 			location: {
-		// 				uri: textDocument.uri,
-		// 				range: Object.assign({}, diagnostic.range)
-		// 			},
-		// 			message: msg
-		// 		});
-		// }
-	}
+			relatedInformation: [
+				{
+					location: {
+						uri,
+						range
+					},
+					message: messages[1] || 'ConfigMate error'
+				}
+			]
+		};
 
+		if (this.hasDiagnosticRelatedInformationCapability) {
+			for (let i = 1; i < messages.length; i++) {
+				diagnostic.relatedInformation.push({
+					location: {
+						uri,
+						range
+					},
+					message: messages[i]
+				});
+			}
+		}
+		return diagnostic || null;
+	}
+				
 	// -------------- SETTINGS ----------------- //
 
 	private async getDocumentSettings(resource: string): Promise<ConfigMateSettings> {
