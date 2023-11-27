@@ -3,11 +3,12 @@ import {
 	Diagnostic,
 	DiagnosticSeverity,
 	DidChangeConfigurationParams,
+	Range,
 	TextDocuments
 } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-// import { analyzeSpec } from './api';
-import { TokenResponse } from './models';
+import { analyzeSpec } from './api';
+import { TokenLocation } from './models';
 
 interface ServerSettings {
 	settings: {
@@ -43,47 +44,90 @@ export class DiagnosticManager {
 		private readonly hasDiagnosticRelatedInformationCapability: boolean
 	) {
 		documents.onDidClose(e => this.removeDocumentSettings(e.document.uri));
-		documents.onDidChangeContent((change) => this.validate(change.document));
+		documents.onDidChangeContent((change) => {
+			try {
+				return Promise.resolve(this.validate(change.document));
+			} catch (error) {
+				console.error(error);
+				return Promise.reject(error);
+			}
+		});
 		documents.listen(connection);
 	}
 
 	public async validate(textDocument: TextDocument): Promise<void> {
-		// if (this.hasConfigurationCapability)
-		// 	this.settings = await this.getDocumentSettings(textDocument.uri);
+		if (this.hasConfigurationCapability)
+			this.settings = await this.getDocumentSettings(textDocument.uri);
 
-		// const text = textDocument.getText();
-		// let problems = 0;
-		// const diagnostics: Diagnostic[] = [];
-		// const tokenResponse: TokenResponse = await analyzeSpec(text);
-		// if (!tokenResponse) return;
-		// console.log(tokenResponse);
+		const text = textDocument.getText();
+		const filepath = textDocument.uri;
+		let problems = 0;
 
-		// for (const token of tokenResponse.semantic_tokens) {
-		// 	if (problems >= this.settings.maxNumberOfProblems) break;
-		// 	problems++;
-		// 	const diagnostic: Diagnostic = {
-		// 		code: '',
-		// 		severity: DiagnosticSeverity.Information,
-		// 		range: {
-		// 			start: {line: token.line, character: token.column},
-		// 			end: { line: token.line, character: token.column + token.length }
-		// 		},
-		// 		message: 'token.text',
-		// 		source: 'ConfigMate'
-		// 	};
-		// 	if (this.hasDiagnosticRelatedInformationCapability) {
-		// 		/* diagnostic.relatedInformation.push({
-		// 				location: {
-		// 					uri: textDocument.uri,
-		// 					range: Object.assign({}, diagnostic.range)
-		// 				},
-		// 				message: 'Spelling matters'
-		// 		}) */
-		// 	}
-		// 	diagnostics.push(diagnostic);
+		const diagnostics: Diagnostic[] = [];
+		const response = await analyzeSpec(filepath, text);
+		if (!response || 
+			!('spec_error' in response) ||
+			!response.spec_error) return;
+		console.log(response);
+		
+		const error = response.spec_error;
+		const { analyzer_msg, error_msgs, token_list  } = error;
+		if (!token_list) return;
+		
+		for (const token of error.token_list) {
+			if (problems >= this.settings.maxNumberOfProblems) break;
+			problems++;
+			const location: TokenLocation = token.location;
+			const {start, end} = location;
+			const diagnostic: Diagnostic = this.getDiagnostic(
+				filepath,
+				{
+					start: {
+						line: start.line, 
+						character: start.column
+					},
+					end: {
+						line: end.line, 
+						character: end.column 
+					}
+				},
+				[
+					analyzer_msg,
+					...error_msgs
+				]
+			);
+			
+			if (diagnostic != null) diagnostics.push(diagnostic);
+		}
+		
+
+		return this.connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
+	}
+
+	private getDiagnostic(uri: string, range: Range, messages: string[]): Diagnostic {
+		return {
+			code: '',
+			message: messages[0] || 'ConfigMate error',
+			range,
+			severity: DiagnosticSeverity.Error,
+			source: 'ConfigMate',
+			// relatedInformation: [
+			// 	new DiagnosticRelatedInformation(
+			// 		new Location(uri, range),
+			// 		messages[1] || 'ConfigMate error'
+			// 	)
+			// ]
+		} || null;
+		// if (this.hasDiagnosticRelatedInformationCapability) {
+		// 	for (const msg of error_msgs)
+		// 		diagnostic.relatedInformation.push({
+		// 			location: {
+		// 				uri: textDocument.uri,
+		// 				range: Object.assign({}, diagnostic.range)
+		// 			},
+		// 			message: msg
+		// 		});
 		// }
-
-		// return this.connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
 	}
 
 	// -------------- SETTINGS ----------------- //

@@ -54,8 +54,8 @@ export class DiagnosticsProvider {
 		// console.table(token.location);
 		const { start, end } = token;
 		return new vscode.Range(
-			new vscode.Position(start.line - 1, start.column),
-			new vscode.Position(end.line - 1, end.column)
+			new vscode.Position(start.line, start.column),
+			new vscode.Position(end.line, end.column)
 		);
 	}
 	

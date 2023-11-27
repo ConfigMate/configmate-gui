@@ -1,5 +1,6 @@
 export interface cmRequest {
-	content: [],
+	spec_file_path: string,
+	spec_file_content: number[]
 }
 
 export interface cmResponse {
@@ -13,14 +14,14 @@ export interface cmResponse {
 		imports_alias_location: TokenLocation,
 		imports_location: TokenLocation
 	},
-	spec_error: cmResponseNode[],
+	spec_error: cmResponseNode,
 	check_results: checkResponseNode[]
 }
 
 export interface cmResponseNode {
 	analyzer_msg: string,
 	error_msgs: string[],
-	token_list: TokenLocation[]
+	token_list: Token[]
 }
 
 export interface checkResponseNode {
