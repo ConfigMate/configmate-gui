@@ -84,7 +84,12 @@ export class ConfigMateProvider {
 		for (let i = 0; i < numLines; i++) {
 			const line = file.lineAt(i).text;
 			const match = pattern.exec(line);
+			const filepath = match ? match[3] : '';
+			const absPath = path.join(path.dirname(filename), filepath);
+			console.log(absPath);
+
 			if (match) matches.push({
+				// convert to absolute path
 				path: match[3],
 				format: match[5]
 			});
