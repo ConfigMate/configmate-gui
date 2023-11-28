@@ -1,40 +1,11 @@
 import * as vscode from 'vscode';
-import { cmResponse, cmRequest, Spec } from './models';
+import { cmResponse, cmRequest, Spec, Config } from './models';
 import axios from 'axios';
 import { SpecFile } from './specFiles';
 import { DiagnosticsProvider } from './configDiagnostics';
+import path = require('path');
 
 export class ConfigMateProvider {
-	mockSpecFile: string = `file: "./examples/configurations/config0.json" json
-
-spec {
-    server <type: object> {
-        host <
-            type: string,
-            default: "localhost",
-            notes: "This is the host that the server will listen on."
-        > ( eq("localhost"); )
-
-        port <
-            type: int,
-            default: 80,
-            notes: "This is the port that the server will listen on."
-        > ( range(25, 100); )
-
-        ssl_enabled <
-            type: bool,
-            default: false,
-            notes: "This is whether or not SSL is enabled."
-        > ( eq(false); )
-    }
-    
-    dns_servers <
-        type: list<string>,
-        optional: false,
-        notes: "This is a list of DNS servers."
-    > ( len().gte(3); )
-}
-"""`
 	constructor(
 		context: vscode.ExtensionContext,
 		private diagnosticsProvider: DiagnosticsProvider
@@ -44,25 +15,23 @@ spec {
 				async (node: SpecFile) => {
 					const response = await this.check(node.filepath);
 					if (!response) return;
-					// console.log(response);
 					const failed = (response.spec_error === null) ? false : true;
-					if (failed) return; // handle failure
+					if (failed) {
+						await vscode.window.showErrorMessage('ConfigMate failed to parse spec file');
+						return; 
+					}
 					else await diagnosticsProvider.parseResponse(response.check_results);
 				}
 			)
 		);
 	}
 
-	check = async (filepath: string): Promise<cmResponse | null> => {
+	check = async (filepath: string): Promise<cmResponse> => {
 		try {
-			// debug logging:
-			// const message = `Checking ${filepath} with ConfigMate`;
-			// console.log(message);
-			// void vscode.window.showInformationMessage(message);
-			return await this.sendRequest(filepath);
+			return Promise.resolve(this.sendRequest(filepath));
 		} catch (error) {
 			console.error(error);
-			return null;
+			return Promise.reject(error);
 		}
 	};
 
@@ -74,7 +43,6 @@ spec {
 			spec_file_path: filepath,
 			spec_file_content: content
 		};
-		let data: cmResponse | null = null;
 
 		try {
 			const response = await axios({
@@ -83,16 +51,11 @@ spec {
 				data: request
 			});
 
-			// console.log(response.data);
-			data = response.data as cmResponse;
+			return Promise.resolve(response.data as cmResponse);
 		} catch (error) {
 			console.error(error);
-
-			const currentLocation = vscode.workspace.workspaceFolders?.[0].uri.fsPath;
-			console.error("Working path: " + currentLocation);
-			console.error("Filepath: " + filepath);
+			return Promise.reject(error);
 		}
-		return data;
 	}
 
 	readFile = async (uri: vscode.Uri): Promise<number[]> => {
@@ -101,58 +64,45 @@ spec {
 		return Array.from(buffer);
 	}
 
-	createSpecFile = async (uri: vscode.Uri): Promise<Spec> => {
-		// use configmate api to create specFile
-		const mock = this.mockSpecFile;
-		// write to file at uri
+	createSpecFile = async (uri: vscode.Uri): Promise<null> => {
+		// create empty file
+		// TODO: add template for new specFiles
 		try {
-			const specFile = await this.parseSpecFile();
-			await vscode.workspace.fs.writeFile(uri, Buffer.from(mock));
-			return Promise.resolve(specFile);
+			await vscode.workspace.fs.writeFile(uri, Buffer.from([]));
 		} catch (error) {
 			console.error(`Error creating specFile: ${error as string}`);
 			return Promise.reject(error);
 		}
 	}
 
-	parseSpecFile = async (uri?: vscode.Uri): Promise<Spec> => {
-		let fileContents: string = '';
-		if (!uri) fileContents = this.mockSpecFile;
-		else {
-			const file = await vscode.workspace.fs.readFile(uri);
-			fileContents = file.toString();
+	parseSpecFile = async (uri: vscode.Uri): Promise<Spec> => {
+		const pattern = /\b(file)\b(: ")([A-Za-z0-9/_.]+)(" )\b(json)\b$/g;
+		const file = await vscode.workspace.openTextDocument(uri);
+		const filename = file.fileName;
+		const numLines = file.lineCount;
+		const matches: Config[] = [];
+		for (let i = 0; i < numLines; i++) {
+			const line = file.lineAt(i).text;
+			const match = pattern.exec(line);
+			if (match) matches.push({
+				path: match[3],
+				format: match[5]
+			});
 		}
-		return this.getSpecFromContents(fileContents);
+		if (!matches) throw new Error('Invalid specFile');
+		return this.getSpecFromContents(filename, matches);
 	}
 
-	getSpecFromContents = async (contents: string): Promise<Spec> => {
-		if (!contents) throw new Error('No contents');
+	getSpecFromContents = async (filename: string, matches: Config[]): Promise<Spec> => {
+		if (!matches) throw new Error('No contents');
 
-		// get contents between "file: " and "spec {"
-		// let start = contents.indexOf('file: ');
-		// if (start != 0) throw new Error('Invalid specFile');
-		// start += 6;
-		// const end = contents.indexOf('\n\nspec {');
-		// const fileLines = contents.substring(start, end);
-		
-		// const configs = fileLines.split('\n');
-		// configs.map(config => {
-			
-		// });
-		// console.log(configs);
-
-		const mock = {
-			"name": "specFile name",
-			"description": "specFile description",
-			"files": [
-				{
-					"path": "./examples/configurations/config0.json",
-					"format": "json"
-				}
-			]
+		const spec: Spec = {
+			name: path.basename(filename),
+			description: '',
+			files: [...matches]
 		};
-		// if (uri) console.log(uri.fsPath);
-		return Promise.resolve(mock as Spec);
+		
+		return Promise.resolve(spec);
 	}
 
 	getSpecFromUri = async (uri?: vscode.Uri): Promise<Spec> => {

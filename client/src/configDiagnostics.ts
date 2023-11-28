@@ -34,9 +34,6 @@ export class DiagnosticsProvider {
 					if (!diags[filepath]) diags[filepath] = [diagnostic];
 					else diags[filepath].push(diagnostic);
 				}
-				// console.log(node);
-				// if (result_comment) console.log(`ConfigMate: ${result_comment}`);
-				// let last_filepath: vscode.Uri;
 			}
 			for (const filepath of Object.keys(diags)) {
 				const uri = vscode.Uri.parse(filepath);
@@ -65,13 +62,7 @@ export class DiagnosticsProvider {
 			message: messages[0] || 'ConfigMate error',
 			range,
 			severity: vscode.DiagnosticSeverity.Error,
-			source: 'ConfigMate',
-			relatedInformation: [
-				new vscode.DiagnosticRelatedInformation(
-					new vscode.Location(uri, range), 
-					messages[1] || 'ConfigMate error'
-				)
-			]
+			source: 'ConfigMate'
 		};
 	}
 
