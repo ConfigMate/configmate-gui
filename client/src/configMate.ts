@@ -89,12 +89,12 @@ export class ConfigMateProvider {
 				format: match[5]
 			});
 		}
-		if (!matches) throw new Error('Invalid specFile');
+		if (!matches.length) throw new Error('Invalid specFile');
 		return this.getSpecFromContents(filename, matches);
 	}
 
 	getSpecFromContents = async (filename: string, matches: Config[]): Promise<Spec> => {
-		if (!matches) throw new Error('No contents');
+		if (!matches || !matches.length) throw new Error('No contents');
 
 		const spec: Spec = {
 			name: path.basename(filename),

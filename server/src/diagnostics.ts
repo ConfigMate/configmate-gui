@@ -115,7 +115,7 @@ export class DiagnosticManager {
 			source: 'ConfigMate'
 		};
 
-		return diagnostic || null;
+		return diagnostic;
 	}
 				
 	// ------------------------------ SETTINGS ------------------------------ //
