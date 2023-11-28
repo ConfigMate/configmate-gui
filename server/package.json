@@ -5,7 +5,6 @@
 	"publisher": "ConfigMate",
 	"version": "1.0.0",
 	"license": "MIT",
-	"main": "./out/server.js",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/ConfigMate/configmate-gui"

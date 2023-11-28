@@ -58,14 +58,14 @@ export class SpecFileProvider implements vscode.TreeDataProvider<SpecFile> {
 		const specFiles: SpecFile[] = [];
 		for (const uri of uris) {
 			const filepath: string = uri.fsPath;
+			const label = utils.uriToFilename(uri);
 			try {
-				const label = utils.uriToFilename(uri);
 				const spec = await this.configMateProvider.getSpecFromUri(uri);
 				const file = new SpecFile(label, filepath, spec);
 				specFiles.push(file);
 			} catch (error) { 
-				console.error(`Error parsing specFile file ${filepath}: `, error);
-				return Promise.reject(error);
+				console.error(`Error parsing specFile ${label}: `, error);
+				// return Promise.reject(error);
 			}
 		}
 		return Promise.resolve(specFiles);

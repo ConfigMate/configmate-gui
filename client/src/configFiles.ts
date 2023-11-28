@@ -42,8 +42,10 @@ export class ConfigFileProvider implements vscode.TreeDataProvider<ConfigFile> {
 
 	parseConfigFiles = (filepaths: string[]): ConfigFile[] =>
 		filepaths.map(filepath => {
-			if (!filepath) throw new Error('No filepath');
-			if (!vscode.Uri.file(filepath)) throw new Error('Invalid filepath');
+			if (!filepath || !vscode.Uri.file(filepath)) {
+				console.error(`Invalid filepath: ${filepath || 'none given'}`);
+				return;
+			} 
 			const file = new ConfigFile(
 				path.basename(filepath),
 				filepath);

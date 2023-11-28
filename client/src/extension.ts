@@ -17,7 +17,7 @@ let client: LanguageClient;
 
 export function activate(context: ExtensionContext) {
 	// UI controllers; export these for use in integration tests
-	const diagnosticsProvider = new DiagnosticsProvider(context);
+	const diagnosticsProvider = new DiagnosticsProvider();
 	const configMateProvider = new ConfigMateProvider(context, diagnosticsProvider);
 	const specFileExplorer = new SpecFileExplorer(context, configMateProvider);
 	new ConfigFileExplorer(context, specFileExplorer);

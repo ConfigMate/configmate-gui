@@ -23,17 +23,15 @@ export const analyzeSpec = async(filepath: string, fileContents: string): Promis
 	}
 }
 
-export const getSemanticTokens = async (fileContents: string): Promise<SemanticTokenResponse | null> => {
+export const getSemanticTokens = async (fileContents: string): Promise<SemanticTokenResponse> => {
 	const url: string = "http://localhost:10007/api/get_semantic_tokens";
-	let result: SemanticTokenResponse | null = null;
 	try {
 		const data = { content: readFile(fileContents) };
 		const response = await axios({ method: 'post', url, data });
-		result = response.data as SemanticTokenResponse;
+		return Promise.resolve(response.data as SemanticTokenResponse);
 	} catch (error) {
 		console.error(error);
 	}
-	return result;
 }
 
 const readFile = (fileContents: string): number[] => {

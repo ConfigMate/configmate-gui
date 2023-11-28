@@ -1,0 +1,64 @@
+# This is a TOML document with added features.
+
+# Table declaration.
+[console]
+# Booleans
+isActive = true
+# Strings
+entryCmd = { default = "/bin/terminal", windows = "cmdprompt.exe" }
+# Integers
+historyScroll = 5000
+# Date and Time
+lastUpdated = 2023-10-19T20:20:30Z
+
+[proxy]
+isActive = true
+bindPort = 25
+
+# Array of Tables
+[[proxy.allowedPorts]]
+id = 1
+range = "5101-5105"
+
+[[proxy.allowedPorts]]
+id = 2
+values = [ 13000, 5101 ]
+
+# Inline Table
+defaultGroups = { name = "Network Remote Users", type = "OS-specific", purpose = "access for networking" }
+
+# Duration
+inactiveLimit = { default = "10m", max = "1h", min = "1s" }
+fileTransferActive = true
+fileTransferPort = 2025
+connectionDir = ""
+
+# Key/Value pairs within a table.
+[proxy.services]
+remoteDisplay = 5101
+remoteApp = "13000"
+
+[proxy.certification]
+cert = "cert.pem"
+key = "key.pem"
+nation = "XY"
+entity = "generic"
+
+# Array of strings.
+[account]
+modifyMainPassword = false
+leadAsManager = false
+autoFolders = ["Main", "Files", "Load"]
+autoHiddenFolders = []
+passwordSize = 16
+
+# Nested Tables
+[account.settings]
+    # Floats
+    maxLoad = 32.5
+    # Arrays
+    userRoles = ["admin", "editor", "viewer"]
+
+[account.settings.preferences]
+    theme = "dark"
+    language = "en-US"
