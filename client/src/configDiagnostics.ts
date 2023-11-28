@@ -16,6 +16,7 @@ export class DiagnosticsProvider {
 
 	parseResponse = async (response: checkResponseNode[]) => {
 		try {
+			this.clearDiagnostics();
 			const workspace = vscode.workspace.workspaceFolders?.[0].uri;
 			const diags: {[path: string]: vscode.Diagnostic[]} = {};
 

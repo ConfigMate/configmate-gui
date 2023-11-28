@@ -9,8 +9,8 @@ diagrams/
 
 .vscode
 **/node_modules
-src/
-client/out/test
+client/**/src/*
+**/test/*
 client/out/!(main.*)
 tsconfig.json
 configmate/!(bin)

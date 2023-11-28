@@ -1,4 +1,4 @@
-file: "./examples/configurations/config0.json" json
+config: "./examples/configurations/config0.json" json
 
 spec {
     server <type: object> {
