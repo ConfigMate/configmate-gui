@@ -36,13 +36,18 @@ export class DiagnosticManager {
 	private globalSettings: ConfigMateSettings = defaultSettings;
 	private documentSettings: Map<string, Thenable<ConfigMateSettings>> = new Map();
 	private settings: ConfigMateSettings = defaultSettings;
+	private readonly hasConfigurationCapability: boolean;
+	private readonly hasDiagnosticRelatedInformationCapability: boolean;
 
 	constructor(
-		private connection: Connection,
-		private readonly documents: TextDocuments<TextDocument>,
-		private readonly hasConfigurationCapability: boolean,
-		private readonly hasDiagnosticRelatedInformationCapability: boolean
+		private readonly connection: Connection,
+		documents: TextDocuments<TextDocument>,
+		hasConfigurationCapability: boolean,
+		hasDiagnosticRelatedInformationCapability: boolean
 	) {
+		this.hasConfigurationCapability = hasConfigurationCapability;
+		this.hasDiagnosticRelatedInformationCapability = hasDiagnosticRelatedInformationCapability;
+
 		documents.onDidClose(e => this.removeDocumentSettings(e.document.uri));
 		documents.onDidChangeContent((change) => {
 			try {
@@ -74,11 +79,24 @@ export class DiagnosticManager {
 		const { analyzer_msg, error_msgs, token_list  } = error;
 		if (!token_list) return;
 		
-		for (const token of error.token_list) {
+		const length = Math.min(error_msgs.length, token_list.length)
+		for (let i = 0; i < length; i++) {
+
 			if (problems >= this.settings.maxNumberOfProblems) break;
 			problems++;
+
+			const token = token_list[i];
+			const error_msg = error_msgs[i];
 			const location: TokenLocation = token.location;
 			const {start, end} = location;
+
+			/* DEBUGGING
+			console.log(`Error parsing .cms file:
+				Analyzer message: ${analyzer_msg}
+				Error message: ${error_msg}
+				Token location: ${JSON.stringify(location)}`)
+			*/
+
 			const diagnostic: Diagnostic = this.getDiagnostic(
 				filepath,
 				{
@@ -93,7 +111,7 @@ export class DiagnosticManager {
 				},
 				[
 					analyzer_msg,
-					...error_msgs
+					error_msg
 				]
 			);
 			
@@ -124,7 +142,7 @@ export class DiagnosticManager {
 		};
 
 		if (this.hasDiagnosticRelatedInformationCapability) {
-			for (let i = 1; i < messages.length; i++) {
+			for (let i = 2; i < messages.length; i++) {
 				diagnostic.relatedInformation.push({
 					location: {
 						uri,
