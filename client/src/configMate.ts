@@ -76,7 +76,7 @@ export class ConfigMateProvider {
 	}
 
 	parseSpecFile = async (uri: vscode.Uri): Promise<Spec> => {
-		const pattern = /\b(config)\b(: ")([A-Za-z0-9/_.]+)(" )\b(json)\b$/g;
+		const pattern = /\b(config)\b(: ")([A-Za-z0-9/_.]+)(" )\b(?:json|toml)\b$/g;
 		const file = await vscode.workspace.openTextDocument(uri);
 		const filename = file.fileName;
 		const numLines = file.lineCount;

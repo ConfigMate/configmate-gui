@@ -7,17 +7,12 @@ import * as utils from './utils';
 export class DiagnosticsProvider {
 	diagnostics: vscode.DiagnosticCollection;
 
-	constructor(context: vscode.ExtensionContext) {
+	constructor() {
 		this.diagnostics = vscode.languages.createDiagnosticCollection('ConfigMate');
-		context.subscriptions.push(
-			vscode.workspace.onDidCloseTextDocument(doc => this.diagnostics.delete(doc.uri)),
-			vscode.workspace.onDidChangeTextDocument(() => this.clearDiagnostics()),
-		);
 	}
 
 	parseResponse = async (response: checkResponseNode[]) => {
 		try {
-			this.clearDiagnostics();
 			const workspace = vscode.workspace.workspaceFolders?.[0].uri;
 			const diags: {[path: string]: vscode.Diagnostic[]} = {};
 
@@ -50,7 +45,6 @@ export class DiagnosticsProvider {
 
 
 	private parseToken(token: TokenLocation): vscode.Range {
-		// console.table(token.location);
 		const { start, end } = token;
 		return new vscode.Range(
 			new vscode.Position(start.line, start.column),
@@ -70,9 +64,5 @@ export class DiagnosticsProvider {
 
 	private setDiagnostics(uri: vscode.Uri, diagnostics: vscode.Diagnostic[]): void {
 		this.diagnostics.set(uri, diagnostics);
-	}
-
-	private clearDiagnostics(): void {
-		this.diagnostics.clear();
 	}
 }
