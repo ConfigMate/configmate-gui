@@ -12,7 +12,7 @@ export class SpecFile extends vscode.TreeItem {
 		public specFile: Spec
 	) {
 		super(label, vscode.TreeItemCollapsibleState.None);
-		this.description = filepath;
+		this.description = vscode.workspace.asRelativePath(filepath);
 		this.tooltip = specFile.description;
 		this.contextValue = 'specFile';
 	}

@@ -1,5 +1,5 @@
 {
-	"name": "configmate-gui",
+	"name": "configmate",
 	"displayName": "ConfigMate",
 	"description": "",
 	"version": "0.2.14",
@@ -63,7 +63,7 @@
 			"configmate": [
 				{
 					"id": "specFiles",
-					"name": "specFiles",
+					"name": "Specification Files",
 					"icon": "$(book)",
 					"contextualTitle": "ConfigMate"
 				},
@@ -169,9 +169,8 @@
 		}
 	},
 	"scripts": {
-		"server": "(cd configmate && ./bin/configm serve)",
-		"build-server": "(cd configmate && make configm)",
-		"kill-server": "sudo fuser -k 10007/tcp",
+		"clone-api": "(cd configmate && git clone https://github.com/ConfigMate/configmate.git)",
+		"build-api": "(cd configmate && make configm)",
 		"publish": "vsce publish patch --no-git-tag-version",
 		"package": "vsce package --no-git-tag-version",
 		"vscode:prepublish": "npm run esbuild-base -- --minify",

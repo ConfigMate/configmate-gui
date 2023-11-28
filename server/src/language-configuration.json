@@ -124,7 +124,10 @@
 		},
 		{
 			"beforeText": "^\\s*(?:<).*?:\\s*$",
-			"afterText": "type: "
+			"afterText": "type: ",
+			"action": {
+				"indent": "indent"
+			}
 		}
 	]
 }

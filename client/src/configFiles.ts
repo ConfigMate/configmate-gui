@@ -10,7 +10,7 @@ export class ConfigFile extends vscode.TreeItem {
 		super(label, vscode.TreeItemCollapsibleState.None);
 		this.tooltip = label;
 		this.contextValue = 'configFile';
-		this.description = filepath;
+		this.description = vscode.workspace.asRelativePath(filepath);
 	}
 }
 

@@ -2,38 +2,49 @@
 
 Thank you for considering contributing to ConfigMate GUI! 🎉 This document outlines the process and guidelines for contributing.
 
-[ConfigMate](https://github.com/ConfigMate/configmate) itself is a open-source CLI tool that allows developers to automate the verification of configuration files. This extension aims to make the use of this tool more intuitive and user-friendly, particularly for newer developers.  
+[ConfigMate](https://github.com/ConfigMate/configmate) itself is a open-source CLI tool that allows developers to automate the verification of configuration files. This extension aims to make the use of this tool more intuitive and user-friendly.
 
 ## Setup for Development
 
 ### Prerequisites
 
+To be able to compile and run properly, development must occur on a Linux machine or a Windows machine with WSL setup. VS Code can be installed anywhere, but this project and its dependencies must be located on a Linux distro.
+
 - **VS Code
-- **Node**: Required for managing dependencies and running scripts.
+- [WSL](https://learn.microsoft.com/en-us/windows/wsl/install) with:
+	- an updated OS [`sudo apt-get [update/upgrade]`]
+	- [Node](https://nodejs.org/)
+	- [GoLang v1.19](https://go.dev/doc/install)
+	- Java JDK [`sudo apt install default-jre`]
 
 ### Getting Started
 
-1. **Clone the Repository**: `git clone https://github.com/ConfigMate/configmate-gui.git`
-2. **Install Dependencies**: From a terminal, navigate to the project directory and run `npm install`.
+1. **Clone Language Extension**: `git clone https://github.com/ConfigMate/configmate-gui.git`
+	then, from a terminal in this project root directory:
+2. **Install Dependencies**: `npm install`
+3. **Clone ConfigMate**: `npm run clone-api`
+4. **Build ConfigMate**: `npm run build-api`
 
-### Running & Testing the Extension Locally
+See the wiki for more information regarding these steps as well as solutions to known errors.
+### Running & Compiling
 
-Due to the nature of developing a VS Code extension within VS Code, there are some known limitations and bugs. The following instructions should work regardless of your personal setup.
-
-Run > Start Debugging (`F5`) will run the extension in a new VS Code window.
-- This is the same as opening the Run & Debug panel (`Ctrl+Shift+D`) and hitting the play button. From here, though, you can choose which launch configuration will be triggered.
-	- `Launch Extension` will compile and launch the extension.
-		- To see the changes you make in this window, use `Developer: Reload Window`, which is accessed from the Command Palette (`Ctrl+Shift+P`).
-	- `Test Extension` will compile and launch the extension, then run all tests before closing.
-		- Results are visible in the Debug Console.
-		- Add breakpoints to code (in the extension or tests) to debug.
+- **Compile & Run in New Window (Extension Host)**: `F5`, or:
+	- Run > Start Debugging
+	- Run & Debug panel (`Ctrl+Shift+D`) > Launch Extension
+- To see the changes you make to the code, recompile by closing the Extension Host window and rerunning.
+	- If changes are made to bundling or compilation, delete /client/out and /server/out before recompiling.
 - Launch configurations are located in `.vscode/launch.json`.
 
-Alternatively, some npm scripts are available, but should be avoided unless necessary. Particularly, testing from the CLI is discouraged. From a terminal, navigate to the project directory and run:
-- `npm run compile` to compile the extension (builds without running).
-- `npm run watch` to watch for changes (builds without running, will rebuild on file change).
-- `npm run test` to run tests against the compiled extension.
+### Debugging
 
+- Add breakpoints to any client-side code to debug the Extension Host. 
+	- Results are visible in the Run and Debug sidebar.
+	- Server-side breakpoints will not trigger.
+- Debug log messages appear in different places depending on their source.
+	- Client-side `console.log` messages appear in the Debug Console of the primary editor.
+	- Server-side `console.log` messages appear in Output > ConfigMateServer in the Extension Host.
+	- Server-side `connection.console.log` messages appear in the Debug Console of the Extension Host.
+	- Additional debug logs from VS Code can be seen via Help > Toggle Developer Tools.
 
 ## Coding Standards and Style Guidelines
 
@@ -54,23 +65,7 @@ Alternatively, some npm scripts are available, but should be avoided unless nece
 
 ### Code Formatting Tools
 
-We use [ESLint](https://eslint.org/) to enforce code formatting. These tools are run automatically on commit, but you can also run them manually from the command line.
-
-## Tests and Checks
-
-### Writing Tests
-
-- Write unit tests for all new functions and methods.
-- For bug fixes, write a regression test to ensure the bug doesn't reappear.
-- Use descriptive test case names.
-
-### Running Tests
-
-From the Run & Debug panel (`Ctrl+Shift+D`):
-- Choose `Test Extension` from the dropdown menu of launch configurations. 
-- Click the play button next to this dropdown menu, or press `F5`. This will compile and launch the extension, then run all tests before closing.
-- Results are visible in the Debug Console.
-- Add breakpoints to code (in the extension or tests) to debug.
+We use [ESLint](https://eslint.org/) to enforce code formatting. These tools are run automatically on commit, but you can also run them manually from the command line with `npm run lint`.
 
 ## Reporting Bugs or Suggesting Features
 
