@@ -5,8 +5,9 @@ import {
 	DidChangeConfigurationParams,
 	TextDocuments
 } from 'vscode-languageserver/node';
-import { Range, TextDocument } from 'vscode-languageserver-textdocument';
-import { Token, cmResponseNode } from './models';
+import { TextDocument } from 'vscode-languageserver-textdocument';
+import { analyzeSpec } from './api';
+import { Token, TokenLocation } from './models';
 
 interface ServerSettings {
 	settings: {
@@ -33,119 +34,112 @@ const defaultSettings: ConfigMateSettings = {
 export class DiagnosticManager {
 	private globalSettings: ConfigMateSettings = defaultSettings;
 	private documentSettings: Map<string, Thenable<ConfigMateSettings>> = new Map();
+	private settings: ConfigMateSettings = defaultSettings;
+	private readonly hasConfigurationCapability: boolean;
 
 	constructor(
-		private connection: Connection,
-		private documents: TextDocuments<TextDocument>,
-		private hasConfigurationCapability: boolean,
-		private hasDiagnosticRelatedInformationCapability: boolean
+		private readonly connection: Connection,
+		documents: TextDocuments<TextDocument>,
+		hasConfigurationCapability: boolean,
 	) {
+		this.hasConfigurationCapability = hasConfigurationCapability;
+
 		documents.onDidClose(e => this.removeDocumentSettings(e.document.uri));
-		documents.onDidChangeContent((change) => this.validate(change.document));
+		documents.onDidChangeContent((change) => {
+			try {
+				return Promise.resolve(this.validate(change.document));
+			} catch (error) {
+				console.error(error);
+				return Promise.reject(error);
+			}
+		});
 		documents.listen(connection);
 	}
 
 	public async validate(textDocument: TextDocument): Promise<void> {
-		let settings: ConfigMateSettings;
 		if (this.hasConfigurationCapability)
-			settings = await this.getDocumentSettings(textDocument.uri);
-		else
-			settings = this.globalSettings;
+			this.settings = await this.getDocumentSettings(textDocument.uri);
 
-		// Find problems using validation logic...
 		const text = textDocument.getText();
-		const pattern = /\b[A-Z]{2,}\b/g;
-		let m: RegExpExecArray | null;
+		const filepath = textDocument.uri;
 		let problems = 0;
-		const diagnostics: Diagnostic[] = [];
 
-		// iterate until the entire document is parsed or max problems reached
-		while ((m = pattern.exec(text)) && problems < settings.maxNumberOfProblems) {
+		const diagnostics: Diagnostic[] = [];
+		const response = await analyzeSpec(filepath, text);
+		if (!response || 
+			!('spec_error' in response) ||
+			!response.spec_error) return;
+		console.log(response);
+		
+		const error = response.spec_error;
+		const { error_msgs, token_list  } = error;
+		if (!token_list) return;
+		
+		const length = Math.min(error_msgs.length, token_list.length)
+		for (let i = 0; i < length; i++) {
+			if (problems >= this.settings.maxNumberOfProblems) break;
 			problems++;
 
-			// create a diagnostic object for each problem found
-			const diagnostic: Diagnostic = {
-				code: '', // for code actions
-				severity: DiagnosticSeverity.Warning,
-				range: {
-					start: textDocument.positionAt(m.index),
-					end: textDocument.positionAt(m.index + m[0].length)
-				},
-				message: `${m[0]} is all uppercase.`,
-				source: 'ConfigMate'
-			};
-			if (this.hasDiagnosticRelatedInformationCapability) {
-				/* diagnostic.relatedInformation.push({
-						location: {
-							uri: textDocument.uri,
-							range: Object.assign({}, diagnostic.range)
-						},
-						message: 'Spelling matters'
-				}) */
-			}
-			diagnostics.push(diagnostic);
-		}
+			const token = token_list[i];
+			const error_msg = error_msgs[i];
 
+			const diagnostic: Diagnostic = this.getDiagnostic(token, error_msg);			
+			if (diagnostic != null) diagnostics.push(diagnostic);
+		}
+		
 		return this.connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
 	}
 
-	private parseToken(token: Token): Range {
-		const { start: _start, end: _end } = token.location;
-		return {
-			start: {
-				line: _start.line - 1,
-				character: _start.column - 1
+	// ------------------------------ DIAGNOSTICS ------------------------------ //
+
+	private getDiagnostic(token: Token, error_msg: string): Diagnostic {
+
+		const location: TokenLocation = token.location;
+		const { start, end } = location;
+
+		/* DEBUGGING
+		console.log(`Error parsing .cms file:
+			Analyzer message: ${analyzer_msg}
+			Error message: ${error_msg}
+			Token location: ${JSON.stringify(location)}`)
+		*/
+
+		const diagnostic: Diagnostic = {
+			code: '',
+			message: error_msg || 'ConfigMate error',
+			range: { 
+				start: { line: start.line, character: start.column },
+				end: { line: end.line, character: end.column }
 			},
-			end: {
-				line: _end.line - 1,
-				character: _end.column
-			}
+			severity: DiagnosticSeverity.Error,
+			source: 'ConfigMate'
 		};
-	}
 
-	private parseResponse = (response: cmResponseNode[]): Diagnostic[] => {
-		try {
-			const diagnostics: Diagnostic[] = [];
-			const failed = response.filter(node => !node.passed);
-			for (const node of failed) {
-				const { result_comment, token_list } = node;
-				if (!token_list) continue;
-				token_list.map(token => {
-					const range = this.parseToken(token);
-					const diagnostic = Diagnostic.create(
-						range,
-						result_comment,
-						DiagnosticSeverity.Error,
-						'ConfigMate'
-					);
-					diagnostics.push(diagnostic);
-				});
-			}
-			return diagnostics;
-		} catch (error) {
-			this.connection.console.error(`Couldn't parse a ConfigMate response: ${error as string}`);
-			return [];
-		}
+		return diagnostic;
 	}
-
-	// -------------- SETTINGS ----------------- //
+				
+	// ------------------------------ SETTINGS ------------------------------ //
 
 	private async getDocumentSettings(resource: string): Promise<ConfigMateSettings> {
 		if (!this.hasConfigurationCapability) return Promise.resolve(this.globalSettings);
 
-		let result = this.documentSettings.get(resource);
+		let result = await this.documentSettings.get(resource);
 		if (!result) {
-			result = this.connection.workspace.getConfiguration({
+			const config = this.connection.workspace.getConfiguration({
 				scopeUri: resource,
 				section: 'configMateServer'
 			});
-			this.documentSettings.set(resource, result);
+			this.documentSettings.set(resource, config);
+			result = await this.documentSettings.get(resource);
 		}
 		return result;
 	}
+
 	public clearDocumentSettings = () => this.documentSettings.clear();
+
 	public removeDocumentSettings = (resource: string) =>
 		this.documentSettings.delete(resource);
+
 	public updateGlobalSettings = (change: DidChangeConfigurationParams) => {
 		const { settings } = <ServerSettings>change;
 		this.globalSettings = settings.configMateServer || defaultSettings;

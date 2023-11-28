@@ -1,9 +1,9 @@
 import * as vscode from 'vscode';
-import { cmResponseNode, cmRequest, Rulebook } from './models';
+import { cmResponse, cmRequest, Spec, Config } from './models';
 import axios from 'axios';
-import { RulebookFile } from './rulebooks';
-import * as toml from 'toml';
+import { SpecFile } from './specFiles';
 import { DiagnosticsProvider } from './configDiagnostics';
+import path = require('path');
 
 export class ConfigMateProvider {
 	constructor(
@@ -12,34 +12,37 @@ export class ConfigMateProvider {
 	) {
 		context.subscriptions.push(
 			vscode.commands.registerCommand('configMate.check',
-				async (node: RulebookFile) => {
+				async (node: SpecFile) => {
 					const response = await this.check(node.filepath);
 					if (!response) return;
-					await diagnosticsProvider.parseResponse(response, node);
+					const failed = (response.spec_error === null) ? false : true;
+					if (failed) {
+						await vscode.window.showErrorMessage('ConfigMate failed to parse spec file');
+						return; 
+					}
+					else await diagnosticsProvider.parseResponse(response.check_results);
 				}
 			)
 		);
 	}
 
-	check = async (filepath: string): Promise<cmResponseNode[] | null> => {
+	check = async (filepath: string): Promise<cmResponse> => {
 		try {
-			// debug logging:
-			// const message = `Checking ${filepath} with ConfigMate`;
-			// console.log(message);
-			// void vscode.window.showInformationMessage(message);
-			return await this.sendRequest(filepath);
+			return Promise.resolve(this.sendRequest(filepath));
 		} catch (error) {
 			console.error(error);
-			return null;
+			return Promise.reject(error);
 		}
 	};
 
-	async sendRequest(filepath: string): Promise<cmResponseNode[]> {
-		const url: string = 'http://localhost:10007/api/check';
+	async sendRequest(filepath: string): Promise<cmResponse> {
+		const url: string = 'http://localhost:10007/api/analyze_spec';
+		const uri = vscode.Uri.file(filepath);
+		const content = await this.readFile(uri);
 		const request: cmRequest = {
-			rulebook_path: filepath,
+			spec_file_path: filepath,
+			spec_file_content: content
 		};
-		let data: cmResponseNode[] | null = null;
 
 		try {
 			const response = await axios({
@@ -48,85 +51,77 @@ export class ConfigMateProvider {
 				data: request
 			});
 
-			// console.log(response.data);
-			data = response.data as cmResponseNode[];
+			return Promise.resolve(response.data as cmResponse);
 		} catch (error) {
 			console.error(error);
-
-			const currentLocation = vscode.workspace.workspaceFolders?.[0].uri.fsPath;
-			console.error("Working path: " + currentLocation);
-			console.error("Filepath: " + filepath);
-		}
-		return data;
-	}
-
-	createRulebook = async (uri: vscode.Uri): Promise<Rulebook> => {
-		// use configmate api to create rulebook
-		const mock = `name = "Rulebook for config0"
-description = "This is a rulebook for config0"
-
-[files.config0]
-path = "./examples/configurations/config0.json"
-format = "json"
-
-[[rules]]
-field = "config0.server.host"
-type = "string"
-checks = ["eq('localhost')"]
-default = "localhost"
-notes = """
-This is the host that the server will listen on.
-"""
-
-[[rules]]
-field = "config0.server.port"
-type = "int"
-checks = ["range(25, 100)"]
-default = 80
-notes = """
-This is the port that the server will listen on.
-"""
-
-[[rules]]
-field = "config0.server.ssl_enabled"
-type = "bool"
-checks = ["eq(false)"]
-default = false
-notes = """
-This is whether or not SSL is enabled.
-"""`
-		// write to file at uri
-		try {
-			const rulebook = toml.parse(mock) as Rulebook;
-			await vscode.workspace.fs.writeFile(uri, Buffer.from(mock));
-			return Promise.resolve(rulebook);
-		} catch (error) {
-			console.error(`Error creating rulebook: ${error as string}`);
 			return Promise.reject(error);
 		}
 	}
 
-	getRulebookFromUri = async (): Promise<Rulebook> => {
-		// getRulebookFromUri = async (uri: vscode.Uri): Promise<Rulebook> => {
-		// use configmate api to get rulebook
+	readFile = async (uri: vscode.Uri): Promise<number[]> => {
+		const file = await vscode.workspace.fs.readFile(uri);
+		const buffer = Buffer.from(file);
+		return Array.from(buffer);
+	}
+
+	createSpecFile = async (uri: vscode.Uri): Promise<null> => {
+		// create empty file
+		// TODO: add template for new specFiles
+		try {
+			await vscode.workspace.fs.writeFile(uri, Buffer.from([]));
+		} catch (error) {
+			console.error(`Error creating specFile: ${error as string}`);
+			return Promise.reject(error);
+		}
+	}
+
+	parseSpecFile = async (uri: vscode.Uri): Promise<Spec> => {
+		const pattern = /\b(file)\b(: ")([A-Za-z0-9/_.]+)(" )\b(json)\b$/g;
+		const file = await vscode.workspace.openTextDocument(uri);
+		const filename = file.fileName;
+		const numLines = file.lineCount;
+		const matches: Config[] = [];
+		for (let i = 0; i < numLines; i++) {
+			const line = file.lineAt(i).text;
+			const match = pattern.exec(line);
+			const filepath = match ? match[3] : '';
+			const absPath = path.join(path.dirname(filename), filepath);
+			console.log(absPath);
+
+			if (match) matches.push({
+				// convert to absolute path
+				path: match[3],
+				format: match[5]
+			});
+		}
+		if (!matches.length) throw new Error('Invalid specFile');
+		return this.getSpecFromContents(filename, matches);
+	}
+
+	getSpecFromContents = async (filename: string, matches: Config[]): Promise<Spec> => {
+		if (!matches || !matches.length) throw new Error('No contents');
+
+		const spec: Spec = {
+			name: path.basename(filename),
+			description: '',
+			files: [...matches]
+		};
+		
+		return Promise.resolve(spec);
+	}
+
+	getSpecFromUri = async (uri?: vscode.Uri): Promise<Spec> => {
 		const mock = {
-			"name": "Rulebook name",
-			"description": "Rulebook description",
-			"files": {
-				"config0": {
+			"name": "specFile name",
+			"description": "specFile description",
+			"files": [
+				{
 					"path": "./examples/configurations/config0.json",
 					"format": "json"
 				}
-			},
-			"rules": [
-				{
-					"description": "Rule description",
-					"checkName": "Name of check to run",
-					"args": "Arguments to pass to check"
-				}
 			]
-		};
-		// if (uri) console.log(uri.fsPath);
-		return Promise.resolve(mock as Rulebook);
+		}; 
+		if (!uri) return Promise.resolve(mock as Spec);
+		return this.parseSpecFile(uri);
 	}
 }

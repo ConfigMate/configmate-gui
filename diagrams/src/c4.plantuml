@@ -7,8 +7,8 @@ LAYOUT_LANDSCAPE()
 
 System_Boundary(extension, "ConfigMate VS Code Extension") {
 	System_Boundary(gui, "GUI [Activity Bar]") {
-		Container(rulebooks, "Rulebooks View", "TypeScript, VS Code API", "Graphical file manager for .rulebook files (.json, .toml, .hocon)")
-		Container(configFiles, "Config Files View", "TypeScript, VS Code API", "Graphical file manager for config files specified in selected rulebook(s)")
+		Container(specFiles, "specFiles View", "TypeScript, VS Code API", "Graphical file manager for .specFile files (.json, .toml, .hocon)")
+		Container(configFiles, "Config Files View", "TypeScript, VS Code API", "Graphical file manager for config files specified in selected specFile(s)")
 	}
 	Container(configmateProvider, "ConfigMate Provider", "TypeScript", "Runs the ConfigMate server, then routes API requests & responses appropriately")
 	Container(diagnosticsProvider, "Diagnostics Provider", "TypeScript, VS Code API", "Uses error data in response to add in-editor feedback & helpful diagnostic information")
@@ -23,9 +23,9 @@ Rel_R(configmateProvider, server, " ")
 Rel_L(server, configmateProvider, " ")
 Rel_D(configmateProvider, diagnosticsProvider, " ")
 
-Rel_R(rulebooks, configmateProvider, " ")
+Rel_R(specFiles, configmateProvider, " ")
 Rel_R(configFiles, configmateProvider, " ")
-Rel_L(diagnosticsProvider, rulebooks, " ")
+Rel_L(diagnosticsProvider, specFiles, " ")
 Rel_L(diagnosticsProvider, configFiles, " ")
 
 Rel_D(cli, analyzer, " ")

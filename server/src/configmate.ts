@@ -4,15 +4,15 @@ import { spawn, ChildProcess } from 'child_process';
 
 export class ConfigMateManager {
 	private isShuttingDown = false;
-	private maxRestartAttempts = 3;
+	private readonly maxRestartAttempts = 3;
 	private restartAttempts = 0;
 	private cmProcess: ChildProcess | null = null;
 
-	constructor(private connection: Connection) {
-		this.startCMProcess();
+	constructor(connection: Connection) {
+		this.startCMProcess(connection);
 	}
 
-	public startCMProcess = () => {
+	public startCMProcess = (connection: Connection) => {
 		if (this.isShuttingDown || this.restartAttempts >= this.maxRestartAttempts) return;
 
 		const cliPath = path.resolve(__dirname, '../../configmate');
@@ -30,7 +30,7 @@ export class ConfigMateManager {
 		});
 
 		this.cmProcess?.stderr?.on('data', (data) => {
-			this.connection.console.error(`ANTLR CLI error: ${data as string}`);
+			connection.console.error(`ANTLR CLI error: ${data as string}`);
 		});
 
 		this.cmProcess?.on('close', () => {

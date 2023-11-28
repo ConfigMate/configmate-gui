@@ -14,7 +14,8 @@
             ],
             "sourceMaps": true,
             "outFiles": [
-                "${workspaceRoot}/client/out/**/*.js"
+                "${workspaceRoot}/client/out/**/*.js",
+                "${workspaceRoot}/server/out/**/*.js"
             ],
             "preLaunchTask": "npm: watch"
         },

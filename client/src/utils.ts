@@ -1,7 +1,13 @@
 import * as vscode from 'vscode';
 
 export const openDoc = async (uri: vscode.Uri): Promise<vscode.TextEditor> => {
-	const doc = await vscode.workspace.openTextDocument(uri);
+	let doc: vscode.TextDocument;
+	try {
+		doc = await vscode.workspace.openTextDocument(uri);
+	} catch (error) {
+		console.error(error);
+		await vscode.window.showWarningMessage(`Couldn't open a ConfigMate response: ${error as string}`);
+	}
 	return await vscode.window.showTextDocument(doc);
 };
 

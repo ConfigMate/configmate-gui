@@ -3,8 +3,10 @@ import {
 	TextDocumentPositionParams,
 	CompletionItem,
 	CompletionItemKind
-} from 'vscode-languageserver';
+} from 'vscode-languageserver/node';
 
+// This does work, it's just placeholder values.
+// Typing 'T' or 'J' in a .cms file will trigger code completion.
 export class CodeCompletionManager {
 	constructor(connection: Connection) {
 		connection.onCompletion(this.initCodeComplete);
