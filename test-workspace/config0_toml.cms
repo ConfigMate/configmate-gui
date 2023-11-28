@@ -1,0 +1,43 @@
+config: "./examples/configurations/config0.toml" toml
+
+spec {
+    server <object> {
+        host <string> (
+            eq(database.host);
+        )
+        port <int>
+        ssl_enabled <bool> ( eq(false); )
+
+        ssl_paths <object> {
+            key <file>
+            cert <file>
+        }
+    }
+
+    database <object> {
+        host <string>
+        port <int> ( range(5000, 6000); )
+        name <string>
+        'user name' <string> ( eq("dbuser"); )
+        password <string>
+    }
+
+    cache <cache_details> optional ( 
+        get("host").addPort(get("port")).live();
+    ) 
+    
+
+    logging.dns_servers <list<host>> optional ( 
+        len().gt(1);
+        foreach(s : this) {
+            s.reachable()
+        };
+    )
+}
+
+objects {
+    cache_details {
+        host <host>
+        port <port>
+    }
+}

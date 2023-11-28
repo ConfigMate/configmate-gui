@@ -15,9 +15,15 @@ export class ConfigMateProvider {
 				async (node: SpecFile) => {
 					const response = await this.check(node.filepath);
 					if (!response) return;
+					console.log(response);
 					const failed = (response.spec_error === null) ? false : true;
 					if (failed) {
-						await vscode.window.showErrorMessage('ConfigMate failed to parse spec file');
+						const { spec_error } = response;
+						const { analyzer_msg, error_msgs } = spec_error;
+						await vscode.window.showErrorMessage(
+							`ConfigMate could not check configs:\n
+							${analyzer_msg}: ${error_msgs[0]}`
+						);
 						return; 
 					}
 					else await diagnosticsProvider.parseResponse(response.check_results);
