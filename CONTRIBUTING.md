@@ -26,6 +26,7 @@ To be able to compile and run properly, development must occur on a Linux machin
 4. **Build ConfigMate**: `npm run build-api`
 
 See the wiki for more information regarding these steps as well as solutions to known errors.
+
 ### Running & Compiling
 
 - **Compile & Run in New Window (Extension Host)**: `F5`, or:
