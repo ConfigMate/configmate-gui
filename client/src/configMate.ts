@@ -89,8 +89,8 @@ export class ConfigMateProvider {
 				format: match[5]
 			});
 		}
-		if (!matches.length) throw new Error('Invalid specFile');
-		return this.getSpecFromContents(filename, matches);
+		if (!matches.length) console.error("Config filepath unrecognized.");
+		else return this.getSpecFromContents(filename, matches);
 	}
 
 	getSpecFromContents = async (filename: string, matches: Config[]): Promise<Spec> => {

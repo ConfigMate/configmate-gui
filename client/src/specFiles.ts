@@ -64,7 +64,7 @@ export class SpecFileProvider implements vscode.TreeDataProvider<SpecFile> {
 				const file = new SpecFile(label, filepath, specFile);
 				specFiles.push(file);
 			} catch (error) { 
-				console.error(`Error parsing specFile file ${filepath}: `, error); 
+				console.error(`Error parsing specFile at ${filepath}: `, error); 
 			}
 		}
 		return specFiles;
