@@ -3,12 +3,11 @@ import {
 	Diagnostic,
 	DiagnosticSeverity,
 	DidChangeConfigurationParams,
-	Range,
 	TextDocuments
 } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { analyzeSpec } from './api';
-import { TokenLocation } from './models';
+import { Token, TokenLocation } from './models';
 
 interface ServerSettings {
 	settings: {
@@ -37,16 +36,13 @@ export class DiagnosticManager {
 	private documentSettings: Map<string, Thenable<ConfigMateSettings>> = new Map();
 	private settings: ConfigMateSettings = defaultSettings;
 	private readonly hasConfigurationCapability: boolean;
-	private readonly hasDiagnosticRelatedInformationCapability: boolean;
 
 	constructor(
 		private readonly connection: Connection,
 		documents: TextDocuments<TextDocument>,
 		hasConfigurationCapability: boolean,
-		hasDiagnosticRelatedInformationCapability: boolean
 	) {
 		this.hasConfigurationCapability = hasConfigurationCapability;
-		this.hasDiagnosticRelatedInformationCapability = hasDiagnosticRelatedInformationCapability;
 
 		documents.onDidClose(e => this.removeDocumentSettings(e.document.uri));
 		documents.onDidChangeContent((change) => {
@@ -76,86 +72,53 @@ export class DiagnosticManager {
 		console.log(response);
 		
 		const error = response.spec_error;
-		const { analyzer_msg, error_msgs, token_list  } = error;
+		const { error_msgs, token_list  } = error;
 		if (!token_list) return;
 		
 		const length = Math.min(error_msgs.length, token_list.length)
 		for (let i = 0; i < length; i++) {
-
 			if (problems >= this.settings.maxNumberOfProblems) break;
 			problems++;
 
 			const token = token_list[i];
 			const error_msg = error_msgs[i];
-			const location: TokenLocation = token.location;
-			const {start, end} = location;
 
-			/* DEBUGGING
-			console.log(`Error parsing .cms file:
-				Analyzer message: ${analyzer_msg}
-				Error message: ${error_msg}
-				Token location: ${JSON.stringify(location)}`)
-			*/
-
-			const diagnostic: Diagnostic = this.getDiagnostic(
-				filepath,
-				{
-					start: {
-						line: start.line, 
-						character: start.column
-					},
-					end: {
-						line: end.line, 
-						character: end.column 
-					}
-				},
-				[
-					analyzer_msg,
-					error_msg
-				]
-			);
-			
+			const diagnostic: Diagnostic = this.getDiagnostic(token, error_msg);			
 			if (diagnostic != null) diagnostics.push(diagnostic);
 		}
 		
-
 		return this.connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
 	}
 
-	private getDiagnostic(uri: string, range: Range, messages: string[]): Diagnostic {
-		const { start, end } = range;
+	// ------------------------------ DIAGNOSTICS ------------------------------ //
+
+	private getDiagnostic(token: Token, error_msg: string): Diagnostic {
+
+		const location: TokenLocation = token.location;
+		const { start, end } = location;
+
+		/* DEBUGGING
+		console.log(`Error parsing .cms file:
+			Analyzer message: ${analyzer_msg}
+			Error message: ${error_msg}
+			Token location: ${JSON.stringify(location)}`)
+		*/
+
 		const diagnostic: Diagnostic = {
 			code: '',
-			message: messages[0] || 'ConfigMate error',
-			range: { start, end	},
+			message: error_msg || 'ConfigMate error',
+			range: { 
+				start: { line: start.line, character: start.column },
+				end: { line: end.line, character: end.column }
+			},
 			severity: DiagnosticSeverity.Error,
-			source: 'ConfigMate',
-			relatedInformation: [
-				{
-					location: {
-						uri,
-						range
-					},
-					message: messages[1] || 'ConfigMate error'
-				}
-			]
+			source: 'ConfigMate'
 		};
 
-		if (this.hasDiagnosticRelatedInformationCapability) {
-			for (let i = 2; i < messages.length; i++) {
-				diagnostic.relatedInformation.push({
-					location: {
-						uri,
-						range
-					},
-					message: messages[i]
-				});
-			}
-		}
 		return diagnostic || null;
 	}
 				
-	// -------------- SETTINGS ----------------- //
+	// ------------------------------ SETTINGS ------------------------------ //
 
 	private async getDocumentSettings(resource: string): Promise<ConfigMateSettings> {
 		if (!this.hasConfigurationCapability) return Promise.resolve(this.globalSettings);
@@ -171,9 +134,12 @@ export class DiagnosticManager {
 		}
 		return result;
 	}
+
 	public clearDocumentSettings = () => this.documentSettings.clear();
+
 	public removeDocumentSettings = (resource: string) =>
 		this.documentSettings.delete(resource);
+
 	public updateGlobalSettings = (change: DidChangeConfigurationParams) => {
 		const { settings } = <ServerSettings>change;
 		this.globalSettings = settings.configMateServer || defaultSettings;

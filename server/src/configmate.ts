@@ -4,7 +4,7 @@ import { spawn, ChildProcess } from 'child_process';
 
 export class ConfigMateManager {
 	private isShuttingDown = false;
-	private maxRestartAttempts = 3;
+	private readonly maxRestartAttempts = 3;
 	private restartAttempts = 0;
 	private cmProcess: ChildProcess | null = null;
 

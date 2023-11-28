@@ -27,7 +27,6 @@ let semanticTokensManager: SemanticTokensManager;
 
 let hasConfigurationCapability = false;
 let hasWorkspaceFolderCapability = false;
-let hasDiagnosticRelatedInformationCapability = false;
 
 const defaultCapabilities: ServerCapabilities = {
 	textDocumentSync: TextDocumentSyncKind.Incremental,
@@ -49,17 +48,11 @@ connection.onInitialize((params: InitializeParams) => {
 	hasWorkspaceFolderCapability = !!(
 		capabilities.workspace && !!capabilities.workspace.workspaceFolders
 	);
-	hasDiagnosticRelatedInformationCapability = !!(
-		capabilities.textDocument &&
-		capabilities.textDocument.publishDiagnostics &&
-		capabilities.textDocument.publishDiagnostics.relatedInformation
-	);
 
 	diagnosticManager = new DiagnosticManager(
 		connection,
 		documents,
-		hasConfigurationCapability,
-		hasDiagnosticRelatedInformationCapability
+		hasConfigurationCapability
 	);
 
 	semanticTokensManager = new SemanticTokensManager();
@@ -99,19 +92,18 @@ connection.onDidChangeWatchedFiles(_change =>
 	connection.console.log(`File change: ${_change.changes[0].uri}`)
 );
 
+connection.onRequest(SemanticTokensRequest.type, 
+	async (params: SemanticTokensParams): Promise<SemanticTokens> => {
+		try {
+			const document = documents.get(params.textDocument.uri);
+			const tokens = await semanticTokensManager.provideDocumentSemanticTokens(document);
+			return Promise.resolve(tokens);
+		} catch (error) {
+			console.error(error);
+			return Promise.reject(error);
+		}
+});
+
 connection.onShutdown(() => configMateManager.handleShutdown());
 connection.onExit(() => configMateManager.handleShutdown());
 connection.listen();
-
-// connection.onRequest('configmate/resolve', (params) => 
-// 	configMateManager.handleResolve(params)
-// );
-
-connection.onRequest(SemanticTokensRequest.type, 
-	async (params: SemanticTokensParams): Promise<SemanticTokens | null> => {
-	const document = documents.get(params.textDocument.uri);
-	if (!document) return null;
-	return await semanticTokensManager.provideDocumentSemanticTokens(document);
-});
-
-

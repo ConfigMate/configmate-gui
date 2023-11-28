@@ -29,45 +29,38 @@ export const legend = (function () {
     });
 })();
 
-export class SemanticTokensManager {  
-    tokenSpecs = [
-        { regex: /\b(?:file|spec|type|default|description|notes)\b/g, type: 'keyword' },
-        { regex: /\b[A-Za-z_][A-Za-z0-9_]*\b/g, type: 'label' },
-        { regex: /\b\d+(\.\d+)?\b/g, type: 'number' },
-        { regex: /["][A-Za-z0-9_,.?!// ]*["]/g, type: 'string' },
-        { regex: /[=+\-;:,.]/g, type: 'operator' },
-        { regex: /\b(?:true|false)\b/g, type: 'enum' },
-        // Add more patterns if necessary
-    ];
-
+export class SemanticTokensManager {
     async provideDocumentSemanticTokens(document: TextDocument): Promise<SemanticTokens> {
         const fileContents = document.getText();
         const allTokens = await this.tokenizeCMSDocument(fileContents);
         const builder = new SemanticTokensBuilder();
         allTokens.forEach((token: SemanticToken) => {
-            builder.push(token.line, token.startCharacter, token.length, this._encodeTokenType(token.tokenType), this._encodeTokenModifiers(token.tokenModifiers));
+            const {line, startCharacter, length, tokenType} = token;
+            builder.push(
+                line, startCharacter, length, 
+                this._encodeTokenType(tokenType), this._encodeTokenModifiers([])
+            );
         });
         return builder.build();
     }
 
     private _encodeTokenType(tokenType: string): number {
-        if (tokenTypes.has(tokenType)) {
+        if (tokenTypes.has(tokenType))
             return tokenTypes.get(tokenType)!;
-        } else if (tokenType === 'notInLegend') {
+        else if (tokenType === 'notInLegend')
             return tokenTypes.size + 2;
-        }
         return 0;
     }
 
+    // Not currently using this, but leaving here in case we need it later
     private _encodeTokenModifiers(strTokenModifiers: string[]): number {
         let result = 0;
         for (let i = 0; i < strTokenModifiers.length; i++) {
             const tokenModifier = strTokenModifiers[i];
-            if (tokenModifiers.has(tokenModifier)) {
+            if (tokenModifiers.has(tokenModifier))
                 result = result | (1 << tokenModifiers.get(tokenModifier)!);
-            } else if (tokenModifier === 'notInLegend') {
+            else if (tokenModifier === 'notInLegend')
                 result = result | (1 << tokenModifiers.size + 2);
-            }
         }
         return result;
     }
@@ -83,13 +76,8 @@ export class SemanticTokensManager {
         const tokens: SemanticToken[] = [];
         const { semantic_tokens } = response;
         semantic_tokens.forEach(token => {
-            tokens.push({
-                line: token.line,
-                startCharacter: token.column,
-                length: token.length,
-                tokenType: token.tokenType,
-                tokenModifiers: []
-            });
+            const { line, column: startCharacter, length, tokenType} = token;
+            tokens.push({line, startCharacter, length, tokenType, tokenModifiers: []});
         });
         return tokens;
     }
