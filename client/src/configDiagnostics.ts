@@ -10,13 +10,13 @@ export class DiagnosticsProvider {
 	constructor(context: vscode.ExtensionContext) {
 		this.diagnostics = vscode.languages.createDiagnosticCollection('ConfigMate');
 		context.subscriptions.push(
-
+			vscode.workspace.onDidCloseTextDocument(doc => this.diagnostics.delete(doc.uri)),
+			vscode.workspace.onDidChangeTextDocument(() => this.clearDiagnostics()),
 		);
 	}
 
 	parseResponse = async (response: checkResponseNode[]) => {
 		try {
-			this.clearDiagnostics();
 			const workspace = vscode.workspace.workspaceFolders?.[0].uri;
 			const diags: {[path: string]: vscode.Diagnostic[]} = {};
 
