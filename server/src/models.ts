@@ -1,3 +1,5 @@
+// TODO: Single source of truth for these types + /client
+
 export interface cmRequest {
 	spec_file_path: string,
 	spec_file_content: number[]
@@ -32,7 +34,7 @@ export interface checkResponseNode {
 	token_list: Token[]
 }
 
-export interface TokenResponse {
+export interface SemanticTokenResponse {
 	semantic_tokens: ParsedToken[]
 	error: string
 }

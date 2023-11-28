@@ -1,4 +1,7 @@
-export interface cmRequest { 
+// TODO: Single source of truth for these types + /server
+// TODO: Single source of truth for these types + /client
+
+export interface cmRequest {
 	spec_file_path: string,
 	spec_file_content: number[]
 }
@@ -14,14 +17,14 @@ export interface cmResponse {
 		imports_alias_location: TokenLocation,
 		imports_location: TokenLocation
 	},
-	spec_error: cmResponseNode[],
+	spec_error: cmResponseNode,
 	check_results: checkResponseNode[]
 }
 
 export interface cmResponseNode {
 	analyzer_msg: string,
 	error_msgs: string[],
-	token_list: TokenLocation[]
+	token_list: Token[]
 }
 
 export interface checkResponseNode {
@@ -32,6 +35,24 @@ export interface checkResponseNode {
 	token_list: Token[]
 }
 
+export interface SemanticTokenResponse {
+	semantic_tokens: ParsedToken[]
+	error: string
+}
+
+export interface ParsedToken {
+	line: number,
+	column: number,
+	length: number,
+	tokenType: string
+}
+export interface SemanticToken {
+	line: number,
+	startCharacter: number,
+	length: number,
+	tokenType: string,
+	tokenModifiers: string[]
+}
 
 export interface Token {
 	file: string,
@@ -66,11 +87,6 @@ export interface Field {
 export interface Check {
 	check: string,
 	location: TokenLocation
-}
-export interface Rule {
-	description: string,
-	checkName: string,
-	args: string
 }
 
 export interface Spec {
