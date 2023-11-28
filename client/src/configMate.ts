@@ -76,7 +76,7 @@ export class ConfigMateProvider {
 	}
 
 	parseSpecFile = async (uri: vscode.Uri): Promise<Spec> => {
-		const pattern = /\b(file)\b(: ")([A-Za-z0-9/_.]+)(" )\b(json)\b$/g;
+		const pattern = /\b(config)\b(: ")([A-Za-z0-9/_.]+)(" )\b(json)\b$/g;
 		const file = await vscode.workspace.openTextDocument(uri);
 		const filename = file.fileName;
 		const numLines = file.lineCount;
@@ -85,25 +85,24 @@ export class ConfigMateProvider {
 			const line = file.lineAt(i).text;
 			const match = pattern.exec(line);
 			const filepath = match ? match[3] : '';
-			const absPath = path.join(path.dirname(filename), filepath);
-			console.log(absPath);
+			// const absPath = path.join(path.dirname(filename), filepath);
+			// console.log(absPath);
 
 			if (match) matches.push({
 				// convert to absolute path
-				path: match[3],
+				path: filepath,
 				format: match[5]
 			});
 		}
 		if (!matches.length) console.error("Config filepath unrecognized.");
-		else return this.getSpecFromContents(filename, matches);
+		return this.getSpecFromContents(filename, matches);
 	}
 
-	getSpecFromContents = async (filename: string, matches: Config[]): Promise<Spec> => {
-		if (!matches || !matches.length) throw new Error('No contents');
-
+	getSpecFromContents = async (filepath: string, matches: Config[]): Promise<Spec> => {
+		const filename = path.basename(filepath);
 		const spec: Spec = {
-			name: path.basename(filename),
-			description: '',
+			name: filename,
+			description: filepath,
 			files: [...matches]
 		};
 		
