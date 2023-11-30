@@ -169,8 +169,11 @@
 		}
 	},
 	"scripts": {
-		"clone-api": "(git clone https://github.com/ConfigMate/configmate.git)",
+		"clone-api": "git clone https://github.com/ConfigMate/configmate.git",
 		"build-api": "(cd configmate && make configm)",
+		"fix-eol": "sudo dos2unix ./configmate/scripts/*",
+		"init-api": "npm run clone-api && npm run fix-eol && npm run build-api",
+		"update-api": "rm -f -R configmate && npm run init-api",
 		"publish": "vsce publish patch --no-git-tag-version",
 		"package": "vsce package --no-git-tag-version",
 		"vscode:prepublish": "npm run esbuild-base -- --minify",
@@ -187,6 +190,7 @@
 	"devDependencies": {
 		"@typescript-eslint/eslint-plugin": "^5.62.0",
 		"@typescript-eslint/parser": "^5.62.0",
+		"esbuild": "^0.19.8",
 		"eslint": "^8.53.0",
 		"typescript": "^5.2.0"
 	}
