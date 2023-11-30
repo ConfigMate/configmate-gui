@@ -10,7 +10,8 @@ import {
 	ServerCapabilities,
 	SemanticTokensRequest,
 	SemanticTokensParams,
-	SemanticTokens
+	SemanticTokens,
+	DidChangeWatchedFilesParams
 } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { DiagnosticManager } from './diagnostics';
@@ -87,22 +88,27 @@ connection.onDidChangeConfiguration((change: DidChangeConfigurationParams) => {
 	documents.all().forEach((doc) => void diagnosticManager.validate(doc));
 });
 
-
-connection.onDidChangeWatchedFiles(_change =>
-	connection.console.log(`File change: ${_change.changes[0].uri}`)
-);
+const updateTokens = async (params: SemanticTokensParams): Promise<SemanticTokens> => {
+	try {
+		const document = documents.get(params.textDocument.uri);
+		const tokens = await semanticTokensManager.provideDocumentSemanticTokens(document);
+		return Promise.resolve(tokens);
+	} catch (error) {
+		console.error(error);
+		return Promise.reject(error);
+	}
+}
+connection.onDidChangeWatchedFiles((_change: DidChangeWatchedFilesParams) => {
+	const changedFile = _change.changes[0];
+	if (!changedFile) return;
+	if (changedFile.type !== 1) return; // file was deleted
+	const doc = documents.get(changedFile.uri);
+	// send semantic token request
+	if (doc) void diagnosticManager.validate(doc)
+});
 
 connection.onRequest(SemanticTokensRequest.type, 
-	async (params: SemanticTokensParams): Promise<SemanticTokens> => {
-		try {
-			const document = documents.get(params.textDocument.uri);
-			const tokens = await semanticTokensManager.provideDocumentSemanticTokens(document);
-			return Promise.resolve(tokens);
-		} catch (error) {
-			console.error(error);
-			return Promise.reject(error);
-		}
-});
+	(params: SemanticTokensParams): Promise<SemanticTokens> => updateTokens(params));
 
 connection.onShutdown(() => configMateManager.handleShutdown());
 connection.onExit(() => configMateManager.handleShutdown());

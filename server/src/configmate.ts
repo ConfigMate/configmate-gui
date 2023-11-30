@@ -15,22 +15,22 @@ export class ConfigMateManager {
 	public startCMProcess = (connection: Connection) => {
 		if (this.isShuttingDown || this.restartAttempts >= this.maxRestartAttempts) return;
 
-		const cliPath = path.resolve(__dirname, '../../configmate');
-		this.cmProcess = spawn(
-			'./bin/configm',
-			['serve'],
-			{
-				cwd: cliPath,
-				shell: true
-			}
-		);
+		const platform = process.platform;
+		if (platform !== 'win32' && platform !== 'linux') {
+			connection.console.error(`ConfigMate Core is not supported on platform: ${platform}`);
+			return;
+		}
+		const isWindows = platform === 'win32';
+		const exe = isWindows ? '.exe' : '';
+		const cliPath = path.resolve(__dirname, `../../configmate${exe}`);
+		this.cmProcess = spawn(`${cliPath}/bin/configm`, ['serve'], { shell: true });
 
 		this.cmProcess?.stdout?.on('data', () => {
 			// connection.console.log(data as string);
 		});
 
 		this.cmProcess?.stderr?.on('data', (data) => {
-			connection.console.error(`ANTLR CLI error: ${data as string}`);
+			connection.console.error(`ConfigMate Core error: ${data as string}`);
 		});
 
 		this.cmProcess?.on('close', () => {

@@ -71,7 +71,7 @@ export class SemanticTokensManager {
         if (response.error) console.error(response.error);
         if (!response.semantic_tokens) return [];
         
-        // console.log(response);
+        console.log(response);
         
         const tokens: SemanticToken[] = [];
         const { semantic_tokens } = response;

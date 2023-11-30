@@ -65,10 +65,13 @@ export class DiagnosticManager {
 		let problems = 0;
 
 		const diagnostics: Diagnostic[] = [];
+		await this.clearDiagnostics(textDocument.uri);
+
 		const response = await analyzeSpec(filepath, text);
 		if (!response || 
 			!('spec_error' in response) ||
-			!response.spec_error) return;
+			response.spec_error == null) return;
+		
 		console.log(response);
 		
 		const error = response.spec_error;
@@ -117,6 +120,7 @@ export class DiagnosticManager {
 
 		return diagnostic;
 	}
+	public clearDiagnostics = (uri: string) => this.connection.sendDiagnostics({ uri, diagnostics: [] });
 				
 	// ------------------------------ SETTINGS ------------------------------ //
 

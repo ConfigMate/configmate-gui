@@ -27,7 +27,7 @@
 	"autoClosingPairs": [
 		{
 			"open": "<",
-			"close": ">",
+			"close": ">"
 		},
 		{
 			"open": "{",
@@ -113,21 +113,5 @@
 	"indentationRules": {
 		"increaseIndentPattern": "^((?!\\/\\/).)*(\\{[^}\"'`]*|\\([^)\"'`]*|\\[[^\\]\"'`]*)$",
 		"decreaseIndentPattern": "^((?!.*?\\/\\*).*\\*/)?\\s*[\\)\\}\\]].*$"
-	},
-	"onEnterRules": [
-		{
-			"beforeText": "^\b(?:spec)\b\\gm",
-			"afterText": " {",
-			"action": {
-				"indent": "indent"
-			}
-		},
-		{
-			"beforeText": "^\\s*(?:<).*?:\\s*$",
-			"afterText": "type: ",
-			"action": {
-				"indent": "indent"
-			}
-		}
-	]
+	}
 }

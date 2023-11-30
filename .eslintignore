@@ -7,4 +7,4 @@ yarn.lock
 **/*.exe
 **/*.txt
 configmate
-shared
+esbuild.mjs

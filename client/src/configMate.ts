@@ -15,7 +15,7 @@ export class ConfigMateProvider {
 				async (node: SpecFile) => {
 					const response = await this.check(node.filepath);
 					if (!response) return;
-					console.log(response);
+					// console.log(response);
 					const failed = (response.spec_error === null) ? false : true;
 					if (failed) {
 						const { spec_error } = response;

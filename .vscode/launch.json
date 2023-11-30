@@ -13,7 +13,7 @@
             ],
             "sourceMaps": true,
             "outFiles": [
-                "${workspaceRoot}/client/out/**/*.js"
+                "${workspaceRoot}/out/**/*.js"
             ],
             "preLaunchTask": "npm: watch"
         },
@@ -25,7 +25,7 @@
             "restart": false,
             "sourceMaps": true,
             "outFiles": [
-                "${workspaceRoot}/client/out/**/*.js"
+                "${workspaceRoot}/out/**/*.js"
             ],
             "preLaunchTask": "npm: watch"
         },

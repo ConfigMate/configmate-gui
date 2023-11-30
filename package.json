@@ -2,7 +2,7 @@
 	"name": "configmate",
 	"displayName": "ConfigMate",
 	"description": "",
-	"version": "0.2.14",
+	"version": "0.2.18",
 	"publisher": "ConfigMate",
 	"private": true,
 	"license": "MIT",
@@ -16,7 +16,7 @@
 	"engines": {
 		"vscode": "^1.75.0"
 	},
-	"main": "./client/out/main",
+	"main": "./client/out/extension.js",
 	"contributes": {
 		"configuration": {
 			"type": "object",
@@ -174,15 +174,19 @@
 		"fix-eol": "sudo dos2unix ./configmate/scripts/*",
 		"init-api": "npm run clone-api && npm run fix-eol && npm run build-api",
 		"update-api": "rm -f -R configmate && npm run init-api",
+		"kill-api": "sudo fuser -k 10007/tcp",
 		"publish": "vsce publish patch --no-git-tag-version",
 		"package": "vsce package --no-git-tag-version",
-		"vscode:prepublish": "npm run esbuild-base -- --minify",
-		"esbuild-base": "esbuild ./client/src/extension.ts --bundle --outfile=client/out/main.js --external:vscode --format=cjs --platform=node",
-		"esbuild": "npm run esbuild-base -- --sourcemap",
-		"esbuild-watch": "npm run esbuild-base -- --sourcemap --watch=forever",
+		"vscode:prepublish": "npm run esbuild-smol",
+		"esbuild-base": "esbuild ./client/src/extension.ts ./server/src/server.ts --bundle --outdir=out --external:vscode --format=cjs --platform=node",
+		"esbuild-client": "esbuild ./client/src/extension.ts --bundle --outdir=client/out --external:vscode --format=cjs --platform=node",
+		"esbuild-server": "esbuild ./server/src/server.ts --bundle --outdir=server/out --external:vscode --format=cjs --platform=node",
+		"esbuild": "npm run esbuild-client -- --sourcemap && npm run esbuild-server -- --sourcemap",
+		"esbuild-smol": "npm run esbuild-client -- --minify && npm run esbuild-server -- --minify",
+		"esbuild-watch": "npm run esbuild --watch=forever",
 		"test-compile": "tsc -p ./",
-		"compile": "tsc -b ",
-		"watch": "npm run esbuild-watch & npm run compile -- --watch",
+		"compile": "tsc -b ./",
+		"watch": "npm run esbuild-watch",
 		"lint": "eslint ./client/src ./server/src --ext .ts,.tsx",
 		"postinstall": "cd client && npm install && cd ../server && npm install && cd ..",
 		"test": "sh ./scripts/e2e.sh"
