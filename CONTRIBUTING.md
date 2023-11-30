@@ -22,8 +22,7 @@ To be able to compile and run properly, development must occur on a Linux machin
 1. **Clone Language Extension**: `git clone https://github.com/ConfigMate/configmate-gui.git`
 	then, from a terminal in this project root directory:
 2. **Install Dependencies**: `npm install`
-3. **Clone ConfigMate**: `npm run clone-api`
-4. **Build ConfigMate**: `npm run build-api`
+3. **Build ConfigMate**: `npm run build-api`
 
 See the wiki for more information regarding these steps as well as solutions to known errors.
 
