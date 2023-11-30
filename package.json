@@ -169,7 +169,8 @@
 		}
 	},
 	"scripts": {
-		"build-api": "(git clone https://github.com/ConfigMate/configmate.git && cd configmate && make configm)",
+		"clone-api": "(git clone https://github.com/ConfigMate/configmate.git)",
+		"build-api": "(cd configmate && make configm)",
 		"publish": "vsce publish patch --no-git-tag-version",
 		"package": "vsce package --no-git-tag-version",
 		"vscode:prepublish": "npm run esbuild-base -- --minify",
