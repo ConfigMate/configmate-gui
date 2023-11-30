@@ -169,7 +169,7 @@
 		}
 	},
 	"scripts": {
-		"clone-api": "(cd configmate && git clone https://github.com/ConfigMate/configmate.git)",
+		"clone-api": "(git clone https://github.com/ConfigMate/configmate.git)",
 		"build-api": "(cd configmate && make configm)",
 		"publish": "vsce publish patch --no-git-tag-version",
 		"package": "vsce package --no-git-tag-version",
