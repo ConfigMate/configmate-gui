@@ -4,6 +4,7 @@
 	"description": "",
 	"version": "0.2.18",
 	"publisher": "ConfigMate",
+	"icon": "images/logo.png",
 	"private": true,
 	"license": "MIT",
 	"repository": {
@@ -64,13 +65,13 @@
 				{
 					"id": "specFiles",
 					"name": "Specification Files",
-					"icon": "$(book)",
+					"icon": "$(settings)",
 					"contextualTitle": "ConfigMate"
 				},
 				{
 					"id": "configFiles",
 					"name": "Configuration Files",
-					"icon": "$(settings)",
+					"icon": "$(book)",
 					"contextualTitle": "ConfigMate"
 				}
 			]
@@ -90,7 +91,7 @@
 				{
 					"id": "configmate",
 					"title": "ConfigMate",
-					"icon": "$(beaker)"
+					"icon": "$(settings-gear)"
 				}
 			]
 		},
