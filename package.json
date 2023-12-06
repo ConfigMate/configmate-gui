@@ -18,6 +18,9 @@
 		"vscode": "^1.75.0"
 	},
 	"main": "./client/out/extension.js",
+	"activationEvents": [
+		"onStartupFinished"
+	],
 	"contributes": {
 		"configuration": {
 			"type": "object",
